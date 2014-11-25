@@ -1,0 +1,13 @@
+/OUT:lib\win32\libsoem.lib
+.\obj\nicdrv.obj
+.\obj\oshw.obj
+.\obj\ecat.obj 
+.\obj\ethercatbase.obj 
+.\obj\ethercatcoe.obj
+.\obj\ethercatconfig.obj 
+.\obj\ethercatdc.obj
+.\obj\ethercatfoe.obj
+.\obj\ethercatmain.obj
+.\obj\ethercatprint.obj
+.\obj\ethercatsoe.obj
+.\obj\osal.obj

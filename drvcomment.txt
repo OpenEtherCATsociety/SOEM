@@ -1,0 +1,2 @@
+For faster irq response through the NIC/NAPI/Socket layer set for TG3 (at eth0)
+ethtool -C eth0 rx-usecs 0 rx-frames 1 tx-usecs 0 tx-frames 1

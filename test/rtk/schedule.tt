@@ -1,0 +1,14 @@
+stack_size: 2048
+
+tasks:
+ - name  : tReadIO
+   entry : read_io
+   arg   : 'NULL'
+
+schedules:
+ - name   : sched1
+   period : 1
+   events :
+   - task   : tReadIO
+     start  : 0
+     stop   : 1

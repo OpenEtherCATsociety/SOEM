@@ -129,3 +129,32 @@ boolean osal_timer_is_expired (osal_timert * self)
    return is_not_yet_expired == false;
 }
 
+void *osal_malloc(size_t size)
+{
+   return malloc(size);
+}
+
+void osal_free(void *ptr)
+{
+   free(ptr);
+}
+
+int osal_thread_create(void *thandle, int stacksize, void *func, void *param)
+{
+   thandle = task_spawn ("worker", func, 6,stacksize, param);
+   if(!thandle)
+   {
+      return 0;
+   }
+   return 1;
+}
+
+int osal_thread_create_rt(void *thandle, int stacksize, void *func, void *param)
+{
+   thandle = task_spawn ("worker_rt", func, 15 ,stacksize, param);
+   if(!thandle)
+   {
+      return 0;
+   }
+   return 1;
+}

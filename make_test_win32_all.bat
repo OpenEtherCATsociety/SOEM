@@ -23,12 +23,6 @@ MKDIR test\win32\simple_test\obj
 cl.exe @make\cl_simple_test.rsp /errorReport:prompt
 link.exe @make\link_simple_test.rsp /nologo /errorReport:prompt
 
-if EXIST test\win32\status_test\obj goto skip_obj2
-MKDIR test\win32\status_test\obj
-:skip_obj2
-cl.exe @make\cl_status_test.rsp /errorReport:prompt
-link.exe @make\link_status_test.rsp /nologo /errorReport:prompt
-
 if EXIST test\win32\eepromtool\obj goto skip_obj3
 MKDIR test\win32\eepromtool\obj
 :skip_obj3

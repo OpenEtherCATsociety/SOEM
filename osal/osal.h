@@ -14,6 +14,8 @@
  * http://www.rt-labs.com
  * Copyright (C) 2009. rt-labs AB, Sweden. All rights reserved.
  *------------------------------------------------------------------------------
+ * $Id: osal.h 473 2013-04-08 11:43:02Z rtlaka $
+ *------------------------------------------------------------------------------
  */
 
 #ifndef _osal_
@@ -40,7 +42,7 @@ typedef double              float64;
 typedef struct
 {
     uint32 sec;     /*< Seconds elapsed since the Epoch (Jan 1, 1970) */
-    uint32 usec;    /*< Microseconds elapsed since last second boundary */
+    int32 usec;    /*< Microseconds elapsed since last second boundary */
 } ec_timet;
 
 typedef struct osal_timer
@@ -48,7 +50,7 @@ typedef struct osal_timer
     ec_timet stop_time;
 } osal_timert;
 
-void osal_timer_start(osal_timert * self, uint32 timeout_usec);
+void osal_timer_start(osal_timert * self, uint32 timeout_us);
 boolean osal_timer_is_expired(osal_timert * self);
 int osal_usleep(uint32 usec);
 ec_timet osal_current_time(void);

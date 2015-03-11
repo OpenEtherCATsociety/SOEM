@@ -1,7 +1,6 @@
 /OUT:lib\win32\libsoem.lib
 .\obj\nicdrv.obj
 .\obj\oshw.obj
-.\obj\ecat.obj 
 .\obj\ethercatbase.obj 
 .\obj\ethercatcoe.obj
 .\obj\ethercatconfig.obj 

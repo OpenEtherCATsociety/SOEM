@@ -30,5 +30,5 @@ include $(PRJ_ROOT)/make/compilers/gcc.mk
 MACHINE ?= -mthumb-interwork -mlittle-endian -mthumb
 
 # Compiler flags
-CFLAGS  += $(MACHINE)
+CFLAGS  += $(MACHINE) -fshort-wchar
 LDFLAGS += $(MACHINE) -Wl,--no-wchar-size-warning

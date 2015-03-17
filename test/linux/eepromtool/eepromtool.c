@@ -211,7 +211,7 @@ int output_intelhex(char *fname, int length)
 
 int eeprom_read(int slave, int start, int length)
 {
-   int i, wkc, ainc = 4;
+   int i, ainc = 4;
    uint16 estat, aiadr;
    uint32 b4;
    uint64 b8;
@@ -221,13 +221,13 @@ int eeprom_read(int slave, int start, int length)
    {
       aiadr = 1 - slave;
       eepctl = 2;
-      wkc = ec_APWR(aiadr, ECT_REG_EEPCFG, sizeof(eepctl), &eepctl , EC_TIMEOUTRET); /* force Eeprom from PDI */
+      ec_APWR(aiadr, ECT_REG_EEPCFG, sizeof(eepctl), &eepctl , EC_TIMEOUTRET); /* force Eeprom from PDI */
       eepctl = 0;
-      wkc = ec_APWR(aiadr, ECT_REG_EEPCFG, sizeof(eepctl), &eepctl , EC_TIMEOUTRET); /* set Eeprom to master */
+      ec_APWR(aiadr, ECT_REG_EEPCFG, sizeof(eepctl), &eepctl , EC_TIMEOUTRET); /* set Eeprom to master */
 
       estat = 0x0000;
       aiadr = 1 - slave;
-      wkc=ec_APRD(aiadr, ECT_REG_EEPSTAT, sizeof(estat), &estat, EC_TIMEOUTRET); /* read eeprom status */
+      ec_APRD(aiadr, ECT_REG_EEPSTAT, sizeof(estat), &estat, EC_TIMEOUTRET); /* read eeprom status */
       estat = etohs(estat);
       if (estat & EC_ESTAT_R64)
       {
@@ -265,24 +265,23 @@ int eeprom_read(int slave, int start, int length)
 
 int eeprom_write(int slave, int start, int length)
 {
-   int i, wkc, dc = 0;
+   int i, dc = 0;
    uint16 aiadr, *wbuf;
    uint8 eepctl;
-   int ret;
    
    if((ec_slavecount >= slave) && (slave > 0) && ((start + length) <= MAXBUF))
    {
       aiadr = 1 - slave;
       eepctl = 2;
-      wkc = ec_APWR(aiadr, ECT_REG_EEPCFG, sizeof(eepctl), &eepctl , EC_TIMEOUTRET); /* force Eeprom from PDI */
+      ec_APWR(aiadr, ECT_REG_EEPCFG, sizeof(eepctl), &eepctl , EC_TIMEOUTRET); /* force Eeprom from PDI */
       eepctl = 0;
-      wkc = ec_APWR(aiadr, ECT_REG_EEPCFG, sizeof(eepctl), &eepctl , EC_TIMEOUTRET); /* set Eeprom to master */
+      ec_APWR(aiadr, ECT_REG_EEPCFG, sizeof(eepctl), &eepctl , EC_TIMEOUTRET); /* set Eeprom to master */
 
       aiadr = 1 - slave;
       wbuf = (uint16 *)&ebuf[0];
       for (i = start ; i < (start + length) ; i+=2)
       {
-         ret = ec_writeeepromAP(aiadr, i >> 1 , *(wbuf + (i >> 1)), EC_TIMEOUTEEP);
+         ec_writeeepromAP(aiadr, i >> 1 , *(wbuf + (i >> 1)), EC_TIMEOUTEEP);
          if (++dc >= 100)
          {
             dc = 0;
@@ -299,7 +298,6 @@ int eeprom_write(int slave, int start, int length)
 
 int eeprom_writealias(int slave, int alias, uint16 crc)
 {
-   int wkc;
    uint16 aiadr;
    uint8 eepctl;
    int ret;
@@ -308,9 +306,9 @@ int eeprom_writealias(int slave, int alias, uint16 crc)
    {
       aiadr = 1 - slave;
       eepctl = 2;
-      wkc = ec_APWR(aiadr, ECT_REG_EEPCFG, sizeof(eepctl), &eepctl , EC_TIMEOUTRET); /* force Eeprom from PDI */
+      ec_APWR(aiadr, ECT_REG_EEPCFG, sizeof(eepctl), &eepctl , EC_TIMEOUTRET); /* force Eeprom from PDI */
       eepctl = 0;
-      wkc = ec_APWR(aiadr, ECT_REG_EEPCFG, sizeof(eepctl), &eepctl , EC_TIMEOUTRET); /* set Eeprom to master */
+      ec_APWR(aiadr, ECT_REG_EEPCFG, sizeof(eepctl), &eepctl , EC_TIMEOUTRET); /* set Eeprom to master */
 
       ret = ec_writeeepromAP(aiadr, 0x04 , alias, EC_TIMEOUTEEP);
       if (ret)

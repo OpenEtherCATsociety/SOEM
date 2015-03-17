@@ -197,12 +197,10 @@ void ec_sync(int64 reftime, int64 cycletime , int64 *offsettime)
 OSAL_THREAD_FUNC_RT ecatthread(void *ptr)
 {
    struct timespec   ts, tleft;
-   struct timeval    tp;
-   int rc;
    int ht;
    int64 cycletime;
    
-   rc = clock_gettime(CLOCK_MONOTONIC, &ts);
+   clock_gettime(CLOCK_MONOTONIC, &ts);
    ht = (ts.tv_nsec / 1000000) + 1; /* round to nearest ms */
    ts.tv_nsec = ht * 1000000;
    cycletime = *(int*)ptr * 1000; /* cycletime in ns */
@@ -214,7 +212,7 @@ OSAL_THREAD_FUNC_RT ecatthread(void *ptr)
       /* calculate next cycle start */
       add_timespec(&ts, cycletime + toff);
       /* wait to cycle start */
-      rc = clock_nanosleep(CLOCK_MONOTONIC, TIMER_ABSTIME, &ts, &tleft);
+      clock_nanosleep(CLOCK_MONOTONIC, TIMER_ABSTIME, &ts, &tleft);
       if (dorun>0)
       {
          wkc = ec_receive_processdata(EC_TIMEOUTRET);
@@ -313,7 +311,6 @@ OSAL_THREAD_FUNC ecatcheck( void *ptr )
 
 int main(int argc, char *argv[])
 {
-   int iret1, iret2;
    int ctime;
    
    printf("SOEM (Simple Open EtherCAT Master)\nRedundancy test\n");
@@ -324,10 +321,10 @@ int main(int argc, char *argv[])
       ctime = atoi(argv[3]);
 
       /* create RT thread */
-      iret1 = osal_thread_create_rt(&thread1, stack64k * 2, &ecatthread, (void*) &ctime);   
+      osal_thread_create_rt(&thread1, stack64k * 2, &ecatthread, (void*) &ctime);   
 
       /* create thread to handle slave error handling in OP */
-      iret2 = osal_thread_create(&thread2, stack64k * 4, &ecatcheck, NULL);   
+      osal_thread_create(&thread2, stack64k * 4, &ecatcheck, NULL);   
 
       /* start acyclic part */
       redtest(argv[1],argv[2]);

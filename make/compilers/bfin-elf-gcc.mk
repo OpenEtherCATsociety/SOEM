@@ -30,5 +30,5 @@ include $(PRJ_ROOT)/make/compilers/gcc.mk
 MACHINE ?= -mcpu=bf537
 
 # Compiler flags
-CFLAGS  += $(MACHINE)
+CFLAGS  += $(MACHINE) -fshort-wchar
 LDFLAGS += $(MACHINE)

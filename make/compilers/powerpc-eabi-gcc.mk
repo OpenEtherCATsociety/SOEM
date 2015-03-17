@@ -34,6 +34,6 @@ include $(PRJ_ROOT)/make/compilers/gcc.mk
 MACHINE ?= -mbig -mregnames -mcpu=powerpc -mcall-sysv -meabi
 
 # Compiler flags
-CFLAGS  += $(MACHINE)
+CFLAGS  += $(MACHINE) -fshort-wchar
 LDFLAGS += $(MACHINE)
 

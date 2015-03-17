@@ -46,7 +46,7 @@ CC_INC_PATH = $(GCC_PATH)/$(CROSS_GCC)/include
 
 # Compiler flags
 CFLAGS = -Wall -Wextra -Wno-unused-parameter #-Werror
-CFLAGS += -fomit-frame-pointer -fno-strict-aliasing -fshort-wchar
+CFLAGS += -fomit-frame-pointer -fno-strict-aliasing
 CFLAGS += -B$(GCC_PATH)/libexec/gcc
 
 # Compiler C++ flags

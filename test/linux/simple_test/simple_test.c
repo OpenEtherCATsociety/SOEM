@@ -37,7 +37,7 @@ uint8 currentgroup = 0;
 
 void simpletest(char *ifname)
 {
-    int i, j, oloop, iloop, wkc_count, chk;
+    int i, j, oloop, iloop, chk;
     needlf = FALSE;
     inOP = FALSE;
 
@@ -92,7 +92,6 @@ void simpletest(char *ifname)
          if (ec_slave[0].state == EC_STATE_OPERATIONAL )
          {
             printf("Operational state reached for all slaves.\n");
-            wkc_count = 0;
             inOP = TRUE;
                 /* cyclic loop */
             for(i = 1; i <= 10000; i++)
@@ -232,13 +231,12 @@ OSAL_THREAD_FUNC ecatcheck( void *ptr )
 
 int main(int argc, char *argv[])
 {
-    int iret1;
    printf("SOEM (Simple Open EtherCAT Master)\nSimple test\n");
 
    if (argc > 1)
    {      
       /* create thread to handle slave error handling in OP */
-//      iret1 = pthread_create( &thread1, NULL, (void *) &ecatcheck, (void*) &ctime);   
+//      pthread_create( &thread1, NULL, (void *) &ecatcheck, (void*) &ctime);   
       osal_thread_create(&thread1, 128000, &ecatcheck, (void*) &ctime);
       /* start cyclic part */
       simpletest(argv[1]);

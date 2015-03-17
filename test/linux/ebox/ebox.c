@@ -281,14 +281,13 @@ void ecatthread( void *ptr )
 {
    struct timespec   ts;
    struct timeval    tp;
-   int rc;
    int ht;
    int i;
    int pcounter = 0;
    int64 cycletime;
    
-   rc = pthread_mutex_lock(&mutex);
-   rc =  gettimeofday(&tp, NULL);
+   pthread_mutex_lock(&mutex);
+   gettimeofday(&tp, NULL);
 
     /* Convert from timeval to timespec */
    ts.tv_sec  = tp.tv_sec;
@@ -302,10 +301,10 @@ void ecatthread( void *ptr )
       /* calculate next cycle start */
       add_timespec(&ts, cycletime + toff);
       /* wait to cycle start */
-      rc = pthread_cond_timedwait(&cond, &mutex, &ts);
+      pthread_cond_timedwait(&cond, &mutex, &ts);
       if (dorun>0)
       {
-         rc =  gettimeofday(&tp, NULL);
+         gettimeofday(&tp, NULL);
 
          ec_send_processdata();
 
@@ -345,7 +344,6 @@ void ecatthread( void *ptr )
 
 int main(int argc, char *argv[])
 {
-   int iret1;
    int ctime;
    struct sched_param    param;
    int                   policy = SCHED_OTHER;
@@ -371,11 +369,11 @@ int main(int argc, char *argv[])
       else
          ctime = 1000; // 1ms cycle time
       /* create RT thread */
-      iret1 = pthread_create( &thread1, NULL, (void *) &ecatthread, (void*) &ctime);   
+      pthread_create( &thread1, NULL, (void *) &ecatthread, (void*) &ctime);   
       memset(&param, 0, sizeof(param));
       /* give it higher priority */
       param.sched_priority = 40;
-      iret1 = pthread_setschedparam(thread1, policy, &param);
+      pthread_setschedparam(thread1, policy, &param);
 
       /* start acyclic part */
       eboxtest(argv[1]);

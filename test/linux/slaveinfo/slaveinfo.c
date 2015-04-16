@@ -594,11 +594,11 @@ void slaveinfo(char *ifname)
                     ec_slave[cnt].CoEdetails, ec_slave[cnt].FoEdetails, ec_slave[cnt].EoEdetails, ec_slave[cnt].SoEdetails);
             printf(" Ebus current: %d[mA]\n only LRD/LWR:%d\n",
                     ec_slave[cnt].Ebuscurrent, ec_slave[cnt].blockLRW);
-            if ((ec_slave[cnt].mbx_proto & 0x04) && printSDO)
+            if ((ec_slave[cnt].mbx_proto & ECT_MBXPROT_COE) && printSDO)
                     si_sdo(cnt);
                 if(printMAP)
             {
-                    if (ec_slave[cnt].mbx_proto & 0x04)
+                    if (ec_slave[cnt].mbx_proto & ECT_MBXPROT_COE)
                         si_map_sdo(cnt);
                     else
                         si_map_sii(cnt);

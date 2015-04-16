@@ -53,7 +53,7 @@ extern "C"
 {
 #endif
 
-/** max. etries in EtherCAT error list */
+/** max. entries in EtherCAT error list */
 #define EC_MAXELIST       64
 /** max. length of readable name in slavelist and Object Description List */
 #define EC_MAXNAME        40
@@ -197,7 +197,7 @@ typedef struct
    uint16           mbx_proto;
    /** Counter value of mailbox link layer protocol 1..7 */
    uint8            mbx_cnt;
-   /** has DC capabillity */
+   /** has DC capability */
    boolean          hasdc;
    /** Physical type; Ebus, EtherNet combinations */
    uint8            ptype;

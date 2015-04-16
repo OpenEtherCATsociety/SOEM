@@ -43,10 +43,10 @@
  * \brief
  * General typedefs and defines for EtherCAT.
  *
- * Defines that could need optimalisation for specific applications
+ * Defines that could need optimisation for specific applications
  * are the EC_TIMEOUTxxx. Assumptions for the standard settings are a
  * standard linux PC or laptop and a wired connection to maximal 100 slaves.
- * For use with wireless connections or lots of slaves the timouts need
+ * For use with wireless connections or lots of slaves the timeouts need
  * increasing. For fast systems running Xenomai and RT-net or alike the
  * timeouts need to be shorter.
  */
@@ -168,7 +168,7 @@ typedef enum
    EC_ERR_ALREADY_INITIALIZED,
    /** Library not initialized. */
    EC_ERR_NOT_INITIALIZED,
-   /** Timeout occured during execution of the function. */
+   /** Timeout occurred during execution of the function. */
    EC_ERR_TIMEOUT,
    /** No slaves were found. */
    EC_ERR_NO_SLAVES,
@@ -260,7 +260,7 @@ typedef enum
    EC_CMD_FPRW,
    /** Broadcast Read */
    EC_CMD_BRD,
-   /** Broaddcast Write */
+   /** Broadcast Write */
    EC_CMD_BWR,
    /** Broadcast Read Write */
    EC_CMD_BRW,
@@ -270,9 +270,9 @@ typedef enum
    EC_CMD_LWR,
    /** Logical Memory Read Write */
    EC_CMD_LRW,
-   /** Auto Increment Read Mulitple Write */
+   /** Auto Increment Read Multiple Write */
    EC_CMD_ARMW,
-   /** Configured Read Mulitple Write */
+   /** Configured Read Multiple Write */
    EC_CMD_FRMW
    /** Reserved */
 } ec_cmdtype;

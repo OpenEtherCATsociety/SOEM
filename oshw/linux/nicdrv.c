@@ -45,11 +45,11 @@
  *
  * Low level interface functions to send and receive EtherCAT packets.
  * EtherCAT has the property that packets are only send by the master,
- * and the send packets allways return in the receive buffer.
+ * and the send packets always return in the receive buffer.
  * There can be multiple packets "on the wire" before they return.
  * To combine the received packets with the original send packets a buffer
  * system is installed. The identifier is put in the index item of the
- * EtherCAT header. The index is stored and compared when a frame is recieved.
+ * EtherCAT header. The index is stored and compared when a frame is received.
  * If there is a match the packet can be combined with the transmit packet
  * and returned to the higher level function.
  *
@@ -62,7 +62,7 @@
  * OUT port. Packets are send via both interfaces. Any one of the connections
  * (also an interconnect) can be removed and the slaves are still serviced with
  * packets. The software layer will detect the possible failure modes and
- * compensate. If needed the packets from interface A are resend through interface B.
+ * compensate. If needed the packets from interface A are resent through interface B.
  * This layer if fully transparent for the higher layers.
  */
 
@@ -135,7 +135,7 @@ int ecx_setupnic(ecx_portt *port, const char *ifname, int secondary)
    rval = 0;
    if (secondary)
    {
-      /* secondary port stuct available? */
+      /* secondary port struct available? */
       if (port->redport)
       {
          /* when using secondary socket it is automatically a redundant setup */
@@ -227,8 +227,8 @@ int ecx_closenic(ecx_portt *port)
 }
 
 /** Fill buffer with ethernet header structure.
- * Destination MAC is allways broadcast.
- * Ethertype is allways ETH_P_ECAT.
+ * Destination MAC is always broadcast.
+ * Ethertype is always ETH_P_ECAT.
  * @param[out] p = buffer
  */
 void ec_setupheader(void *p)

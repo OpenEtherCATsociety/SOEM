@@ -473,7 +473,7 @@ void ec_pusherror(const ec_errort *Ec);
 boolean ec_poperror(ec_errort *Ec);
 boolean ec_iserror(void);
 void ec_packeterror(uint16 Slave, uint16 Index, uint8 SubIdx, uint16 ErrorCode);
-int ec_init(char * ifname);
+int ec_init(const char * ifname);
 int ec_init_redundant(char *ifname, char *if2name);
 void ec_close(void);
 uint8 ec_siigetbyte(uint16 slave, uint16 address);

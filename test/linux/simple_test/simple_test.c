@@ -11,9 +11,6 @@
 
 #include <stdio.h>
 #include <string.h>
-#include <sys/time.h>
-#include <unistd.h>
-#include <pthread.h>
 
 #include "ethercattype.h"
 #include "nicdrv.h"
@@ -116,7 +113,7 @@ void simpletest(char *ifname)
                         printf(" T:%lld\r",ec_DCtime);
                         needlf = TRUE;
                     }
-                    usleep(5000);
+                    osal_usleep(5000);
                     
                 }
                 inOP = FALSE;
@@ -225,7 +222,7 @@ OSAL_THREAD_FUNC ecatcheck( void *ptr )
             if(!ec_group[currentgroup].docheckstate)
                printf("OK : all slaves resumed OPERATIONAL.\n");
         }
-        usleep(10000);
+        osal_usleep(10000);
     }   
 }   
 

@@ -17,9 +17,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <sys/time.h>
-#include <unistd.h>
-#include <time.h>
 
 #include "ethercattype.h"
 #include "nicdrv.h"
@@ -51,7 +48,7 @@ uint16 ow;
 int os;
 int slave;
 int alias;
-struct timeval tstart,tend, tdif;
+ec_timet tstart,tend, tdif;
 int wkc;
 int mode;
 char sline[MAXSLENGTH];
@@ -341,7 +338,7 @@ void eepromtool(char *ifname, int slave, int mode, char *fname)
          {
             if ((mode == MODE_INFO) || (mode == MODE_READBIN) || (mode == MODE_READINTEL))
             {
-               rc =  gettimeofday(&tstart, NULL);
+               tstart = osal_current_time();
                eeprom_read(slave, 0x0000, MINBUF); // read first 128 bytes
 
                wbuf = (uint16 *)&ebuf[0];
@@ -366,12 +363,12 @@ void eepromtool(char *ifname, int slave, int mode, char *fname)
                if (esize > MINBUF)
                   eeprom_read(slave, MINBUF, esize - MINBUF); // read reminder
 
-               rc =  gettimeofday(&tend, NULL);
-               timersub(&tend, &tstart, &tdif);
+               tend = osal_current_time();
+               osal_time_diff(&tstart, &tend, &tdif);
                if (mode == MODE_READINTEL) output_intelhex(fname, esize);
                if (mode == MODE_READBIN)   output_bin(fname, esize);
 
-               printf("\nTotal EEPROM read time :%ldms\n", (tdif.tv_usec+(tdif.tv_sec*1000000L)) / 1000);
+               printf("\nTotal EEPROM read time :%ldms\n", (tdif.usec+(tdif.sec*1000000L)) / 1000);
             }
             if ((mode == MODE_WRITEBIN) || (mode == MODE_WRITEINTEL))
             {
@@ -390,12 +387,12 @@ void eepromtool(char *ifname, int slave, int mode, char *fname)
 
                   printf("Busy");
                   fflush(stdout);
-                  rc =  gettimeofday(&tstart, NULL);
+                  tstart = osal_current_time();
                   eeprom_write(slave, estart, esize);
-                  rc =  gettimeofday(&tend, NULL);               
-                  timersub(&tend, &tstart, &tdif);
+                  tend = osal_current_time();
+                  osal_time_diff(&tstart, &tend, &tdif);
 
-                  printf("\nTotal EEPROM write time :%ldms\n", (tdif.tv_usec+(tdif.tv_sec*1000000L)) / 1000);
+                  printf("\nTotal EEPROM write time :%ldms\n", (tdif.usec+(tdif.sec*1000000L)) / 1000);
                }
                else
                   printf("Error reading file, abort.\n"); 

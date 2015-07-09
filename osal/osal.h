@@ -42,7 +42,7 @@ typedef double              float64;
 typedef struct
 {
     uint32 sec;     /*< Seconds elapsed since the Epoch (Jan 1, 1970) */
-    int32 usec;    /*< Microseconds elapsed since last second boundary */
+    uint32 usec;    /*< Microseconds elapsed since last second boundary */
 } ec_timet;
 
 typedef struct osal_timer

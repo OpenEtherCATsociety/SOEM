@@ -11,14 +11,15 @@ Windows (Visual Studio)
 -----------------------
 
  * Start a Visual Studio command prompt then:
-   $ mkdir build
-   $ cd build
-   $ cmake .. -G "NMake Makefiles"
-   $ nmake
+   * `mkdir build`
+   * `cd build`
+   * `cmake .. -G "NMake Makefiles"`
+   * `nmake`
 
 Linux
 -----
 
-   $ mkdir build
-   $ cmake ..
-   $ make
+   * `mkdir build`
+   * `cd build`
+   * `cmake ..`
+   * `make`

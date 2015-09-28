@@ -1,2 +1,0 @@
-/c /I "soem" /I "osal" /I "osal\win32" /I "oshw\win32" /I "oshw\win32\wpcap\Include" /ZI /W3 /WX- /Od /Oy- /D "_CRT_SECURE_NO_WARNINGS" /D "WIN32" /D "_DEBUG" /D "_CONSOLE" /D "_UNICODE" /D "UNICODE" /Gm /EHsc /RTC1 /MTd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Fo"test\win32\simple_test\obj\\" /Fd"test\win32\simple_test\vc100.pdb" /Gd /TC /analyze-
-test\win32\simple_test\simple_test.c

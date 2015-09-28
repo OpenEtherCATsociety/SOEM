@@ -420,12 +420,16 @@ int si_siiPDO(uint16 slave, uint8 t, int mapoffset, int bitoffset)
                     PDO->BitSize[PDO->nPDO] += bitlen;
                     a += 2;
 
-                    str_name[0] = 0;
-                    if(obj_name)
-                      ec_siistring(str_name, slave, obj_name);                 
+                    /* skip entry if filler (0x0000:0x00) */
+                    if(obj_idx || obj_subidx)
+                    {
+                       str_name[0] = 0;
+                       if(obj_name)
+                          ec_siistring(str_name, slave, obj_name);
 
-                    printf("  [0x%4.4X.%1d] 0x%4.4X:0x%2.2X 0x%2.2X", abs_offset, abs_bit, obj_idx, obj_subidx, bitlen);
-                    printf(" %-12s %s\n", dtype2string(obj_datatype), str_name);
+                       printf("  [0x%4.4X.%1d] 0x%4.4X:0x%2.2X 0x%2.2X", abs_offset, abs_bit, obj_idx, obj_subidx, bitlen);
+                       printf(" %-12s %s\n", dtype2string(obj_datatype), str_name);
+                    }
                     bitoffset += bitlen;
                     totalsize += bitlen;
                 }
@@ -619,22 +623,34 @@ void slaveinfo(char *ifname)
    }   
 }   
 
+char ifbuf[1024];
+
 int main(int argc, char *argv[])
 {
+   ec_adaptert * adapter = NULL;
    printf("SOEM (Simple Open EtherCAT Master)\nSlaveinfo\n");
-   
+
    if (argc > 1)
-   {      
+   {
       if ((argc > 2) && (strncmp(argv[2], "-sdo", sizeof("-sdo")) == 0)) printSDO = TRUE;
       if ((argc > 2) && (strncmp(argv[2], "-map", sizeof("-map")) == 0)) printMAP = TRUE;
       /* start slaveinfo */
-      slaveinfo(argv[1]);
+      strcpy(ifbuf, argv[1]);
+      slaveinfo(ifbuf);
    }
    else
    {
-        printf("Usage: slaveinfo ifname [options]\nifname = eth0 for example\nOptions :\n -sdo : print SDO info\n -map : print mapping\n");
-   }   
-   
+      printf("Usage: slaveinfo ifname [options]\nifname = eth0 for example\nOptions :\n -sdo : print SDO info\n -map : print mapping\n");
+
+      printf ("Available adapters\n");
+      adapter = ec_find_adapters ();
+      while (adapter != NULL)
+      {
+         printf ("Description : %s, Device to use for wpcap: %s\n", adapter->desc,adapter->name);
+         adapter = adapter->next;
+      }
+   }
+
    printf("End program\n");
    return (0);
 }

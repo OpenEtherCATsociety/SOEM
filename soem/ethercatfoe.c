@@ -360,7 +360,14 @@ int ecx_FOEwrite(ecx_contextt *context, uint16 slave, char *filename, uint32 pas
                   case ECT_FOE_ERROR:
                   {
                      /* FoE error */
-                     wkc = -EC_ERR_TYPE_FOE_ERROR;
+                     if (aFOEp->ErrorCode == 0x8001)
+                     {
+                        wkc = -EC_ERR_TYPE_FOE_FILE_NOTFOUND;
+                     }
+                     else
+                     {
+                        wkc = -EC_ERR_TYPE_FOE_ERROR;
+                     }
                      break;
                   }
                   default:

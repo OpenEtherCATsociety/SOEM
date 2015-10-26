@@ -1798,6 +1798,7 @@ int ecx_receive_processdata_group(ecx_contextt *context, uint8 group, int timeou
    int pos, idx;
    int wkc = 0, wkc2;
    uint16 le_wkc = 0;
+   int valid_wkc = 0;
    int64 le_DCtime;
    boolean first = FALSE;
 
@@ -1832,6 +1833,7 @@ int ecx_receive_processdata_group(ecx_contextt *context, uint8 group, int timeou
                memcpy(context->idxstack->data[pos], &(context->port->rxbuf[idx][EC_HEADERSIZE]), context->idxstack->length[pos]);
                wkc += wkc2;
             }
+            valid_wkc = 1;
          }
          else if(context->port->rxbuf[idx][EC_CMDOFFSET]==EC_CMD_LWR)
          {
@@ -1849,6 +1851,7 @@ int ecx_receive_processdata_group(ecx_contextt *context, uint8 group, int timeou
                /* output WKC counts 2 times when using LRW, emulate the same for LWR */
                wkc += wkc2 * 2;
             }
+            valid_wkc = 1;
          }
       }
       /* release buffer */
@@ -1857,6 +1860,11 @@ int ecx_receive_processdata_group(ecx_contextt *context, uint8 group, int timeou
       pos = ecx_pullindex(context);
    }
 
+   /* if no frames has arrived */
+   if (valid_wkc == 0)
+   {
+      return EC_NOFRAME;
+   }
    return wkc;
 }
 

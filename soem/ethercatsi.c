@@ -1,35 +1,55 @@
-/** \file
- * \brief Example code for Simple Open EtherCAT master
+/*
+ * Simple Open EtherCAT Master Library
  *
- * Usage : slaveinfo [ifname] [-sdo] [-map]
- * Ifname is NIC interface, f.e. eth0.
- * Optional -sdo to display CoE object dictionary.
- * Optional -map to display slave PDO mapping
+ * File    : ethercatsi.c
+ * Version : 1.3.1
+ * Date    : 2015-04-16
+ * Copyright (C) 2005-2015 Speciaal Machinefabriek Ketels v.o.f.
+ * Copyright (C) 2005-2015 Arthur Ketels
+ * Copyright (C) 2008-2009 TU/e Technische Universiteit Eindhoven
+ * Copyright (C) 2014-2015 rt-labs AB , Sweden
  *
- * This shows the configured slave data.
+ * SOEM is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU General Public License version 2 as published by the Free
+ * Software Foundation.
  *
- * (c)Arthur Ketels 2010 - 2011
+ * SOEM is distributed in the hope that it will be useful, but WITHOUT ANY
+ * WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ * for more details.
+ *
+ * As a special exception, if other files instantiate templates or use macros
+ * or inline functions from this file, or you compile this file and link it
+ * with other works to produce a work based on this file, this file does not
+ * by itself cause the resulting work to be covered by the GNU General Public
+ * License. However the source code for this file must still be made available
+ * in accordance with section (3) of the GNU General Public License.
+ *
+ * This exception does not invalidate any other reasons why a work based on
+ * this file might be covered by the GNU General Public License.
+ *
+ * The EtherCAT Technology, the trade name and logo “EtherCAT” are the intellectual
+ * property of, and protected by Beckhoff Automation GmbH. You can use SOEM for
+ * the sole purpose of creating, using and/or selling or otherwise distributing
+ * an EtherCAT network master provided that an EtherCAT Master License is obtained
+ * from Beckhoff Automation GmbH.
+ *
+ * In case you did not receive a copy of the EtherCAT Master License along with
+ * SOEM write to Beckhoff Automation GmbH, Eiserstraße 5, D-33415 Verl, Germany
+ * (www.beckhoff.com).
  */
 
-#include <stdio.h>
-#include <string.h>
+/**
+ * \file
+ * \brief
+ * Main EtherCAT slave info functions.
+ *
+ */
+#include "ethercatsi.h"
 
-#include "ethercattype.h"
-#include "nicdrv.h"
-#include "ethercatbase.h"
-#include "ethercatmain.h"
-#include "ethercatconfig.h"
-#include "ethercatcoe.h"
-#include "ethercatdc.h"
-#include "ethercatprint.h"
-
-char IOmap[4096];
+char hstr[1024];
 ec_ODlistt ODlist;
 ec_OElistt OElist;
-boolean printSDO = FALSE;
-boolean printMAP = FALSE;
-char usdo[128];
-char hstr[1024];
 
 char* dtype2string(uint16 dtype)
 {
@@ -108,10 +128,12 @@ char* dtype2string(uint16 dtype)
             sprintf(hstr, "Type 0x%4.4X", dtype);
     }
     return hstr;
-}               
+}
 
 char* SDO2string(uint16 slave, uint16 index, uint8 subidx, uint16 dtype)
 {
+   char usdo[128];
+
    int l = sizeof(usdo) - 1, i;
    uint8 *u8;
    int8 *i8;
@@ -283,7 +305,7 @@ int si_PDOassign(uint16 slave, uint16 PDOassign, int mapoffset, int bitoffset)
     return bsize;
 }
 
-int si_map_sdo(int slave)
+int si_map_sdo(int slave, uint8_t* IOmap)
 {
     int wkc, rdl;
     int retVal = 0;
@@ -326,14 +348,14 @@ int si_map_sdo(int slave)
                 {
                     /* read the assign RXPDO */
                     printf("  SM%1d outputs\n     addr b   index: sub bitl data_type    name\n", iSM);
-                    Tsize = si_PDOassign(slave, ECT_SDO_PDOASSIGN + iSM, (int)(ec_slave[slave].outputs - (uint8 *)&IOmap[0]), outputs_bo );
+                    Tsize = si_PDOassign(slave, ECT_SDO_PDOASSIGN + iSM, (int)(ec_slave[slave].outputs - IOmap), outputs_bo );
                     outputs_bo += Tsize;
                 }   
                 if (tSM == 4) // inputs
                 {
                     /* read the assign TXPDO */
                     printf("  SM%1d inputs\n     addr b   index: sub bitl data_type    name\n", iSM);
-                    Tsize = si_PDOassign(slave, ECT_SDO_PDOASSIGN + iSM, (int)(ec_slave[slave].inputs - (uint8 *)&IOmap[0]), inputs_bo );
+                    Tsize = si_PDOassign(slave, ECT_SDO_PDOASSIGN + iSM, (int)(ec_slave[slave].inputs - IOmap), inputs_bo );
                     inputs_bo += Tsize;
                 }   
             }   
@@ -447,8 +469,7 @@ int si_siiPDO(uint16 slave, uint8 t, int mapoffset, int bitoffset)
     return totalsize;
 }
 
-
-int si_map_sii(int slave)
+int si_map_sii(int slave, uint8_t* IOmap)
 {
     int retVal = 0;
     int Tsize, outputs_bo, inputs_bo;
@@ -458,10 +479,23 @@ int si_map_sii(int slave)
     outputs_bo = 0;
     inputs_bo = 0;
     /* read the assign RXPDOs */
-    Tsize = si_siiPDO(slave, 1, (int)(ec_slave[slave].outputs - (uint8*)&IOmap), outputs_bo );
+    printf("si_map_sii: slave: %d\n", slave);
+    printf("si_map_sii: ec_slave[slave].outputs: %p\n", ec_slave[slave].outputs);
+    printf("si_map_sii: IOmap: %p\n", IOmap);
+    printf("si_map_sii: outputs_bo: %d\n", outputs_bo);
+
+    Tsize = si_siiPDO(slave, 1, (int)(ec_slave[slave].outputs - (uint8_t*)IOmap), outputs_bo );
     outputs_bo += Tsize;
+
+
     /* read the assign TXPDOs */
-    Tsize = si_siiPDO(slave, 0, (int)(ec_slave[slave].inputs - (uint8*)&IOmap), inputs_bo );
+    printf("si_map_sii: slave: %d\n", slave);
+    printf("si_map_sii: ec_slave[slave].inputs: %p\n", ec_slave[slave].inputs);
+    printf("si_map_sii: IOmap: %p\n", IOmap);
+    printf("si_map_sii: inputs_bo: %d\n", inputs_bo);
+
+
+    Tsize = si_siiPDO(slave, 0, (int)(ec_slave[slave].inputs - (uint8_t*)IOmap), inputs_bo );
     inputs_bo += Tsize;
     /* found some I/O bits ? */
     if ((outputs_bo > 0) || (inputs_bo > 0))
@@ -507,146 +541,4 @@ void si_sdo(int cnt)
     }
 }
 
-void slaveinfo(char *ifname)
-{
-   int cnt, i, j, nSM;
-    uint16 ssigen;
-    int expectedWKC;
-   
-   printf("Starting slaveinfo\n");
-   
-   /* initialise SOEM, bind socket to ifname */
-   if (ec_init(ifname))
-   {   
-      printf("ec_init on %s succeeded.\n",ifname);
-      /* find and auto-config slaves */
-      if ( ec_config(FALSE, &IOmap) > 0 )
-      {
-         ec_configdc();
-         while(EcatError) printf("%s", ec_elist2string());
-         printf("%d slaves found and configured.\n",ec_slavecount);
-         expectedWKC = (ec_group[0].outputsWKC * 2) + ec_group[0].inputsWKC;         
-         printf("Calculated workcounter %d\n", expectedWKC);
-         /* wait for all slaves to reach SAFE_OP state */
-         ec_statecheck(0, EC_STATE_SAFE_OP,  EC_TIMEOUTSTATE * 3);
-         if (ec_slave[0].state != EC_STATE_SAFE_OP )
-         {
-            printf("Not all slaves reached safe operational state.\n");
-            ec_readstate();
-            for(i = 1; i<=ec_slavecount ; i++)
-            {
-               if(ec_slave[i].state != EC_STATE_SAFE_OP)
-               {
-                  printf("Slave %d State=%2x StatusCode=%4x : %s\n",
-                     i, ec_slave[i].state, ec_slave[i].ALstatuscode, ec_ALstatuscode2string(ec_slave[i].ALstatuscode));
-               }
-            }
-         }
-         
-         
-         ec_readstate();
-         for( cnt = 1 ; cnt <= ec_slavecount ; cnt++)
-         {
-            printf("\nSlave:%d\n Name:%s\n Output size: %dbits\n Input size: %dbits\n State: %d\n Delay: %d[ns]\n Has DC: %d\n",
-                  cnt, ec_slave[cnt].name, ec_slave[cnt].Obits, ec_slave[cnt].Ibits,
-                  ec_slave[cnt].state, ec_slave[cnt].pdelay, ec_slave[cnt].hasdc);
-            if (ec_slave[cnt].hasdc) printf(" DCParentport:%d\n", ec_slave[cnt].parentport);
-            printf(" Activeports:%d.%d.%d.%d\n", (ec_slave[cnt].activeports & 0x01) > 0 ,
-                                         (ec_slave[cnt].activeports & 0x02) > 0 , 
-                                         (ec_slave[cnt].activeports & 0x04) > 0 , 
-                                         (ec_slave[cnt].activeports & 0x08) > 0 );
-            printf(" Configured address: %4.4x\n", ec_slave[cnt].configadr);
-            printf(" Man: %8.8x ID: %8.8x Rev: %8.8x\n", (int)ec_slave[cnt].eep_man, (int)ec_slave[cnt].eep_id, (int)ec_slave[cnt].eep_rev);
-            for(nSM = 0 ; nSM < EC_MAXSM ; nSM++)
-            {
-               if(ec_slave[cnt].SM[nSM].StartAddr > 0)
-                  printf(" SM%1d A:%4.4x L:%4d F:%8.8x Type:%d\n",nSM, ec_slave[cnt].SM[nSM].StartAddr, ec_slave[cnt].SM[nSM].SMlength,
-                         (int)ec_slave[cnt].SM[nSM].SMflags, ec_slave[cnt].SMtype[nSM]);
-            }
-            for(j = 0 ; j < ec_slave[cnt].FMMUunused ; j++)
-            {
-               printf(" FMMU%1d Ls:%8.8x Ll:%4d Lsb:%d Leb:%d Ps:%4.4x Psb:%d Ty:%2.2x Act:%2.2x\n", j,
-                       (int)ec_slave[cnt].FMMU[j].LogStart, ec_slave[cnt].FMMU[j].LogLength, ec_slave[cnt].FMMU[j].LogStartbit,
-                       ec_slave[cnt].FMMU[j].LogEndbit, ec_slave[cnt].FMMU[j].PhysStart, ec_slave[cnt].FMMU[j].PhysStartBit,
-                       ec_slave[cnt].FMMU[j].FMMUtype, ec_slave[cnt].FMMU[j].FMMUactive);
-            }
-            printf(" FMMUfunc 0:%d 1:%d 2:%d 3:%d\n",
-                     ec_slave[cnt].FMMU0func, ec_slave[cnt].FMMU2func, ec_slave[cnt].FMMU2func, ec_slave[cnt].FMMU3func);
-            printf(" MBX length wr: %d rd: %d MBX protocols : %2.2x\n", ec_slave[cnt].mbx_l, ec_slave[cnt].mbx_rl, ec_slave[cnt].mbx_proto);
-            ssigen = ec_siifind(cnt, ECT_SII_GENERAL);
-            /* SII general section */
-            if (ssigen)
-            {
-               ec_slave[cnt].CoEdetails = ec_siigetbyte(cnt, ssigen + 0x07);
-               ec_slave[cnt].FoEdetails = ec_siigetbyte(cnt, ssigen + 0x08);
-               ec_slave[cnt].EoEdetails = ec_siigetbyte(cnt, ssigen + 0x09);
-               ec_slave[cnt].SoEdetails = ec_siigetbyte(cnt, ssigen + 0x0a);
-               if((ec_siigetbyte(cnt, ssigen + 0x0d) & 0x02) > 0)
-               {
-                  ec_slave[cnt].blockLRW = 1;
-                  ec_slave[0].blockLRW++;                  
-               }   
-               ec_slave[cnt].Ebuscurrent = ec_siigetbyte(cnt, ssigen + 0x0e);
-               ec_slave[cnt].Ebuscurrent += ec_siigetbyte(cnt, ssigen + 0x0f) << 8;
-               ec_slave[0].Ebuscurrent += ec_slave[cnt].Ebuscurrent;
-            }
-            printf(" CoE details: %2.2x FoE details: %2.2x EoE details: %2.2x SoE details: %2.2x\n",
-                    ec_slave[cnt].CoEdetails, ec_slave[cnt].FoEdetails, ec_slave[cnt].EoEdetails, ec_slave[cnt].SoEdetails);
-            printf(" Ebus current: %d[mA]\n only LRD/LWR:%d\n",
-                    ec_slave[cnt].Ebuscurrent, ec_slave[cnt].blockLRW);
-            if ((ec_slave[cnt].mbx_proto & ECT_MBXPROT_COE) && printSDO)
-                    si_sdo(cnt);
-                if(printMAP)
-            {
-                    if (ec_slave[cnt].mbx_proto & ECT_MBXPROT_COE)
-                        si_map_sdo(cnt);
-                    else
-                        si_map_sii(cnt);
-            }   
-         }   
-      }
-      else
-      {
-         printf("No slaves found!\n");
-      }
-      printf("End slaveinfo, close socket\n");
-      /* stop SOEM, close socket */
-      ec_close();
-   }
-   else
-   {
-      printf("No socket connection on %s\nExcecute as root\n",ifname);
-   }   
-}   
 
-char ifbuf[1024];
-
-int main(int argc, char *argv[])
-{
-   ec_adaptert * adapter = NULL;
-   printf("SOEM (Simple Open EtherCAT Master)\nSlaveinfo\n");
-   
-   if (argc > 1)
-   {      
-      if ((argc > 2) && (strncmp(argv[2], "-sdo", sizeof("-sdo")) == 0)) printSDO = TRUE;
-      if ((argc > 2) && (strncmp(argv[2], "-map", sizeof("-map")) == 0)) printMAP = TRUE;
-      /* start slaveinfo */
-      strcpy(ifbuf, argv[1]);
-      slaveinfo(ifbuf);
-   }
-   else
-   {
-      printf("Usage: slaveinfo ifname [options]\nifname = eth0 for example\nOptions :\n -sdo : print SDO info\n -map : print mapping\n");
-   	/* Print the list */
-      printf ("Available adapters\n");
-      adapter = ec_find_adapters ();
-      while (adapter != NULL)
-      {
-         printf ("Description : %s, Device to use for wpcap: %s\n", adapter->desc,adapter->name);
-         adapter = adapter->next;
-      }
-   }   
-   
-   printf("End program\n");
-   return (0);
-}

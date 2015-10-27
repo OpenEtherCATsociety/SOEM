@@ -1900,7 +1900,7 @@ void ec_packeterror(uint16 Slave, uint16 Index, uint8 SubIdx, uint16 ErrorCode)
    ecx_packeterror(&ecx_context, Slave, Index, SubIdx, ErrorCode);
 }
 
-int ec_init(char * ifname)
+int ec_init(const char * ifname)
 {
    return ecx_init(&ecx_context, ifname);
 }

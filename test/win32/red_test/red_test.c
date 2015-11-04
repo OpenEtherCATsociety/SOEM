@@ -7,7 +7,7 @@
  *
  * This is a redundancy test.
  *
- * (c)Arthur Ketels 2008 
+ * (c)Arthur Ketels 2008
  */
 
 #include <stdio.h>
@@ -50,12 +50,12 @@ int wcounter;
 void redtest(char *ifname, char *ifname2)
 {
    int cnt, i, j, oloop, iloop;
-   
+
    printf("Starting Redundant test\n");
-   
+
    /* initialise SOEM, bind socket to ifname */
    if (ec_init_redundant(ifname, ifname2))
-   {   
+   {
       printf("ec_init on %s succeeded.\n",ifname);
       /* find and auto-config slaves */
       if ( ec_config(FALSE, &IOmap) > 0 )
@@ -63,10 +63,10 @@ void redtest(char *ifname, char *ifname2)
          printf("%d slaves found and configured.\n",ec_slavecount);
          /* wait for all slaves to reach SAFE_OP state */
          ec_statecheck(0, EC_STATE_SAFE_OP,  EC_TIMEOUTSTATE);
-         
+
          /* configure DC options for every DC capable slave found in the list */
          ec_configdc();
-                  
+
          /* read indevidual slave state and store in ec_slave[] */
          ec_readstate();
          for(cnt = 1; cnt <= ec_slavecount ; cnt++)
@@ -80,7 +80,7 @@ void redtest(char *ifname, char *ifname2)
             if( !digout && ((ec_slave[cnt].eep_id == 0x07d43052) || (ec_slave[cnt].eep_id == 0x07d83052)))
             {
                digout = ec_slave[cnt].outputs;
-            }   
+            }
          }
          printf("Request operational state for all slaves\n");
          ec_slave[0].state = EC_STATE_OPERATIONAL;
@@ -110,7 +110,7 @@ void redtest(char *ifname, char *ifname2)
                for(j = 0 ; j < iloop; j++)
                {
                   printf(" %2.2x", *(ec_slave[0].inputs + j));
-               }   
+               }
                printf("\n");
                usleep(20000);
             }
@@ -119,7 +119,7 @@ void redtest(char *ifname, char *ifname2)
          else
          {
             printf("Not all slaves reached operational state.\n");
-         }         
+         }
          printf("Request safe operational state for all slaves\n");
          ec_slave[0].state = EC_STATE_SAFE_OP;
          /* request SAFE_OP state for all slaves */
@@ -136,25 +136,25 @@ void redtest(char *ifname, char *ifname2)
    else
    {
       printf("No socket connection on %s\nExcecute as root\n",ifname);
-   }   
-}   
+   }
+}
 
 /* add ns to timespec */
 void add_timespec(struct timespec *ts, int64 addtime)
 {
    int64 sec, nsec;
-   
+
    nsec = addtime % NSEC_PER_SEC;
    sec = (addtime - nsec) / NSEC_PER_SEC;
    ts->tv_sec += sec;
    ts->tv_nsec += nsec;
-   if ( ts->tv_nsec > NSEC_PER_SEC ) 
-   { 
+   if ( ts->tv_nsec > NSEC_PER_SEC )
+   {
       nsec = ts->tv_nsec % NSEC_PER_SEC;
       ts->tv_sec += (ts->tv_nsec - nsec) / NSEC_PER_SEC;
       ts->tv_nsec = nsec;
-   }   
-}   
+   }
+}
 
 /* PI calculation to get linux time synced to DC time */
 void ec_sync(int64 reftime, int64 cycletime , int64 *offsettime)
@@ -167,7 +167,7 @@ void ec_sync(int64 reftime, int64 cycletime , int64 *offsettime)
    if(delta>0){ integral++; }
    if(delta<0){ integral--; }
    *offsettime = -(delta / 100) - (integral / 20);
-}   
+}
 
 /* RT EtherCAT thread */
 void ecatthread( void *ptr )
@@ -177,7 +177,7 @@ void ecatthread( void *ptr )
    int rc;
    int ht;
    int64 cycletime;
-   
+
    rc = pthread_mutex_lock(&mutex);
    rc =  gettimeofday(&tp, NULL);
 
@@ -189,7 +189,7 @@ void ecatthread( void *ptr )
    toff = 0;
    dorun = 0;
    while(1)
-   {   
+   {
       /* calculate next cycle start */
       add_timespec(&ts, cycletime + toff);
       /* wait to cycle start */
@@ -199,20 +199,20 @@ void ecatthread( void *ptr )
          rc =  gettimeofday(&tp, NULL);
 
          ec_send_processdata();
-         
+
          wcounter = ec_receive_processdata(EC_TIMEOUTRET);
-         
+
          dorun++;
          /* if we have some digital output, cycle */
-         if( digout ) *digout = (uint8) ((dorun / 16) & 0xff); 
-         
+         if( digout ) *digout = (uint8) ((dorun / 16) & 0xff);
+
          if (ec_slave[0].hasdc)
-         {   
+         {
             /* calulate toff to get linux time and DC synced */
             ec_sync(ec_DCtime, cycletime, &toff);
-         }   
-      }   
-   }    
+         }
+      }
+   }
 }
 
 int main(int argc, char *argv[])
@@ -221,9 +221,9 @@ int main(int argc, char *argv[])
    int ctime;
    struct sched_param    param;
    int                   policy = SCHED_OTHER;
-   
+
    printf("SOEM (Simple Open EtherCAT Master)\nRedundancy test\n");
-   
+
    memset(&schedp, 0, sizeof(schedp));
    /* do not set priority above 49, otherwise sockets are starved */
    schedp.sched_priority = 30;
@@ -234,13 +234,13 @@ int main(int argc, char *argv[])
       usleep(1000);
    }
    while (dorun);
-   
+
    if (argc > 3)
-   {      
+   {
       dorun = 1;
       ctime = atoi(argv[3]);
       /* create RT thread */
-      iret1 = pthread_create( &thread1, NULL, (void *) &ecatthread, (void*) &ctime);   
+      iret1 = pthread_create( &thread1, NULL, (void *) &ecatthread, (void*) &ctime);
       memset(&param, 0, sizeof(param));
       /* give it higher priority */
       param.sched_priority = 40;
@@ -252,8 +252,8 @@ int main(int argc, char *argv[])
    else
    {
       printf("Usage: red_test ifname1 ifname2 cycletime\nifname = eth0 for example\ncycletime in us\n");
-   }   
-   
+   }
+
    schedp.sched_priority = 0;
    sched_setscheduler(0, SCHED_OTHER, &schedp);
 

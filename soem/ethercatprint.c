@@ -1,5 +1,5 @@
 /*
- * Simple Open EtherCAT Master Library 
+ * Simple Open EtherCAT Master Library
  *
  * File    : ethercatprint.c
  * Version : 1.3.1
@@ -239,7 +239,7 @@ const ec_soeerrorlist_t ec_soeerrorlist[] = {
    {0x800A, "No element addressed" },
    {0xffff, "Unknown" }
 };
-   
+
 /** MBX error list definition */
 const ec_mbxerrorlist_t ec_mbxerrorlist[] = {
    {0x0000, "No error" },
@@ -264,11 +264,11 @@ const char* ec_sdoerror2string( uint32 sdoerrorcode)
    int i = 0;
 
    while ( (ec_sdoerrorlist[i].errorcode != 0xffffffffUL) &&
-           (ec_sdoerrorlist[i].errorcode != sdoerrorcode) ) 
+           (ec_sdoerrorlist[i].errorcode != sdoerrorcode) )
    {
       i++;
    }
-   
+
    return ec_sdoerrorlist[i].errordescription;
 }
 
@@ -281,12 +281,12 @@ char* ec_ALstatuscode2string( uint16 ALstatuscode)
 {
    int i = 0;
 
-   while ( (ec_ALstatuscodelist[i].ALstatuscode != 0xffff) && 
-           (ec_ALstatuscodelist[i].ALstatuscode != ALstatuscode) ) 
+   while ( (ec_ALstatuscodelist[i].ALstatuscode != 0xffff) &&
+           (ec_ALstatuscodelist[i].ALstatuscode != ALstatuscode) )
    {
       i++;
    }
-   
+
    return (char *) ec_ALstatuscodelist[i].ALstatuscodedescription;
 }
 
@@ -299,12 +299,12 @@ char* ec_soeerror2string( uint16 errorcode)
 {
    int i = 0;
 
-   while ( (ec_soeerrorlist[i].errorcode != 0xffff) && 
-           (ec_soeerrorlist[i].errorcode != errorcode) ) 
+   while ( (ec_soeerrorlist[i].errorcode != 0xffff) &&
+           (ec_soeerrorlist[i].errorcode != errorcode) )
    {
       i++;
    }
-   
+
    return (char *) ec_soeerrorlist[i].errordescription;
 }
 
@@ -317,12 +317,12 @@ char* ec_mbxerror2string( uint16 errorcode)
 {
    int i = 0;
 
-   while ( (ec_mbxerrorlist[i].errorcode != 0xffff) && 
-           (ec_mbxerrorlist[i].errorcode != errorcode) ) 
+   while ( (ec_mbxerrorlist[i].errorcode != 0xffff) &&
+           (ec_mbxerrorlist[i].errorcode != errorcode) )
    {
       i++;
    }
-    
+
    return (char *) ec_mbxerrorlist[i].errordescription;
 }
 
@@ -335,7 +335,7 @@ char* ecx_elist2string(ecx_contextt *context)
 {
    ec_errort Ec;
    char timestr[20];
-   
+
    if (ecx_poperror(context, &Ec))
    {
       sprintf(timestr, "Time:%12.3f", Ec.Time.sec + (Ec.Time.usec / 1000000.0) );
@@ -343,50 +343,50 @@ char* ecx_elist2string(ecx_contextt *context)
       {
          case EC_ERR_TYPE_SDO_ERROR:
          {
-            sprintf(estring, "%s SDO slave:%d index:%4.4x.%2.2x error:%8.8x %s\n", 
+            sprintf(estring, "%s SDO slave:%d index:%4.4x.%2.2x error:%8.8x %s\n",
                     timestr, Ec.Slave, Ec.Index, Ec.SubIdx, (unsigned)Ec.AbortCode, ec_sdoerror2string(Ec.AbortCode));
             break;
          }
          case EC_ERR_TYPE_EMERGENCY:
-         {   
-            sprintf(estring, "%s EMERGENCY slave:%d error:%4.4x\n", 
-                    timestr, Ec.Slave, Ec.ErrorCode);            
+         {
+            sprintf(estring, "%s EMERGENCY slave:%d error:%4.4x\n",
+                    timestr, Ec.Slave, Ec.ErrorCode);
             break;
          }
          case EC_ERR_TYPE_PACKET_ERROR:
          {
-            sprintf(estring, "%s PACKET slave:%d index:%4.4x.%2.2x error:%d\n", 
-                    timestr, Ec.Slave, Ec.Index, Ec.SubIdx, Ec.ErrorCode);            
+            sprintf(estring, "%s PACKET slave:%d index:%4.4x.%2.2x error:%d\n",
+                    timestr, Ec.Slave, Ec.Index, Ec.SubIdx, Ec.ErrorCode);
             break;
          }
          case EC_ERR_TYPE_SDOINFO_ERROR:
-         {   
-            sprintf(estring, "%s SDO slave:%d index:%4.4x.%2.2x error:%8.8x %s\n", 
+         {
+            sprintf(estring, "%s SDO slave:%d index:%4.4x.%2.2x error:%8.8x %s\n",
                     timestr, Ec.Slave, Ec.Index, Ec.SubIdx, (unsigned)Ec.AbortCode, ec_sdoerror2string(Ec.AbortCode));
             break;
          }
          case EC_ERR_TYPE_SOE_ERROR:
-         {   
-            sprintf(estring, "%s SoE slave:%d IDN:%4.4x error:%4.4x %s\n", 
+         {
+            sprintf(estring, "%s SoE slave:%d IDN:%4.4x error:%4.4x %s\n",
                     timestr, Ec.Slave, Ec.Index, (unsigned)Ec.AbortCode, ec_soeerror2string(Ec.ErrorCode));
             break;
          }
          case EC_ERR_TYPE_MBX_ERROR:
          {
-            sprintf(estring, "%s MBX slave:%d error:%4.4x %s\n", 
-                    timestr, Ec.Slave, Ec.ErrorCode, ec_mbxerror2string(Ec.ErrorCode));             
+            sprintf(estring, "%s MBX slave:%d error:%4.4x %s\n",
+                    timestr, Ec.Slave, Ec.ErrorCode, ec_mbxerror2string(Ec.ErrorCode));
             break;
          }
          default:
          {
-            sprintf(estring, "%s error:%8.8x\n", 
+            sprintf(estring, "%s error:%8.8x\n",
                     timestr, (unsigned)Ec.AbortCode);
             break;
          }
       }
       return (char*) estring;
    }
-   else 
+   else
    {
       return "";
    }

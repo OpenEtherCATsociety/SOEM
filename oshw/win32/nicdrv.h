@@ -1,5 +1,5 @@
 /*
- * Simple Open EtherCAT Master Library 
+ * Simple Open EtherCAT Master Library
  *
  * File    : nicdrv.h
  * Version : 1.3.1
@@ -39,9 +39,9 @@
  * (www.beckhoff.com).
  */
 
-/** \file 
+/** \file
  * \brief
- * Headerfile for nicdrv.c 
+ * Headerfile for nicdrv.c
  */
 
 #ifndef _nicdrvh_
@@ -74,7 +74,7 @@ typedef struct
    int         (*rxbufstat)[EC_MAXBUF];
    /** received MAC source address (middle word) */
    int         (*rxsa)[EC_MAXBUF];
-} ec_stackT;   
+} ec_stackT;
 
 /** pointer structure to buffers for redundant port */
 typedef struct
@@ -119,7 +119,7 @@ typedef struct
    /** current redundancy state */
    int redstate;
    /** pointer to redundancy port and buffers */
-   ecx_redportt *redport;   
+   ecx_redportt *redport;
    CRITICAL_SECTION getindex_mutex;
    CRITICAL_SECTION tx_mutex;
    CRITICAL_SECTION rx_mutex;

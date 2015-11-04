@@ -1,5 +1,5 @@
 /*
- * Simple Open EtherCAT Master Library 
+ * Simple Open EtherCAT Master Library
  *
  * File    : ethercatsoe.c
  * Version : 1.3.1
@@ -69,7 +69,7 @@ typedef struct PACKED
    {
       uint16     idn;
       uint16     fragmentsleft;
-   };   
+   };
 } ec_SoEt;
 PACKED_END
 
@@ -96,7 +96,7 @@ void ecx_SoEerror(ecx_contextt *context, uint16 Slave, uint16 idn, uint16 Error)
 }
 
 /** SoE read, blocking.
- * 
+ *
  * The IDN object of the selected slave and DriveNo is read. If a response
  * is larger than the mailbox size then the response is segmented. The function
  * will combine all segments and copy them to the parameter buffer.
@@ -151,7 +151,7 @@ int ecx_SoEread(ecx_contextt *context, uint16 slave, uint8 driveNo, uint8 elemen
    if (wkc > 0) /* succeeded to place mailbox in slave ? */
    {
       while (NotLast)
-      {   
+      {
          /* clean mailboxbuffer */
          ec_clearmbx(&MbxIn);
          /* read slave response */
@@ -181,14 +181,14 @@ int ecx_SoEread(ecx_contextt *context, uint16 slave, uint8 driveNo, uint8 elemen
                   totalsize = *psize;
                   /* copy parameter data in parameter buffer */
                   if (framedatasize > 0) memcpy(bp, mp, framedatasize);
-               }   
+               }
 
-               if (!aSoEp->incomplete)   
+               if (!aSoEp->incomplete)
                {
                   NotLast = FALSE;
                   *psize = totalsize;
-               }   
-            }   
+               }
+            }
             /* other slave response */
             else
             {
@@ -212,14 +212,14 @@ int ecx_SoEread(ecx_contextt *context, uint16 slave, uint8 driveNo, uint8 elemen
          {
             NotLast = FALSE;
             ecx_packeterror(context, slave, idn, 0, 4); /* no response */
-         }   
-      }   
+         }
+      }
    }
    return wkc;
 }
 
 /** SoE write, blocking.
- * 
+ *
  * The IDN object of the selected slave and DriveNo is written. If a response
  * is larger than the mailbox size then the response is segmented.
  *
@@ -262,7 +262,7 @@ int ecx_SoEwrite(ecx_contextt *context, uint16 slave, uint8 driveNo, uint8 eleme
    maxdata = context->slavelist[slave].mbx_l - sizeof(ec_SoEt);
    NotLast = TRUE;
    while (NotLast)
-   {   
+   {
       framedatasize = psize;
       NotLast = FALSE;
       SoEp->idn = htoes(idn);
@@ -288,7 +288,7 @@ int ecx_SoEwrite(ecx_contextt *context, uint16 slave, uint8 driveNo, uint8 eleme
       if (wkc > 0) /* succeeded to place mailbox in slave ? */
       {
          if (!NotLast || !ecx_mbxempty(context, slave, timeout))
-         {   
+         {
             /* clean mailboxbuffer */
             ec_clearmbx(&MbxIn);
             /* read slave response */
@@ -304,7 +304,7 @@ int ecx_SoEwrite(ecx_contextt *context, uint16 slave, uint8 driveNo, uint8 eleme
                    (aSoEp->elementflags == elementflags))
                {
                   /* SoE write succeeded */
-               }   
+               }
                /* other slave response */
                else
                {
@@ -326,9 +326,9 @@ int ecx_SoEwrite(ecx_contextt *context, uint16 slave, uint8 driveNo, uint8 eleme
             else
             {
                ecx_packeterror(context, slave, idn, 0, 4); /* no response */
-            }   
-         }   
-      }   
+            }
+         }
+      }
    }
    return wkc;
 }
@@ -365,7 +365,7 @@ int ecx_readIDNmap(ecx_contextt *context, uint16 slave, int *Osize, int *Isize)
       if ((wkc > 0) && (psize >= 4) && ((entries = etohs(SoEmapping.currentlength) / 2) > 0) && (entries <= EC_SOE_MAXMAPPING))
       {
          /* command word (uint16) is always mapped but not in list */
-         *Osize = 16; 
+         *Osize = 16;
          for (itemcount = 0 ; itemcount < entries ; itemcount++)
          {
             psize = sizeof(SoEattribute);
@@ -375,16 +375,16 @@ int ecx_readIDNmap(ecx_contextt *context, uint16 slave, int *Osize, int *Isize)
             {
                /* length : 0 = 8bit, 1 = 16bit .... */
                *Osize += (int)8 << SoEattribute.length;
-            }   
-         }   
-      }   
+            }
+         }
+      }
       psize = sizeof(SoEmapping);
       /* read input mapping via SoE */
       wkc = ecx_SoEread(context, slave, driveNr, EC_SOE_VALUE_B, EC_IDN_ATCONFIG, &psize, &SoEmapping, EC_TIMEOUTRXM);
       if ((wkc > 0) && (psize >= 4) && ((entries = etohs(SoEmapping.currentlength) / 2) > 0) && (entries <= EC_SOE_MAXMAPPING))
       {
          /* status word (uint16) is always mapped but not in list */
-         *Isize = 16; 
+         *Isize = 16;
          for (itemcount = 0 ; itemcount < entries ; itemcount++)
          {
             psize = sizeof(SoEattribute);
@@ -394,9 +394,9 @@ int ecx_readIDNmap(ecx_contextt *context, uint16 slave, int *Osize, int *Isize)
             {
                /* length : 0 = 8bit, 1 = 16bit .... */
                *Isize += (int)8 << SoEattribute.length;
-            }   
-         }   
-      }   
+            }
+         }
+      }
    }
 
    /* found some I/O bits ? */

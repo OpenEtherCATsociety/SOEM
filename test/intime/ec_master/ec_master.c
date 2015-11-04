@@ -124,7 +124,7 @@ static ecx_contextt ctx [] = {
    &ec_PDOassign,
    &ec_PDOdesc,
    &ec_SM,
-   &ec_FMMU 
+   &ec_FMMU
    },
    {
    &ecx_port2,
@@ -160,23 +160,23 @@ void slaveinfo(char *ifname)
    int chk;
    volatile int wkc[2];
    boolean inOP;
-   
+
    printf("Starting slaveinfo\n");
-   
+
    /* initialise SOEM, bind socket to ifname */
    if (ecx_init(&ctx[0],"ie1g1") && ecx_init(&ctx[1],"ie1g0"))
-   {   
+   {
       printf("ec_init on %s succeeded.\n",ifname);
       /* find and auto-config slaves */
       if ( ecx_config_init(&ctx[0],FALSE) > 0 && ecx_config_init(&ctx[1],FALSE) > 0 )
       {
-         for (ctx_count = 0; ctx_count < 2; ctx_count++) 
+         for (ctx_count = 0; ctx_count < 2; ctx_count++)
          {
             ecx_config_map_group(&ctx[ctx_count], IOmap, 0);
             ecx_configdc(&ctx[ctx_count]);
             while(*(ctx[ctx_count].ecaterror)) printf("%s", ecx_elist2string(&ctx[ctx_count]));
             printf("%d slaves found and configured.\n",*(ctx[ctx_count].slavecount));
-            expectedWKC[ctx_count] = ( ctx[ctx_count].grouplist[0].outputsWKC * 2) + ctx[ctx_count].grouplist[0].inputsWKC;         
+            expectedWKC[ctx_count] = ( ctx[ctx_count].grouplist[0].outputsWKC * 2) + ctx[ctx_count].grouplist[0].inputsWKC;
             printf("Calculated workcounter %d\n", expectedWKC[ctx_count]);
             /* wait for all slaves to reach SAFE_OP state */
             ecx_statecheck(&ctx[ctx_count],0, EC_STATE_SAFE_OP,  EC_TIMEOUTSTATE * 3);
@@ -200,36 +200,36 @@ void slaveinfo(char *ifname)
                printf("\nSlave:%d\n Name:%s\n Output size: %dbits\n Input size: %dbits\n State: %d\n Delay: %d[ns]\n Has DC: %d\n",
                      cnt, ctx[ctx_count].slavelist[cnt].name, ctx[ctx_count].slavelist[cnt].Obits, ctx[ctx_count].slavelist[cnt].Ibits,
                      ctx[ctx_count].slavelist[cnt].state, ctx[ctx_count].slavelist[cnt].pdelay, ctx[ctx_count].slavelist[cnt].hasdc);
-               if (ctx[ctx_count].slavelist[cnt].hasdc) 
+               if (ctx[ctx_count].slavelist[cnt].hasdc)
                {
                   printf(" DCParentport:%d\n", ctx[ctx_count].slavelist[cnt].parentport);
                }
                printf(" Activeports:%d.%d.%d.%d\n", (ctx[ctx_count].slavelist[cnt].activeports & 0x01) > 0 ,
-                                                      (ctx[ctx_count].slavelist[cnt].activeports & 0x02) > 0 , 
-                                                      (ctx[ctx_count].slavelist[cnt].activeports & 0x04) > 0 , 
+                                                      (ctx[ctx_count].slavelist[cnt].activeports & 0x02) > 0 ,
+                                                      (ctx[ctx_count].slavelist[cnt].activeports & 0x04) > 0 ,
                                                       (ctx[ctx_count].slavelist[cnt].activeports & 0x08) > 0 );
                printf(" Configured address: %4.4x\n", ctx[ctx_count].slavelist[cnt].configadr);
-               printf(" Man: %8.8x ID: %8.8x Rev: %8.8x\n", (int)ctx[ctx_count].slavelist[cnt].eep_man, 
+               printf(" Man: %8.8x ID: %8.8x Rev: %8.8x\n", (int)ctx[ctx_count].slavelist[cnt].eep_man,
                         (int)ctx[ctx_count].slavelist[cnt].eep_id, (int)ctx[ctx_count].slavelist[cnt].eep_rev);
                for(nSM = 0 ; nSM < EC_MAXSM ; nSM++)
                {
                   if(ctx[ctx_count].slavelist[cnt].SM[nSM].StartAddr > 0)
-                     printf(" SM%1d A:%4.4x L:%4d F:%8.8x Type:%d\n",nSM, ctx[ctx_count].slavelist[cnt].SM[nSM].StartAddr, 
-                              ctx[ctx_count].slavelist[cnt].SM[nSM].SMlength,(int)ctx[ctx_count].slavelist[cnt].SM[nSM].SMflags, 
+                     printf(" SM%1d A:%4.4x L:%4d F:%8.8x Type:%d\n",nSM, ctx[ctx_count].slavelist[cnt].SM[nSM].StartAddr,
+                              ctx[ctx_count].slavelist[cnt].SM[nSM].SMlength,(int)ctx[ctx_count].slavelist[cnt].SM[nSM].SMflags,
                               ctx[ctx_count].slavelist[cnt].SMtype[nSM]);
                }
                for(j = 0 ; j < ctx[ctx_count].slavelist[cnt].FMMUunused ; j++)
                {
                   printf(" FMMU%1d Ls:%8.8x Ll:%4d Lsb:%d Leb:%d Ps:%4.4x Psb:%d Ty:%2.2x Act:%2.2x\n", j,
-                           (int)ctx[ctx_count].slavelist[cnt].FMMU[j].LogStart, ctx[ctx_count].slavelist[cnt].FMMU[j].LogLength, 
-                           ctx[ctx_count].slavelist[cnt].FMMU[j].LogStartbit, ctx[ctx_count].slavelist[cnt].FMMU[j].LogEndbit, 
+                           (int)ctx[ctx_count].slavelist[cnt].FMMU[j].LogStart, ctx[ctx_count].slavelist[cnt].FMMU[j].LogLength,
+                           ctx[ctx_count].slavelist[cnt].FMMU[j].LogStartbit, ctx[ctx_count].slavelist[cnt].FMMU[j].LogEndbit,
                            ctx[ctx_count].slavelist[cnt].FMMU[j].PhysStart, ctx[ctx_count].slavelist[cnt].FMMU[j].PhysStartBit,
                            ctx[ctx_count].slavelist[cnt].FMMU[j].FMMUtype, ctx[ctx_count].slavelist[cnt].FMMU[j].FMMUactive);
                }
                printf(" FMMUfunc 0:%d 1:%d 2:%d 3:%d\n",
-                        ctx[ctx_count].slavelist[cnt].FMMU0func, ctx[ctx_count].slavelist[cnt].FMMU2func, ctx[ctx_count].slavelist[cnt].FMMU2func, 
+                        ctx[ctx_count].slavelist[cnt].FMMU0func, ctx[ctx_count].slavelist[cnt].FMMU2func, ctx[ctx_count].slavelist[cnt].FMMU2func,
                         ctx[ctx_count].slavelist[cnt].FMMU3func);
-               printf(" MBX length wr: %d rd: %d MBX protocols : %2.2x\n", ctx[ctx_count].slavelist[cnt].mbx_l, 
+               printf(" MBX length wr: %d rd: %d MBX protocols : %2.2x\n", ctx[ctx_count].slavelist[cnt].mbx_l,
                         ctx[ctx_count].slavelist[cnt].mbx_rl, ctx[ctx_count].slavelist[cnt].mbx_proto);
                ssigen = ecx_siifind(&ctx[ctx_count], cnt, ECT_SII_GENERAL);
                /* SII general section */
@@ -242,8 +242,8 @@ void slaveinfo(char *ifname)
                   if((ecx_siigetbyte(&ctx[ctx_count], cnt, ssigen + 0x0d) & 0x02) > 0)
                   {
                      ctx[ctx_count].slavelist[cnt].blockLRW = 1;
-                     ctx[ctx_count].slavelist[0].blockLRW++;                  
-                  }   
+                     ctx[ctx_count].slavelist[0].blockLRW++;
+                  }
                   ctx[ctx_count].slavelist[cnt].Ebuscurrent = ecx_siigetbyte(&ctx[ctx_count], cnt, ssigen + 0x0e);
                   ctx[ctx_count].slavelist[cnt].Ebuscurrent += ecx_siigetbyte(&ctx[ctx_count], cnt, ssigen + 0x0f) << 8;
                   ctx[ctx_count].slavelist[0].Ebuscurrent += ctx[ctx_count].slavelist[cnt].Ebuscurrent;
@@ -254,9 +254,9 @@ void slaveinfo(char *ifname)
                         ctx[ctx_count].slavelist[cnt].Ebuscurrent, ctx[ctx_count].slavelist[cnt].blockLRW);
             }
          }
-         
+
          inOP = FALSE;
-            
+
          printf("Request operational state for all slaves\n");
          expectedWKC[0] = (ctx[0].grouplist[0].outputsWKC * 2) + ctx[0].grouplist[0].inputsWKC;
          expectedWKC[1] = (ctx[1].grouplist[0].outputsWKC * 2) + ctx[1].grouplist[0].inputsWKC;
@@ -330,8 +330,8 @@ void slaveinfo(char *ifname)
             }
             stop_RT_trace ();
             inOP = FALSE;
-            
-         }   
+
+         }
       }
       else
       {
@@ -345,24 +345,24 @@ void slaveinfo(char *ifname)
    else
    {
       printf("No socket connection on %s\nExcecute as root\n",ifname);
-   }   
-}   
+   }
+}
 
 
 void				main(int argc, char* argv[])
 {
    printf("SOEM (Simple Open EtherCAT Master)\nSlaveinfo\n");
-   
+
    if (argc > 1)
-   {      
+   {
       /* start slaveinfo */
       slaveinfo(argv[1]);
    }
    else
    {
         printf("Usage: slaveinfo ifname [options]\nifname = eth0 for example\nOptions :\n -sdo : print SDO info\n -map : print mapping\n");
-   }   
-   
+   }
+
    printf("End program\n");
 
 }

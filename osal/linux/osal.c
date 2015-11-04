@@ -61,7 +61,7 @@ int osal_gettimeofday(struct timeval *tv, struct timezone *tz)
 {
    struct timespec ts;
    int return_value;
-   
+
    /* Use clock_gettime to prevent possible live-lock.
     * Gettimeofday uses CLOCK_REALTIME that can get NTP timeadjust.
     * If this function preempts timeadjust and it uses vpage it live-locks.
@@ -85,12 +85,12 @@ ec_timet osal_current_time(void)
 
 void osal_time_diff(ec_timet *start, ec_timet *end, ec_timet *diff)
 {
-   diff->sec = end->sec - start->sec;                             
-   diff->usec = end->usec - start->usec;                             
-   if (diff->usec < 0) {                                              
-     --diff->sec;                                                     
-     diff->usec += 1000000;                                           
-   }                                                                         
+   diff->sec = end->sec - start->sec;
+   diff->usec = end->usec - start->usec;
+   if (diff->usec < 0) {
+     --diff->sec;
+     diff->usec += 1000000;
+   }
 }
 
 void osal_timer_start(osal_timert * self, uint32 timeout_usec)
@@ -137,12 +137,12 @@ int osal_thread_create(void *thandle, int stacksize, void *func, void *param)
    int                  ret;
    pthread_attr_t       attr;
    pthread_t            *threadp;
-   
+
    threadp = thandle;
    pthread_attr_init(&attr);
    pthread_attr_setstacksize(&attr, stacksize);
-   ret = pthread_create(threadp, &attr, func, param);   
-   if(ret < 0) 
+   ret = pthread_create(threadp, &attr, func, param);
+   if(ret < 0)
    {
       return 0;
    }
@@ -155,24 +155,24 @@ int osal_thread_create_rt(void *thandle, int stacksize, void *func, void *param)
    pthread_attr_t       attr;
    struct sched_param   schparam;
    pthread_t            *threadp;
-   
+
    threadp = thandle;
    pthread_attr_init(&attr);
    pthread_attr_setstacksize(&attr, stacksize);
-   ret = pthread_create(threadp, &attr, func, param);  
+   ret = pthread_create(threadp, &attr, func, param);
    pthread_attr_destroy(&attr);
-   if(ret < 0) 
+   if(ret < 0)
    {
       return 0;
    }
    memset(&schparam, 0, sizeof(schparam));
    schparam.sched_priority = 40;
    ret = pthread_setschedparam(*threadp, SCHED_FIFO, &schparam);
-   if(ret < 0) 
+   if(ret < 0)
    {
       return 0;
    }
-   
+
    return 1;
 }
 

@@ -63,7 +63,7 @@
 /** delay in us for eeprom ready loop */
 #define EC_LOCALDELAY  200
 
-/** record for ethercat eeprom communications */       
+/** record for ethercat eeprom communications */
 PACKED_BEGIN
 typedef struct PACKED
 {
@@ -95,7 +95,7 @@ typedef struct PACKED
    uint16          w1,w2;
 } ec_emcyt;
 PACKED_END
-   
+
 #ifdef EC_VER1
 /** Main slave data array.
  *  Each slave found on the network gets its own record.
@@ -131,7 +131,7 @@ static ec_eepromFMMUt   ec_FMMU;
 boolean                 EcatError = FALSE;
 
 int64                   ec_DCtime;
-                                                   
+
 ecx_portt               ecx_port;
 ecx_redportt            ecx_redport;
 
@@ -157,9 +157,9 @@ ecx_contextt  ecx_context = {
     &ec_SM,          // .eepSM         =
     &ec_FMMU,        // .eepFMMU       =
     NULL             // .FOEhook()
-};  
+};
 #endif
-    
+
 /** Create list over available network adapters.
  *
  * @return First element in list over available network adapters.
@@ -792,7 +792,7 @@ int ecx_readstate(ecx_contextt *context)
          context->slavelist[0].ALstatuscode |= context->slavelist[slave].ALstatuscode;
       }
       fslave = lslave + 1;
-   } while(lslave < *(context->slavecount));   
+   } while(lslave < *(context->slavecount));
    context->slavelist[0].state = lowest;
 
    return lowest;
@@ -1562,8 +1562,8 @@ void ecx_readeeprom1(ecx_contextt *context, uint16 slave, uint16 eeproma)
 /** Read EEPROM from slave bypassing cache.
  * Parallel read step 2, actual read from slave.
  * @param[in]  context        = context struct
- * @param[in] slave       = Slave number                                  
- * @param[in] timeout     = Timeout in us.  
+ * @param[in] slave       = Slave number
+ * @param[in] timeout     = Timeout in us.
  * @return EEPROM data 32bit
  */
 uint32 ecx_readeeprom2(ecx_contextt *context, uint16 slave, int timeout)

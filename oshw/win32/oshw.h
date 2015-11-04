@@ -39,9 +39,9 @@
  * (www.beckhoff.com).
  */
 
-/** \file 
+/** \file
  * \brief
- * Headerfile for ethercatbase.c 
+ * Headerfile for ethercatbase.c
  */
 
 #ifndef _oshw_

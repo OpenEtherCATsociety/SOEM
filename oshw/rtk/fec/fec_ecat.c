@@ -508,14 +508,14 @@ static void fec_ecat_init_hw (const fec_mac_address_t * mac_address)
    {
       ;
    }
-   
+
    // Configure MDC clock.
    mii_speed = (fec->clock + 499999) / 5000000;
    fec->base->mscr = (fec->base->mscr & (~0x7E)) | (mii_speed << 1);
 
    // Receive control register
    fec->base->rcr = FEC_RCR_MAX_FL(PKT_MAXBUF_SIZE) | FEC_RCR_MII_MODE;
-   
+
    // set RMII mode in RCR register.
    if (fec->phy_interface == FEC_PHY_RMII)
    {
@@ -538,11 +538,11 @@ static void fec_ecat_init_hw (const fec_mac_address_t * mac_address)
     */
    fec->base->iaur = 0;
    fec->base->ialr = 0;
-   
+
    /* Receive all multicast frames. */
    fec->base->gaur = UINT32_MAX;
    fec->base->galr = UINT32_MAX;
-   
+
    /* Set our physical address. */
    fec->base->pa.lower = (mac_address->octet[0] << 24) +
                          (mac_address->octet[1] << 16) +
@@ -551,7 +551,7 @@ static void fec_ecat_init_hw (const fec_mac_address_t * mac_address)
    fec->base->pa.upper = (mac_address->octet[4] << 24) +
                          (mac_address->octet[5] << 16) +
                          0x8808;
-   
+
    /* Start link autonegotiation */
    fec->phy->ops->start (fec->phy);
 }
@@ -559,11 +559,11 @@ static void fec_ecat_init_hw (const fec_mac_address_t * mac_address)
 int fec_ecat_send (const void *payload, size_t tot_len)
 {
    fec_buffer_bd_t * bd;
-   
+
    /* Frames larger than the maximum Ethernet frame size are not allowed. */
    ASSERT (tot_len <= PKT_MAXBUF_SIZE);
    ASSERT (tot_len <= TX_BUFFER_SIZE);
-   
+
    /* Bus errors should never occur, unless the MPU is enabled and forbids
     * the Ethernet MAC DMA from accessing the descriptors or buffers.
     */
@@ -577,7 +577,7 @@ int fec_ecat_send (const void *payload, size_t tot_len)
    {
       bd = fec_buffer_get_tx ();
    }
-   
+
    DPRINT ("out (%u):\n", tot_len);
    DUMP_PACKET (payload, tot_len);
 
@@ -608,7 +608,7 @@ int fec_ecat_recv (void * buffer, size_t buffer_length)
    fec_buffer_bd_t * bd;
    int return_value;
    size_t frame_length_without_fcs;
-   
+
    /* Bus errors should never occur, unless the MPU is enabled and forbids
     * the Ethernet MAC DMA from accessing the descriptors or buffers.
     */
@@ -669,11 +669,11 @@ static void fec_ecat_hotplug (void)
 
    /* Disable frame reception/transmission */
    fec->base->ecr &= ~FEC_ECR_ETHER_EN;
-   
+
    /* Set duplex mode according to link state */
 
    link_state = fec->phy->ops->get_link_state (fec->phy);
-   
+
    /* Set duplex */
    if (link_state & PHY_LINK_FULL_DUPLEX)
    {
@@ -695,7 +695,7 @@ static void fec_ecat_hotplug (void)
    {
       fec->base->rcr &= ~FEC_RCR_RMII_10T;
    }
-   
+
    /* Clear any pending interrupt */
    fec->base->eir = 0xffffffff;
 
@@ -713,10 +713,10 @@ static void fec_ecat_hotplug (void)
 
    // FEC_ERDSR - Receive buffer descriptor ring start register
    fec->base->erdsr = (uint32_t)fec->rx_bd_base;
-   
+
    // FEC_ETDSR - Transmit buffer descriptor ring start register
    fec->base->etdsr = (uint32_t)fec->tx_bd_base;
-   
+
    // FEC_EMRBR - Maximum receive buffer size register
    fec->base->emrbr = RX_BUFFER_SIZE - 1;
 
@@ -730,11 +730,11 @@ static void fec_ecat_hotplug (void)
     * MAC hardware. Software would otherwise need to do the conversions.
     */
    fec->base->ecr = FEC_ECR_ETHER_EN | FEC_ECR_DBSWP;
-   
+
    /* Indicate that there have been empty receive buffers produced */
    // FEC_RDAR  - Receive Descriptor ring - Receive descriptor active register
    fec->base->rdar = 1;
-   
+
    DPRINT ("Link up. Speed: %s. Mode: %s.\n", fec_ecat_link_speed_name (link_state),
          fec_ecat_link_duplex_name (link_state));
 }
@@ -742,9 +742,9 @@ static void fec_ecat_hotplug (void)
 static dev_state_t fec_ecat_probe (void)
 {
    uint8_t link_state;
-   
+
    link_state = fec->phy->ops->get_link_state (fec->phy);
-   
+
    return (link_state & PHY_LINK_OK) ? StateAttached : StateDetached;
 }
 
@@ -777,7 +777,7 @@ int fec_ecat_init (const fec_mac_address_t * mac_address,
 
    fec = malloc (sizeof (fec_t));
    UASSERT (fec != NULL, EMEM);
-   
+
    /* Initialise driver state */
    fec->rx_bd_base        = eth_cfg.rx_bd_base;
    fec->tx_bd_base        = eth_cfg.tx_bd_base;

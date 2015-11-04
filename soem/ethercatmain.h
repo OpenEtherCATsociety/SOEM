@@ -1,5 +1,5 @@
 /*
- * Simple Open EtherCAT Master Library 
+ * Simple Open EtherCAT Master Library
  *
  * File    : ethercatmain.h
  * Version : 1.3.1
@@ -39,9 +39,9 @@
  * (www.beckhoff.com).
  */
 
-/** \file 
+/** \file
  * \brief
- * Headerfile for ethercatmain.c 
+ * Headerfile for ethercatmain.c
  */
 
 #ifndef _ethercatmain_
@@ -95,7 +95,7 @@ typedef struct PACKED
    uint8   FMMUtype;
    uint8   FMMUactive;
    uint8   unused1;
-   uint16  unused2;  
+   uint16  unused2;
 }  ec_fmmut;
 PACKED_END
 
@@ -216,7 +216,7 @@ typedef struct
    /** DC receivetimes on port A */
    int32            DCrtA;
    /** DC receivetimes on port B */
-   int32            DCrtB; 
+   int32            DCrtB;
    /** DC receivetimes on port C */
    int32            DCrtC;
    /** DC receivetimes on port D */
@@ -327,7 +327,7 @@ typedef struct
 } ec_eepromSMt;
 
 /** record to store rxPDO and txPDO table from eeprom */
-typedef struct 
+typedef struct
 {
    uint16  Startpos;
    uint16  Length;
@@ -373,7 +373,7 @@ typedef struct
 } ec_idxstackT;
 
 /** ringbuf for error storage */
-typedef struct 
+typedef struct
 {
    int16     head;
    int16     tail;
@@ -387,7 +387,7 @@ typedef struct PACKED
    uint8   n;
    uint8   nu1;
    uint8   SMtype[EC_MAXSM];
-} ec_SMcommtypet;   
+} ec_SMcommtypet;
 PACKED_END
 
 /** SDO assign structure for CA */
@@ -397,7 +397,7 @@ typedef struct PACKED
    uint8   n;
    uint8   nu1;
    uint16  index[256];
-} ec_PDOassignt;   
+} ec_PDOassignt;
 PACKED_END
 
 /** SDO description structure for CA */
@@ -407,7 +407,7 @@ typedef struct PACKED
    uint8   n;
    uint8   nu1;
    uint32  PDO[256];
-} ec_PDOdesct;   
+} ec_PDOdesct;
 PACKED_END
 
 /** Context structure , referenced by all ecx functions*/
@@ -452,7 +452,7 @@ typedef struct
    /** internal, SM list from eeprom */
    ec_eepromSMt   *eepSM;
    /** internal, FMMU list from eeprom */
-   ec_eepromFMMUt *eepFMMU; 
+   ec_eepromFMMUt *eepFMMU;
    /** registered FoE hook */
    int            (*FOEhook)(uint16 slave, int packetnumber, int datasize);
 } ecx_contextt;

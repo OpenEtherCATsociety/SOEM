@@ -1,5 +1,5 @@
 /*
- * Simple Open EtherCAT Master Library 
+ * Simple Open EtherCAT Master Library
  *
  * File    : ethercatfoe.h
  * Version : 1.3.1
@@ -39,9 +39,9 @@
  * (www.beckhoff.com).
  */
 
-/** \file 
+/** \file
  * \brief
- * Headerfile for ethercatfoe.c 
+ * Headerfile for ethercatfoe.c
  */
 
 #ifndef _ethercatfoe_

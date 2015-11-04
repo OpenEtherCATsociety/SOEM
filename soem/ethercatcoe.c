@@ -1,5 +1,5 @@
 /*
- * Simple Open EtherCAT Master Library 
+ * Simple Open EtherCAT Master Library
  *
  * File    : ethercatcoe.c
  * Version : 1.3.1
@@ -39,7 +39,7 @@
  * (www.beckhoff.com).
  */
 
-/** \file 
+/** \file
  * \brief
  * CAN over EtherCAT (CoE) module.
  *
@@ -75,7 +75,7 @@ PACKED_END
 
 /** SDO service structure */
 PACKED_BEGIN
-typedef struct PACKED 
+typedef struct PACKED
 {
    ec_mbxheadert   MbxHeader;
    uint16          CANOpen;
@@ -211,7 +211,7 @@ int ecx_SDOread(ecx_contextt *context, uint16 slave, uint16 index, uint8 subinde
               (aSDOp->Index == SDOp->Index))
          {
             if ((aSDOp->Command & 0x02) > 0)
-            { 
+            {
                /* expedited frame response */
                bytesize = 4 - ((aSDOp->Command >> 2) & 0x03);
                if (*psize >= bytesize) /* parameter buffer big enough ? */
@@ -233,7 +233,7 @@ int ecx_SDOread(ecx_contextt *context, uint16 slave, uint16 index, uint8 subinde
                /* Does parameter fit in parameter buffer ? */
                if (SDOlen <= *psize)
                {
-                  bp = p; 
+                  bp = p;
                   hp = p;
                   /* calculate mailbox transfer size */
                   Framedatasize = (etohs(aSDOp->MbxHeader.length) - 10);
@@ -273,7 +273,7 @@ int ecx_SDOread(ecx_contextt *context, uint16 slave, uint16 index, uint8 subinde
                            {
                               /* slave response should be CoE, SDO response */
                               if ((((aSDOp->MbxHeader.mbxtype & 0x0f) == ECT_MBXT_COE) &&
-                                   ((etohs(aSDOp->CANOpen) >> 12) == ECT_COES_SDORES) && 
+                                   ((etohs(aSDOp->CANOpen) >> 12) == ECT_COES_SDORES) &&
                                    ((aSDOp->Command & 0xe0) == 0x00)))
                                         {
                                  /* calculate mailbox transfer size */
@@ -408,7 +408,7 @@ int ecx_SDOwrite(ecx_contextt *context, uint16 Slave, uint16 Index, uint8 SubInd
          if (wkc > 0)
          {
             /* response should be CoE, SDO response, correct index and subindex */
-            if (((aSDOp->MbxHeader.mbxtype & 0x0f) == ECT_MBXT_COE) && 
+            if (((aSDOp->MbxHeader.mbxtype & 0x0f) == ECT_MBXT_COE) &&
                 ((etohs(aSDOp->CANOpen) >> 12) == ECT_COES_SDORES) &&
                  (aSDOp->Index == SDOp->Index) &&
                  (aSDOp->SubIndex == SDOp->SubIndex))
@@ -478,7 +478,7 @@ int ecx_SDOwrite(ecx_contextt *context, uint16 Slave, uint16 Index, uint8 SubInd
          if (wkc > 0)
          {
             /* response should be CoE, SDO response, correct index and subindex */
-            if (((aSDOp->MbxHeader.mbxtype & 0x0f) == ECT_MBXT_COE) && 
+            if (((aSDOp->MbxHeader.mbxtype & 0x0f) == ECT_MBXT_COE) &&
                 ((etohs(aSDOp->CANOpen) >> 12) == ECT_COES_SDORES) &&
                  (aSDOp->Index == SDOp->Index) &&
                  (aSDOp->SubIndex == SDOp->SubIndex))
@@ -682,7 +682,7 @@ int ecx_TxPDO(ecx_contextt *context, uint16 slave, uint16 TxPDOnumber , int *psi
                wkc = 0;
                ecx_packeterror(context, slave, 0, 0, 3); /*  data container too small for type */
             }
-         }   
+         }
          /* other slave response */
          else
          {
@@ -696,7 +696,7 @@ int ecx_TxPDO(ecx_contextt *context, uint16 slave, uint16 TxPDOnumber , int *psi
             }
             wkc = 0;
          }
-      }         
+      }
    }
 
    return wkc;
@@ -756,7 +756,7 @@ int ecx_readPDOassign(ecx_contextt *context, uint16 Slave, uint16 PDOassign)
                   rdl = sizeof(rdat); rdat = htoes(0xff);
                   /* read Object Entry in Object database */
 //                  wkc = ec_readOEsingle(idx, (uint8)SubCount, pODlist, pOElist);
-                  bsize += etohs(rdat);                  
+                  bsize += etohs(rdat);
                }
             }
          }
@@ -778,7 +778,7 @@ int ecx_readPDOassignCA(ecx_contextt *context, uint16 Slave, uint16 PDOassign)
    int wkc, bsize = 0, rdl;
 
    /* find maximum size of PDOassign buffer */
-   rdl = sizeof(ec_PDOassignt); 
+   rdl = sizeof(ec_PDOassignt);
    context->PDOassign->n=0;
    /* read rxPDOassign in CA mode, all subindexes are read in one struct */
    wkc = ecx_SDOread(context, Slave, PDOassign, 0x00, TRUE, &rdl, context->PDOassign, EC_TIMEOUTRXM);
@@ -846,7 +846,7 @@ int ecx_readPDOmap(ecx_contextt *context, uint16 Slave, int *Osize, int *Isize)
    uint8 nSM, iSM, tSM;
    int Tsize;
    uint8 SMt_bug_add;
-   
+
    *Isize = 0;
    *Osize = 0;
    SMt_bug_add = 0;
@@ -869,30 +869,30 @@ int ecx_readPDOmap(ecx_contextt *context, uint16 Slave, int *Osize, int *Isize)
          wkc = ecx_SDOread(context, Slave, ECT_SDO_SMCOMMTYPE, iSM + 1, FALSE, &rdl, &tSM, EC_TIMEOUTRXM);
          if (wkc > 0)
          {
-// start slave bug prevention code, remove if possible            
+// start slave bug prevention code, remove if possible
             if((iSM == 2) && (tSM == 2)) // SM2 has type 2 == mailbox out, this is a bug in the slave!
-            {   
+            {
                SMt_bug_add = 1; // try to correct, this works if the types are 0 1 2 3 and should be 1 2 3 4
             }
             if(tSM)
-            {   
+            {
                tSM += SMt_bug_add; // only add if SMt > 0
             }
             if((iSM == 2) && (tSM == 0)) // SM2 has type 0, this is a bug in the slave!
-            {   
+            {
                tSM = 3;
             }
             if((iSM == 3) && (tSM == 0)) // SM3 has type 0, this is a bug in the slave!
-            {   
+            {
                tSM = 4;
             }
-// end slave bug prevention code            
+// end slave bug prevention code
 
             context->slavelist[Slave].SMtype[iSM] = tSM;
             /* check if SM is unused -> clear enable flag */
             if (tSM == 0)
             {
-               context->slavelist[Slave].SM[iSM].SMflags = 
+               context->slavelist[Slave].SM[iSM].SMflags =
                   htoel( etohl(context->slavelist[Slave].SM[iSM].SMflags) & EC_SMENABLEMASK);
             }
             if ((tSM == 3) || (tSM == 4))
@@ -904,7 +904,7 @@ int ecx_readPDOmap(ecx_contextt *context, uint16 Slave, int *Osize, int *Isize)
                {
                   context->slavelist[Slave].SM[iSM].SMlength = htoes((Tsize + 7) / 8);
                   if (tSM == 3)
-                  {  
+                  {
                      /* we are doing outputs */
                      *Osize += Tsize;
                   }
@@ -912,10 +912,10 @@ int ecx_readPDOmap(ecx_contextt *context, uint16 Slave, int *Osize, int *Isize)
                   {
                      /* we are doing inputs */
                      *Isize += Tsize;
-                  }   
-               }   
-            }   
-         }   
+                  }
+               }
+            }
+         }
       }
    }
 
@@ -924,7 +924,7 @@ int ecx_readPDOmap(ecx_contextt *context, uint16 Slave, int *Osize, int *Isize)
    {
       retVal = 1;
    }
-      
+
    return retVal;
 }
 
@@ -947,11 +947,11 @@ int ecx_readPDOmapCA(ecx_contextt *context, uint16 Slave, int *Osize, int *Isize
    uint8 nSM, iSM, tSM;
    int Tsize;
    uint8 SMt_bug_add;
-   
+
    *Isize = 0;
    *Osize = 0;
    SMt_bug_add = 0;
-   rdl = sizeof(ec_SMcommtypet); 
+   rdl = sizeof(ec_SMcommtypet);
    context->SMcommtype->n = 0;
    /* read SyncManager Communication Type object count Complete Access*/
    wkc = ecx_SDOread(context, Slave, ECT_SDO_SMCOMMTYPE, 0x00, TRUE, &rdl, context->SMcommtype, EC_TIMEOUTRXM);
@@ -964,14 +964,14 @@ int ecx_readPDOmapCA(ecx_contextt *context, uint16 Slave, int *Osize, int *Isize
       if (nSM > EC_MAXSM)
       {
          nSM = EC_MAXSM;
-         ecx_packeterror(context, Slave, 0, 0, 10); /* #SM larger than EC_MAXSM */         
+         ecx_packeterror(context, Slave, 0, 0, 10); /* #SM larger than EC_MAXSM */
       }
       /* iterate for every SM type defined */
       for (iSM = 2 ; iSM <= nSM ; iSM++)
       {
          tSM = context->SMcommtype->SMtype[iSM];
 
-// start slave bug prevention code, remove if possible            
+// start slave bug prevention code, remove if possible
          if((iSM == 2) && (tSM == 2)) // SM2 has type 2 == mailbox out, this is a bug in the slave!
          {
             SMt_bug_add = 1; // try to correct, this works if the types are 0 1 2 3 and should be 1 2 3 4
@@ -981,7 +981,7 @@ int ecx_readPDOmapCA(ecx_contextt *context, uint16 Slave, int *Osize, int *Isize
             tSM += SMt_bug_add; // only add if SMt > 0
          }
 // end slave bug prevention code
-         
+
          context->slavelist[Slave].SMtype[iSM] = tSM;
          /* check if SM is unused -> clear enable flag */
          if (tSM == 0)
@@ -1007,8 +1007,8 @@ int ecx_readPDOmapCA(ecx_contextt *context, uint16 Slave, int *Osize, int *Isize
                   /* we are doing inputs */
                   *Isize += Tsize;
                }
-            }   
-         }   
+            }
+         }
       }
    }
 
@@ -1062,7 +1062,7 @@ int ecx_readODlist(ecx_contextt *context, uint16 Slave, ec_ODlistt *pODlist)
    /* mailbox placed in slave ? */
    if (wkc > 0)
    {
-      x = 0; 
+      x = 0;
       sp = 0;
       First = TRUE;
       offset = 1; /* offset to skip info header in first frame, otherwise set to 0 */
@@ -1080,7 +1080,7 @@ int ecx_readODlist(ecx_contextt *context, uint16 Slave, ec_ODlistt *pODlist)
                 ((aSDOp->Opcode & 0x7f) == ECT_GET_ODLIST_RES))
             {
                if (First)
-               {   
+               {
                   /* extract number of indexes from mailbox data size */
                   n = (etohs(aSDOp->MbxHeader.length) - (6 + 2)) / 2;
                }
@@ -1110,10 +1110,10 @@ int ecx_readODlist(ecx_contextt *context, uint16 Slave, ec_ODlistt *pODlist)
                sp += n;
                /* check if more fragments will follow */
                if (aSDOp->Fragments > 0)
-               {   
+               {
                   stop = FALSE;
                }
-               First = FALSE; 
+               First = FALSE;
                offset = 0;
             }
             /* got unexpected response from slave */
@@ -1128,7 +1128,7 @@ int ecx_readODlist(ecx_contextt *context, uint16 Slave, ec_ODlistt *pODlist)
                {
                   ecx_packeterror(context, Slave, 0, 0, 1); /* Unexpected frame returned */
                }
-               wkc = 0; 
+               wkc = 0;
                x += 20;
             }
          }
@@ -1218,7 +1218,7 @@ int ecx_readODdescription(ecx_contextt *context, uint16 Item, ec_ODlistt *pODlis
          }
       }
    }
-  
+
    return wkc;
 }
 
@@ -1310,7 +1310,7 @@ int ecx_readOEsingle(ecx_contextt *context, uint16 Item, uint8 SubI, ec_ODlistt 
          }
       }
    }
-   
+
    return wkc;
 }
 
@@ -1337,7 +1337,7 @@ int ecx_readOE(ecx_contextt *context, uint16 Item, ec_ODlistt *pODlist, ec_OElis
       /* read subindex of entry */
       wkc = ecx_readOEsingle(context, Item, (uint8)SubCount, pODlist, pOElist);
    }
-   
+
    return wkc;
 }
 
@@ -1490,7 +1490,7 @@ int ec_readPDOmapCA(uint16 Slave, int *Osize, int *Isize)
    return ecx_readPDOmapCA(&ecx_context, Slave, Osize, Isize);
 }
 
-/** CoE read Object Description List. 
+/** CoE read Object Description List.
  *
  * @param[in] Slave      = Slave number.
  * @param[out] pODlist  = resulting Object Description list.

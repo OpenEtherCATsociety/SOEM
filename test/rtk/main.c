@@ -2,7 +2,7 @@
  * \brief Example code for Simple Open EtherCAT master
  *
  * This is a minimal example running rt-kernel TTOS. Check
- * tutorial files in documentations for som steps to get your 
+ * tutorial files in documentations for som steps to get your
  * system running.
  * (c)Andreas Karlsson 2012
  */
@@ -142,7 +142,7 @@ uint8 get_input_bit (uint16 slave_no,uint8 module_index)
 {
    /* Get the the startbit position in slaves IO byte */
    uint8 startbit = ec_slave[slave_no].Istartbit;
-   /* Mask bit and return boolean 0 or 1 */ 
+   /* Mask bit and return boolean 0 or 1 */
    if (*ec_slave[slave_no].inputs & BIT (module_index - 1  + startbit))
       return 1;
    else
@@ -185,7 +185,7 @@ uint8 get_output_bit (uint16 slave_no,uint8 module_index)
 {
    /* Get the the startbit position in slaves IO byte */
    uint8 startbit = ec_slave[slave_no].Ostartbit;
-   /* Mask bit and return boolean 0 or 1 */ 
+   /* Mask bit and return boolean 0 or 1 */
    if (*ec_slave[slave_no].outputs & BIT (module_index - 1  + startbit))
       return 1;
    else
@@ -232,7 +232,7 @@ static void my_cyclic_callback (void * arg)
 
 void read_io (void * arg)
 {
-   /* Function connected to cyclic TTOS task 
+   /* Function connected to cyclic TTOS task
     * The function is executed cyclic according
     * sceduel specified in schedule.tt
     */
@@ -261,7 +261,7 @@ void simpletest(void *arg)
    if (ec_init(ifname))
    {
       rprintp("ec_init succeeded.\n");
-      
+
       /* find and auto-config slaves */
       if ( ec_config_init(FALSE) > 0 )
       {
@@ -326,7 +326,7 @@ void simpletest(void *arg)
                }
             }
 
-            
+
             /* Simple blinking lamps BOX demo */
             uint8 digout = 0;
 

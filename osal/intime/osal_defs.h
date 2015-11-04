@@ -45,7 +45,7 @@
 #ifndef PACKED
     #ifdef _MSC_VER
     #define PACKED_BEGIN __pragma(pack(push, 1))
-    #define PACKED 
+    #define PACKED
     #define PACKED_END __pragma(pack(pop))
     #elif defined(__GNUC__)
     #define PACKED_BEGIN

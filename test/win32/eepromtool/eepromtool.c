@@ -9,7 +9,7 @@
  * -w      write EEPROM, input binary format
  * -wi     write EEPROM, input Intel Hex format
  *
- * (c)Arthur Ketels 2010 
+ * (c)Arthur Ketels 2010
  */
 
 #include <stdio.h>
@@ -52,30 +52,30 @@ char sline[MAXSLENGTH];
 int input_bin(char *fname, int *length)
 {
    FILE *fp;
- 
+
    int cc = 0, c;
 
    fp = fopen(fname, "rb");
-   if(fp == NULL) 
+   if(fp == NULL)
       return 0;
    while (((c = fgetc(fp)) != EOF) && (cc < MAXBUF))
       ebuf[cc++] = (uint8)c;
    *length = cc;
    fclose(fp);
-   
+
    return 1;
 }
 
 int input_intelhex(char *fname, int *start, int *length)
 {
    FILE *fp;
- 
+
    int c, sc, retval = 1;
    int ll, ladr, lt, sn, i, lval;
    int hstart, hlength, sum;
 
    fp = fopen(fname, "r");
-   if(fp == NULL) 
+   if(fp == NULL)
       return 0;
    hstart = MAXBUF;
    hlength = 0;
@@ -116,7 +116,7 @@ int input_intelhex(char *fname, int *start, int *length)
                printf("Invalid checksum.\n");
             }
          }
-      }      
+      }
    }
    while (c != EOF);
    if (retval)
@@ -125,34 +125,34 @@ int input_intelhex(char *fname, int *start, int *length)
       *start = hstart;
    }
    fclose(fp);
-   
+
    return retval;
 }
 
 int output_bin(char *fname, int length)
 {
    FILE *fp;
- 
+
    int cc;
 
    fp = fopen(fname, "wb");
-   if(fp == NULL) 
+   if(fp == NULL)
       return 0;
    for (cc = 0 ; cc < length ; cc++)
       fputc( ebuf[cc], fp);
    fclose(fp);
-   
+
    return 1;
 }
 
 int output_intelhex(char *fname, int length)
 {
    FILE *fp;
- 
+
    int cc = 0, ll, sum, i;
 
    fp = fopen(fname, "w");
-   if(fp == NULL) 
+   if(fp == NULL)
       return 0;
    while (cc < length)
    {
@@ -168,9 +168,9 @@ int output_intelhex(char *fname, int length)
       fprintf(fp, "%2.2X\n", (0x100 - sum) & 0xff);
       cc += ll;
    }
-   fprintf(fp, ":00000001FF\n");   
+   fprintf(fp, ":00000001FF\n");
    fclose(fp);
-   
+
    return 1;
 }
 
@@ -181,7 +181,7 @@ int eeprom_read(int slave, int start, int length)
    uint32 b4;
    uint64 b8;
    uint8 eepctl;
-   
+
    if((ec_slavecount >= slave) && (slave > 0) && ((start + length) <= MAXBUF))
    {
       aiadr = 1 - slave;
@@ -221,10 +221,10 @@ int eeprom_read(int slave, int start, int length)
             ebuf[i+3] = (uint8) (b4 >> 24);
          }
       }
-      
+
       return 1;
    }
-   
+
    return 0;
 }
 
@@ -234,7 +234,7 @@ int eeprom_write(int slave, int start, int length)
    uint16 aiadr, *wbuf;
    uint8 eepctl;
    int ret;
-   
+
    if((ec_slavecount >= slave) && (slave > 0) && ((start + length) <= MAXBUF))
    {
       aiadr = 1 - slave;
@@ -255,10 +255,10 @@ int eeprom_write(int slave, int start, int length)
             fflush(stdout);
          }
       }
-      
+
       return 1;
    }
-   
+
    return 0;
 }
 
@@ -266,10 +266,10 @@ void eepromtool(char *ifname, int slave, int mode, char *fname)
 {
    int w, rc = 0, estart, esize;
    uint16 *wbuf;
-   
+
    /* initialise SOEM, bind socket to ifname */
    if (ec_init(ifname))
-   {   
+   {
       printf("ec_init on %s succeeded.\n",ifname);
 
       w = 0x0000;
@@ -319,7 +319,7 @@ void eepromtool(char *ifname, int slave, int mode, char *fname)
                if (mode == MODE_WRITEBIN)     rc = input_bin(fname, &esize);
 
                if (rc > 0)
-               {               
+               {
                   wbuf = (uint16 *)&ebuf[0];
                   printf("Slave %d\n", slave);
                   printf(" Vendor ID        : %8.8X\n",*(uint32 *)(wbuf + 0x08));
@@ -337,7 +337,7 @@ void eepromtool(char *ifname, int slave, int mode, char *fname)
                   printf("\nTotal EEPROM write time :%ldms\n", (tdif.usec+(tdif.sec*1000000L)) / 1000);
                }
                else
-                  printf("Error reading file, abort.\n"); 
+                  printf("Error reading file, abort.\n");
             }
          }
          else
@@ -351,22 +351,22 @@ void eepromtool(char *ifname, int slave, int mode, char *fname)
    }
    else
       printf("No socket connection on %s\nExcecute as root\n",ifname);
-}   
+}
 
 int main(int argc, char *argv[])
 {
-   ec_adaptert * adapter = NULL;   
+   ec_adaptert * adapter = NULL;
    printf("SOEM (Simple Open EtherCAT Master)\nEEPROM tool\n");
 
    if (argc > 4)
-   {      
+   {
       slave = atoi(argv[2]);
       mode = MODE_NONE;
       if ((strncmp(argv[3], "-r", sizeof("-r")) == 0))   mode = MODE_READBIN;
       if ((strncmp(argv[3], "-ri", sizeof("-ri")) == 0)) mode = MODE_READINTEL;
       if ((strncmp(argv[3], "-w", sizeof("-w")) == 0))   mode = MODE_WRITEBIN;
       if ((strncmp(argv[3], "-wi", sizeof("-wi")) == 0)) mode = MODE_WRITEINTEL;
-      
+
       /* start tool */
       eepromtool(argv[1],slave,mode,argv[4]);
    }
@@ -387,9 +387,9 @@ int main(int argc, char *argv[])
          printf ("Description : %s, Device to use for wpcap: %s\n", adapter->desc,adapter->name);
          adapter = adapter->next;
       }
-   }   
-   
+   }
+
    printf("End program\n");
-   
+
    return (0);
 }

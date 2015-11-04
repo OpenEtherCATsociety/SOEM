@@ -1,5 +1,5 @@
 /*
- * Simple Open EtherCAT Master Library 
+ * Simple Open EtherCAT Master Library
  *
  * File    : ethercatdc.c
  * Version : 1.3.1
@@ -41,7 +41,7 @@
 
 /** \file
  * \brief
- * Distributed Clock EtherCAT functions. 
+ * Distributed Clock EtherCAT functions.
  *
  */
 #include "oshw.h"
@@ -129,7 +129,7 @@ void ecx_dcsync01(ecx_contextt *context, uint16 slave, boolean act, uint32 CyclT
    int64 t, t1;
    int32 tc;
    uint32 TrueCyclTime;
-  
+
    /* Sync1 can be used as a multiple of Sync0, use true cycle time */
    TrueCyclTime = ((CyclTime1 / CyclTime0) + 1) * CyclTime0;
 
@@ -234,7 +234,7 @@ static uint8 ecx_prevport(ecx_contextt *context, uint16 slave, uint8 port)
          else if (aport & PORTM1)
             pport = 1;
          break;
-   }      
+   }
    return pport;
 }
 
@@ -334,25 +334,25 @@ boolean ecx_configdc(ecx_contextt *context)
 
          /* make list of active ports and their time stamps */
          nlist = 0;
-         if (context->slavelist[i].activeports & PORTM0) 
+         if (context->slavelist[i].activeports & PORTM0)
          {
             plist[nlist] = 0;
             tlist[nlist] = context->slavelist[i].DCrtA;
             nlist++;
          }
-         if (context->slavelist[i].activeports & PORTM3) 
+         if (context->slavelist[i].activeports & PORTM3)
          {
             plist[nlist] = 3;
             tlist[nlist] = context->slavelist[i].DCrtD;
             nlist++;
          }
-         if (context->slavelist[i].activeports & PORTM1) 
+         if (context->slavelist[i].activeports & PORTM1)
          {
             plist[nlist] = 1;
             tlist[nlist] = context->slavelist[i].DCrtB;
             nlist++;
          }
-         if (context->slavelist[i].activeports & PORTM2) 
+         if (context->slavelist[i].activeports & PORTM2)
          {
             plist[nlist] = 2;
             tlist[nlist] = context->slavelist[i].DCrtC;
@@ -363,7 +363,7 @@ boolean ecx_configdc(ecx_contextt *context)
          if((nlist > 1) && (tlist[1] < tlist[entryport]))
          {
             entryport = 1;
-         }         
+         }
          if((nlist > 2) && (tlist[2] < tlist[entryport]))
          {
             entryport = 2;
@@ -401,13 +401,13 @@ boolean ecx_configdc(ecx_contextt *context)
             /* note: order of ports is 0 - 3 - 1 -2 */
             /* non active ports are skipped */
             dt3 = ecx_porttime(context, parent, context->slavelist[i].parentport) -
-                  ecx_porttime(context, parent, 
+                  ecx_porttime(context, parent,
                     ecx_prevport(context, parent, context->slavelist[i].parentport));
             /* current slave has children */
             /* those childrens delays need to be substacted */
             if (context->slavelist[i].topology > 1)
             {
-               dt1 = ecx_porttime(context, i, 
+               dt1 = ecx_porttime(context, i,
                         ecx_prevport(context, i, context->slavelist[i].entryport)) -
                      ecx_porttime(context, i, context->slavelist[i].entryport);
             }
@@ -417,7 +417,7 @@ boolean ecx_configdc(ecx_contextt *context)
             /* previous childs delays need to be added */
             if ((child - parent) > 1)
             {
-               dt2 = ecx_porttime(context, parent, 
+               dt2 = ecx_porttime(context, parent,
                         ecx_prevport(context, parent, context->slavelist[i].parentport)) -
                      ecx_porttime(context, parent, context->slavelist[parent].entryport);
             }

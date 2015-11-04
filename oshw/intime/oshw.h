@@ -39,9 +39,9 @@
  * (www.beckhoff.com).
  */
 
-/** \file 
+/** \file
  * \brief
- * Headerfile for oshw.c 
+ * Headerfile for oshw.c
  */
 
 #ifndef _oshw_

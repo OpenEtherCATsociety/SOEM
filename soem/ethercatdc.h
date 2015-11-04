@@ -1,5 +1,5 @@
 /*
- * Simple Open EtherCAT Master Library 
+ * Simple Open EtherCAT Master Library
  *
  * File    : ethercatdc.h
  * Version : 1.3.1
@@ -39,9 +39,9 @@
  * (www.beckhoff.com).
  */
 
-/** \file 
+/** \file
  * \brief
- * Headerfile for ethercatdc.c 
+ * Headerfile for ethercatdc.c
  */
 
 #ifndef _EC_ECATDC_H

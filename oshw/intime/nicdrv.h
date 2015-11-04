@@ -39,9 +39,9 @@
  * (www.beckhoff.com).
  */
 
-/** \file 
+/** \file
  * \brief
- * Headerfile for nicdrv.c 
+ * Headerfile for nicdrv.c
  */
 
 #ifndef _nicdrvh_
@@ -69,7 +69,7 @@ typedef struct
    int         (*rxbufstat)[EC_MAXBUF];
    /** received MAC source address (middle word) */
    int         (*rxsa)[EC_MAXBUF];
-} ec_stackT;   
+} ec_stackT;
 
 typedef struct
 {
@@ -114,8 +114,8 @@ typedef struct
    /** current redundancy state */
    int            redstate;
    /** pointer to redundancy port and buffers */
-   ecx_redportt   *redport;   
-   RTHANDLE       getindex_region; 
+   ecx_redportt   *redport;
+   RTHANDLE       getindex_region;
    RTHANDLE       tx_region;
    RTHANDLE       rx_region;
    /* Intime */

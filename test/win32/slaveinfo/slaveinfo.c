@@ -108,7 +108,7 @@ char* dtype2string(uint16 dtype)
             sprintf(hstr, "Type 0x%4.4X", dtype);
     }
     return hstr;
-}               
+}
 
 char* SDO2string(uint16 slave, uint16 index, uint8 subidx, uint16 dtype)
 {
@@ -137,50 +137,50 @@ char* SDO2string(uint16 slave, uint16 index, uint8 subidx, uint16 dtype)
       {
          case ECT_BOOLEAN:
             u8 = (uint8*) &usdo[0];
-            if (*u8) sprintf(hstr, "TRUE"); 
+            if (*u8) sprintf(hstr, "TRUE");
              else sprintf(hstr, "FALSE");
             break;
          case ECT_INTEGER8:
             i8 = (int8*) &usdo[0];
-            sprintf(hstr, "0x%2.2x %d", *i8, *i8); 
+            sprintf(hstr, "0x%2.2x %d", *i8, *i8);
             break;
          case ECT_INTEGER16:
             i16 = (int16*) &usdo[0];
-            sprintf(hstr, "0x%4.4x %d", *i16, *i16); 
+            sprintf(hstr, "0x%4.4x %d", *i16, *i16);
             break;
          case ECT_INTEGER32:
          case ECT_INTEGER24:
             i32 = (int32*) &usdo[0];
-            sprintf(hstr, "0x%8.8x %d", *i32, *i32); 
+            sprintf(hstr, "0x%8.8x %d", *i32, *i32);
             break;
          case ECT_INTEGER64:
             i64 = (int64*) &usdo[0];
-            sprintf(hstr, "0x%16.16llx %lld", *i64, *i64); 
+            sprintf(hstr, "0x%16.16llx %lld", *i64, *i64);
             break;
          case ECT_UNSIGNED8:
             u8 = (uint8*) &usdo[0];
-            sprintf(hstr, "0x%2.2x %u", *u8, *u8); 
+            sprintf(hstr, "0x%2.2x %u", *u8, *u8);
             break;
          case ECT_UNSIGNED16:
             u16 = (uint16*) &usdo[0];
-            sprintf(hstr, "0x%4.4x %u", *u16, *u16); 
+            sprintf(hstr, "0x%4.4x %u", *u16, *u16);
             break;
          case ECT_UNSIGNED32:
          case ECT_UNSIGNED24:
             u32 = (uint32*) &usdo[0];
-            sprintf(hstr, "0x%8.8x %u", *u32, *u32); 
+            sprintf(hstr, "0x%8.8x %u", *u32, *u32);
             break;
          case ECT_UNSIGNED64:
             u64 = (uint64*) &usdo[0];
-            sprintf(hstr, "0x%16.16llx %llu", *u64, *u64); 
+            sprintf(hstr, "0x%16.16llx %llu", *u64, *u64);
             break;
          case ECT_REAL32:
             sr = (float*) &usdo[0];
-            sprintf(hstr, "%f", *sr); 
+            sprintf(hstr, "%f", *sr);
             break;
          case ECT_REAL64:
             dr = (double*) &usdo[0];
-            sprintf(hstr, "%f", *dr); 
+            sprintf(hstr, "%f", *dr);
             break;
          case ECT_BIT1:
          case ECT_BIT2:
@@ -191,7 +191,7 @@ char* SDO2string(uint16 slave, uint16 index, uint8 subidx, uint16 dtype)
          case ECT_BIT7:
          case ECT_BIT8:
             u8 = (uint8*) &usdo[0];
-            sprintf(hstr, "0x%x", *u8); 
+            sprintf(hstr, "0x%x", *u8);
             break;
          case ECT_VISIBLE_STRING:
             strcpy(hstr, usdo);
@@ -199,7 +199,7 @@ char* SDO2string(uint16 slave, uint16 index, uint8 subidx, uint16 dtype)
          case ECT_OCTET_STRING:
             hstr[0] = 0x00;
             for (i = 0 ; i < l ; i++)
-            { 
+            {
                sprintf(es, "0x%2.2x ", usdo[i]);
                strcat( hstr, es);
             }
@@ -321,22 +321,22 @@ int si_map_sdo(int slave)
                 }
                 if(tSM)
                     tSM += SMt_bug_add; // only add if SMt > 0
-                
+
                 if (tSM == 3) // outputs
                 {
                     /* read the assign RXPDO */
                     printf("  SM%1d outputs\n     addr b   index: sub bitl data_type    name\n", iSM);
                     Tsize = si_PDOassign(slave, ECT_SDO_PDOASSIGN + iSM, (int)(ec_slave[slave].outputs - (uint8 *)&IOmap[0]), outputs_bo );
                     outputs_bo += Tsize;
-                }   
+                }
                 if (tSM == 4) // inputs
                 {
                     /* read the assign TXPDO */
                     printf("  SM%1d inputs\n     addr b   index: sub bitl data_type    name\n", iSM);
                     Tsize = si_PDOassign(slave, ECT_SDO_PDOASSIGN + iSM, (int)(ec_slave[slave].inputs - (uint8 *)&IOmap[0]), inputs_bo );
                     inputs_bo += Tsize;
-                }   
-            }   
+                }
+            }
         }
     }
 
@@ -395,10 +395,10 @@ int si_siiPDO(uint16 slave, uint8 t, int mapoffset, int bitoffset)
             a += 2;
             c += 2;
             if (PDO->SyncM[PDO->nPDO] < EC_MAXSM) /* active and in range SM? */
-            {   
+            {
                 str_name[0] = 0;
                 if(obj_name)
-                  ec_siistring(str_name, slave, obj_name);                 
+                  ec_siistring(str_name, slave, obj_name);
                 if (t)
                   printf("  SM%1d RXPDO 0x%4.4X %s\n", PDO->SyncM[PDO->nPDO], PDO->Index[PDO->nPDO], str_name);
                 else
@@ -422,7 +422,7 @@ int si_siiPDO(uint16 slave, uint8 t, int mapoffset, int bitoffset)
 
                     str_name[0] = 0;
                     if(obj_name)
-                      ec_siistring(str_name, slave, obj_name);                 
+                      ec_siistring(str_name, slave, obj_name);
 
                     printf("  [0x%4.4X.%1d] 0x%4.4X:0x%2.2X 0x%2.2X", abs_offset, abs_bit, obj_idx, obj_subidx, bitlen);
                     printf(" %-12s %s\n", dtype2string(obj_datatype), str_name);
@@ -438,7 +438,7 @@ int si_siiPDO(uint16 slave, uint8 t, int mapoffset, int bitoffset)
                 c += 4 * e;
                 a += 8 * e;
                 c++;
-            }   
+            }
             if (PDO->nPDO >= (EC_MAXEEPDO - 1)) c = PDO->Length; /* limit number of PDO entries in buffer */
         }
         while (c < PDO->Length);
@@ -472,7 +472,7 @@ int si_map_sii(int slave)
 void si_sdo(int cnt)
 {
     int i, j;
-    
+
     ODlist.Entries = 0;
     memset(&ODlist, 0, sizeof(ODlist));
     if( ec_readODlist(cnt, &ODlist))
@@ -480,7 +480,7 @@ void si_sdo(int cnt)
         printf(" CoE Object Description found, %d entries.\n",ODlist.Entries);
         for( i = 0 ; i < ODlist.Entries ; i++)
         {
-            ec_readODdescription(i, &ODlist); 
+            ec_readODdescription(i, &ODlist);
             while(EcatError) printf("%s", ec_elist2string());
             printf(" Index: %4.4x Datatype: %4.4x Objectcode: %2.2x Name: %s\n",
                 ODlist.Index[i], ODlist.DataType[i], ODlist.ObjectCode[i], ODlist.Name[i]);
@@ -498,8 +498,8 @@ void si_sdo(int cnt)
                         printf("          Value :%s\n", SDO2string(cnt, ODlist.Index[i], j, OElist.DataType[j]));
                     }
                 }
-            }   
-        }   
+            }
+        }
     }
     else
     {
@@ -512,12 +512,12 @@ void slaveinfo(char *ifname)
    int cnt, i, j, nSM;
     uint16 ssigen;
     int expectedWKC;
-   
+
    printf("Starting slaveinfo\n");
-   
+
    /* initialise SOEM, bind socket to ifname */
    if (ec_init(ifname))
-   {   
+   {
       printf("ec_init on %s succeeded.\n",ifname);
       /* find and auto-config slaves */
       if ( ec_config(FALSE, &IOmap) > 0 )
@@ -525,7 +525,7 @@ void slaveinfo(char *ifname)
          ec_configdc();
          while(EcatError) printf("%s", ec_elist2string());
          printf("%d slaves found and configured.\n",ec_slavecount);
-         expectedWKC = (ec_group[0].outputsWKC * 2) + ec_group[0].inputsWKC;         
+         expectedWKC = (ec_group[0].outputsWKC * 2) + ec_group[0].inputsWKC;
          printf("Calculated workcounter %d\n", expectedWKC);
          /* wait for all slaves to reach SAFE_OP state */
          ec_statecheck(0, EC_STATE_SAFE_OP,  EC_TIMEOUTSTATE * 3);
@@ -542,8 +542,8 @@ void slaveinfo(char *ifname)
                }
             }
          }
-         
-         
+
+
          ec_readstate();
          for( cnt = 1 ; cnt <= ec_slavecount ; cnt++)
          {
@@ -552,8 +552,8 @@ void slaveinfo(char *ifname)
                   ec_slave[cnt].state, ec_slave[cnt].pdelay, ec_slave[cnt].hasdc);
             if (ec_slave[cnt].hasdc) printf(" DCParentport:%d\n", ec_slave[cnt].parentport);
             printf(" Activeports:%d.%d.%d.%d\n", (ec_slave[cnt].activeports & 0x01) > 0 ,
-                                         (ec_slave[cnt].activeports & 0x02) > 0 , 
-                                         (ec_slave[cnt].activeports & 0x04) > 0 , 
+                                         (ec_slave[cnt].activeports & 0x02) > 0 ,
+                                         (ec_slave[cnt].activeports & 0x04) > 0 ,
                                          (ec_slave[cnt].activeports & 0x08) > 0 );
             printf(" Configured address: %4.4x\n", ec_slave[cnt].configadr);
             printf(" Man: %8.8x ID: %8.8x Rev: %8.8x\n", (int)ec_slave[cnt].eep_man, (int)ec_slave[cnt].eep_id, (int)ec_slave[cnt].eep_rev);
@@ -584,8 +584,8 @@ void slaveinfo(char *ifname)
                if((ec_siigetbyte(cnt, ssigen + 0x0d) & 0x02) > 0)
                {
                   ec_slave[cnt].blockLRW = 1;
-                  ec_slave[0].blockLRW++;                  
-               }   
+                  ec_slave[0].blockLRW++;
+               }
                ec_slave[cnt].Ebuscurrent = ec_siigetbyte(cnt, ssigen + 0x0e);
                ec_slave[cnt].Ebuscurrent += ec_siigetbyte(cnt, ssigen + 0x0f) << 8;
                ec_slave[0].Ebuscurrent += ec_slave[cnt].Ebuscurrent;
@@ -602,8 +602,8 @@ void slaveinfo(char *ifname)
                         si_map_sdo(cnt);
                     else
                         si_map_sii(cnt);
-            }   
-         }   
+            }
+         }
       }
       else
       {
@@ -616,8 +616,8 @@ void slaveinfo(char *ifname)
    else
    {
       printf("No socket connection on %s\nExcecute as root\n",ifname);
-   }   
-}   
+   }
+}
 
 char ifbuf[1024];
 
@@ -625,9 +625,9 @@ int main(int argc, char *argv[])
 {
    ec_adaptert * adapter = NULL;
    printf("SOEM (Simple Open EtherCAT Master)\nSlaveinfo\n");
-   
+
    if (argc > 1)
-   {      
+   {
       if ((argc > 2) && (strncmp(argv[2], "-sdo", sizeof("-sdo")) == 0)) printSDO = TRUE;
       if ((argc > 2) && (strncmp(argv[2], "-map", sizeof("-map")) == 0)) printMAP = TRUE;
       /* start slaveinfo */
@@ -645,8 +645,8 @@ int main(int argc, char *argv[])
          printf ("Description : %s, Device to use for wpcap: %s\n", adapter->desc,adapter->name);
          adapter = adapter->next;
       }
-   }   
-   
+   }
+
    printf("End program\n");
    return (0);
 }

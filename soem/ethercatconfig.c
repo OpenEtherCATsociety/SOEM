@@ -848,7 +848,7 @@ static int ecx_get_threadcount(void)
                   
 /** Map all PDOs in one group of slaves to IOmap.
  *
- * @param[in]  context        = context struct
+ * @param[in]  context    = context struct
  * @param[out] pIOmap     = pointer to IOmap   
  * @param[in]  group      = group to map, 0 = all groups   
  * @return IOmap size
@@ -1265,7 +1265,7 @@ int ecx_config_map_group(ecx_contextt *context, void *pIOmap, uint8 group)
 
 /** Recover slave.
  *
- * @param[in]  context        = context struct
+ * @param[in] context = context struct
  * @param[in] slave   = slave to recover
  * @param[in] timeout = local timeout f.e. EC_TIMEOUTRET3
  * @return >0 if successful
@@ -1327,7 +1327,7 @@ int ecx_recover_slave(ecx_contextt *context, uint16 slave, int timeout)
 
 /** Reconfigure slave.
  *
- * @param[in]  context        = context struct
+ * @param[in] context = context struct
  * @param[in] slave   = slave to reconfigure
  * @param[in] timeout = local timeout f.e. EC_TIMEOUTRET3
  * @return Slave state
@@ -1381,11 +1381,24 @@ int ecx_reconfig_slave(ecx_contextt *context, uint16 slave, int timeout)
 }
 
 #ifdef EC_VER1
+/** Enumerate and init all slaves.
+ *
+ * @param[in] usetable     = TRUE when using configtable to init slaves, FALSE otherwise
+ * @return Workcounter of slave discover datagram = number of slaves found
+ * @see ecx_config_init
+ */
 int ec_config_init(uint8 usetable)
 {
    return ecx_config_init(&ecx_context, usetable);
 }
 
+/** Map all PDOs in one group of slaves to IOmap.
+ *
+ * @param[out] pIOmap     = pointer to IOmap
+ * @param[in]  group      = group to map, 0 = all groups
+ * @return IOmap size
+ * @see ecx_config_map_group
+ */
 int ec_config_map_group(void *pIOmap, uint8 group)
 {
    return ecx_config_map_group(&ecx_context, pIOmap, group);
@@ -1418,11 +1431,25 @@ int ec_config(uint8 usetable, void *pIOmap)
    return wkc;
 }
 
+/** Recover slave.
+ *
+ * @param[in] slave   = slave to recover
+ * @param[in] timeout = local timeout f.e. EC_TIMEOUTRET3
+ * @return >0 if successful
+ * @see ecx_recover_slave
+ */
 int ec_recover_slave(uint16 slave, int timeout)
 {
    return ecx_recover_slave(&ecx_context, slave, timeout);
 }
 
+/** Reconfigure slave.
+ *
+ * @param[in] slave   = slave to reconfigure
+ * @param[in] timeout = local timeout f.e. EC_TIMEOUTRET3
+ * @return Slave state
+ * @see ecx_reconfig_slave
+ */
 int ec_reconfig_slave(uint16 slave, int timeout)
 {
    return ecx_reconfig_slave(&ecx_context, slave, timeout);

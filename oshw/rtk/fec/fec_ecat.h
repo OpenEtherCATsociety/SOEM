@@ -20,7 +20,7 @@
 
 /**
  * \defgroup fec EtherCat Ethernet MAC driver for Frescale K60 SoCs.
- * 
+ *
  * \{
  */
 
@@ -52,5 +52,5 @@ int fec_ecat_recv (void * buffer, size_t buffer_length);
 #endif /* FEC_H */
 
 /**
- * \} 
+ * \}
  */

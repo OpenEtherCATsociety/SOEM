@@ -39,7 +39,7 @@
  * (www.beckhoff.com).
  */
 
-/** \file 
+/** \file
  * \brief
  * Headerfile for oshw.c
  */

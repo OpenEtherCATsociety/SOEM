@@ -1,5 +1,5 @@
 /*
- * Simple Open EtherCAT Master Library 
+ * Simple Open EtherCAT Master Library
  *
  * File    : ethercattype.h
  * Version : 1.3.1
@@ -40,7 +40,7 @@
  */
 
 /** \file
- * \brief   
+ * \brief
  * General typedefs and defines for EtherCAT.
  *
  * Defines that could need optimalisation for specific applications
@@ -48,7 +48,7 @@
  * standard linux PC or laptop and a wired connection to maximal 100 slaves.
  * For use with wireless connections or lots of slaves the timouts need
  * increasing. For fast systems running Xenomai and RT-net or alike the
- * timeouts need to be shorter.   
+ * timeouts need to be shorter.
  */
 
 #ifndef _EC_TYPE_H
@@ -242,7 +242,7 @@ typedef enum
 } ec_datatype;
 
 /** Ethercat command types */
-typedef enum 
+typedef enum
 {
    /** No operation */
    EC_CMD_NOP          = 0x00,
@@ -278,7 +278,7 @@ typedef enum
 } ec_cmdtype;
 
 /** Ethercat EEprom command types */
-typedef enum 
+typedef enum
 {
    /** No operation */
    EC_ECMD_NOP         = 0x0000,
@@ -411,7 +411,7 @@ enum
 };
 
 /** Ethercat registers */
-enum 
+enum
 {
    ECT_REG_TYPE        = 0x0000,
    ECT_REG_PORTDES     = 0x0007,

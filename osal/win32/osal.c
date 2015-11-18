@@ -47,7 +47,7 @@ static int64_t sysfrequency;
 static double qpc2usec;
 
 #define USECS_PER_SEC     1000000
-  
+
 int osal_gettimeofday (struct timeval *tv, struct timezone *tz)
 {
    int64_t wintime, usecs;
@@ -61,7 +61,7 @@ int osal_gettimeofday (struct timeval *tv, struct timezone *tz)
    usecs = (int64_t)((double)wintime * qpc2usec);
    tv->tv_sec = (long)(usecs / 1000000);
    tv->tv_usec = (long)(usecs - (tv->tv_sec * 1000000));
-   
+
    return 1;
 }
 
@@ -78,12 +78,12 @@ ec_timet osal_current_time (void)
 
 void osal_time_diff(ec_timet *start, ec_timet *end, ec_timet *diff)
 {
-   diff->sec = end->sec - start->sec;                             
-   diff->usec = end->usec - start->usec;                             
-   if (diff->usec < 0) {                                              
-     --diff->sec;                                                     
-     diff->usec += 1000000;                                           
-   }                                                                         
+   diff->sec = end->sec - start->sec;
+   diff->usec = end->usec - start->usec;
+   if (diff->usec < 0) {
+     --diff->sec;
+     diff->usec += 1000000;
+   }
 }
 
 void osal_timer_start (osal_timert *self, uint32 timeout_usec)
@@ -140,7 +140,7 @@ void osal_free(void *ptr)
 int osal_thread_create(void **thandle, int stacksize, void *func, void *param)
 {
    *thandle = CreateThread(NULL, stacksize, func, param, 0, NULL);
-   if(!thandle) 
+   if(!thandle)
    {
       return 0;
    }

@@ -1,5 +1,5 @@
 /*
- * Simple Open EtherCAT Master Library 
+ * Simple Open EtherCAT Master Library
  *
  * File    : ethercatfoe.c
  * Version : 1.3.1
@@ -37,11 +37,11 @@
  * In case you did not receive a copy of the EtherCAT Master License along with
  * SOEM write to Beckhoff Automation GmbH, Eiserstraße 5, D-33415 Verl, Germany
  * (www.beckhoff.com).
- 
+
  * 14-06-2010 : fixed bug in FOEread() by Torsten Bitterlich
  */
 
-/** \file 
+/** \file
  * \brief
  * File over EtherCAT (FoE) module.
  *
@@ -69,34 +69,34 @@ typedef struct PACKED
    uint8         OpCode;
    uint8         Reserved;
    union
-   {   
+   {
       uint32        Password;
       uint32        PacketNumber;
       uint32        ErrorCode;
    };
    union
-   {   
+   {
       char          FileName[EC_MAXFOEDATA];
       uint8         Data[EC_MAXFOEDATA];
       char          ErrorText[EC_MAXFOEDATA];
-   };   
+   };
 } ec_FOEt;
 PACKED_END
 
 /** FoE progress hook.
- * 
+ *
  * @param[in]  context        = context struct
  * @param[in]     hook       = Pointer to hook function.
  * @return 1
  */
 int ecx_FOEdefinehook(ecx_contextt *context, void *hook)
 {
-  context->FOEhook = hook; 
+  context->FOEhook = hook;
   return 1;
 }
 
 /** FoE read, blocking.
- * 
+ *
  * @param[in]  context        = context struct
  * @param[in]     slave      = Slave number.
  * @param[in]     filename   = Filename of file to read.
@@ -146,7 +146,7 @@ int ecx_FOEread(ecx_contextt *context, uint16 slave, char *filename, uint32 pass
    if (wkc > 0) /* succeeded to place mailbox in slave ? */
    {
       do
-      {   
+      {
          worktodo = FALSE;
          /* clean mailboxbuffer */
          ec_clearmbx(&MbxIn);
@@ -168,7 +168,7 @@ int ecx_FOEread(ecx_contextt *context, uint16 slave, char *filename, uint32 pass
                      p = (uint8 *)p + segmentdata;
                      if (segmentdata == maxdata)
                      {
-                        worktodo = TRUE; 
+                        worktodo = TRUE;
                      }
                      FOEp->MbxHeader.length = htoes(0x0006);
                      FOEp->MbxHeader.address = htoes(0x0000);
@@ -182,7 +182,7 @@ int ecx_FOEread(ecx_contextt *context, uint16 slave, char *filename, uint32 pass
                      /* send FoE ack to slave */
                      wkc = ecx_mbxsend(context, slave, (ec_mbxbuft *)&MbxOut, EC_TIMEOUTTXM);
                      if (wkc <= 0)
-                     {   
+                     {
                         worktodo = FALSE;
                      }
                      if (context->FOEhook)
@@ -217,14 +217,14 @@ int ecx_FOEread(ecx_contextt *context, uint16 slave, char *filename, uint32 pass
             }
             *psize = dataread;
          }
-      } while (worktodo);   
+      } while (worktodo);
    }
-   
+
    return wkc;
-}   
+}
 
 /** FoE write, blocking.
- * 
+ *
  * @param[in]  context        = context struct
  * @param[in]  slave      = Slave number.
  * @param[in]  filename   = Filename of file to write.
@@ -275,7 +275,7 @@ int ecx_FOEwrite(ecx_contextt *context, uint16 slave, char *filename, uint32 pas
    if (wkc > 0) /* succeeded to place mailbox in slave ? */
    {
       do
-      {   
+      {
          worktodo = FALSE;
          /* clean mailboxbuffer */
          ec_clearmbx(&MbxIn);
@@ -304,7 +304,7 @@ int ecx_FOEwrite(ecx_contextt *context, uint16 slave, char *filename, uint32 pas
                         }
                         if(tsize || dofinalzero)
                         {
-                           worktodo = TRUE; 
+                           worktodo = TRUE;
                            dofinalzero = FALSE;
                            segmentdata = tsize;
                            psize -= segmentdata;
@@ -329,7 +329,7 @@ int ecx_FOEwrite(ecx_contextt *context, uint16 slave, char *filename, uint32 pas
                            /* send FoE data to slave */
                            wkc = ecx_mbxsend(context, slave, (ec_mbxbuft *)&MbxOut, EC_TIMEOUTTXM);
                            if (wkc <= 0)
-                           {   
+                           {
                               worktodo = FALSE;
                            }
                         }
@@ -384,9 +384,9 @@ int ecx_FOEwrite(ecx_contextt *context, uint16 slave, char *filename, uint32 pas
                wkc = -EC_ERR_TYPE_PACKET_ERROR;
             }
          }
-      } while (worktodo);   
+      } while (worktodo);
    }
-   
+
    return wkc;
 }
 

@@ -1,5 +1,5 @@
 /*
- * Simple Open EtherCAT Master Library 
+ * Simple Open EtherCAT Master Library
  *
  * File    : ethercatconfiglist.h
  * Version : 1.3.1
@@ -52,14 +52,14 @@
 #define _ethercatconfiglist_
 
 /*
-   explanation of dev:                                   
-    1: static device with no IO mapping ie EK1100        
-    2: input device no mailbox ie simple IO device       
-    3: output device no mailbox                          
-    4: input device with mailbox configuration           
-    5: output device with mailbox configuration          
-    6: input/output device no mailbox                    
-    7: input.output device with mailbox configuration           
+   explanation of dev:
+    1: static device with no IO mapping ie EK1100
+    2: input device no mailbox ie simple IO device
+    3: output device no mailbox
+    4: input device with mailbox configuration
+    5: output device with mailbox configuration
+    6: input/output device no mailbox
+    7: input.output device with mailbox configuration
 */
 #define EC_CONFIGEND 0xffffffff
 

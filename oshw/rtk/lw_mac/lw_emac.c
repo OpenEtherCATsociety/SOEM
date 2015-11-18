@@ -211,9 +211,9 @@ static uint8_t lw_emac_init_registers(uint8_t * ethAddr) {
    *(uint16_t *) PORTH_FER = 0xFFFF;
 
    /* CONFIGURE MAC REGISTERS */
-   
-   /* 
-    * Set the MMC (MAC Management Counter) control register 
+
+   /*
+    * Set the MMC (MAC Management Counter) control register
     * RTSC = Clear all counters
     *
     * Note that counters are not enabled at this time
@@ -233,10 +233,10 @@ static uint8_t lw_emac_init_registers(uint8_t * ethAddr) {
          );
 
    /*
-    * Set the system control register 
+    * Set the system control register
     * SET_MDCDIV(x) = Set MDC to 2.5 MHz
-    * RXDWA = Pad incoming frame with 0x0000 as to make the data-part 32-bit aligned 
-    * RXCKS = Enable Receive Frame TCP/UDP Checksum Computation 
+    * RXDWA = Pad incoming frame with 0x0000 as to make the data-part 32-bit aligned
+    * RXCKS = Enable Receive Frame TCP/UDP Checksum Computation
     */
    pEth->sysctl = SET_MDCDIV(sysctl_mdcdiv) | RXDWA ;
 
@@ -244,8 +244,8 @@ static uint8_t lw_emac_init_registers(uint8_t * ethAddr) {
 
    /*
     * Set the PHY basic control register
-    * MII_BMCR_ANEG_EN = Auto negotiation on 
-    * MII_BMCR_ANEG_RST = Restart the auto-neg process by setting 
+    * MII_BMCR_ANEG_EN = Auto negotiation on
+    * MII_BMCR_ANEG_RST = Restart the auto-neg process by setting
     * Speed handled by auto negotiation
     */
    phy_stadat = MII_BMCR_ANEG_EN | MII_BMCR_ANEG_RST;
@@ -273,7 +273,7 @@ static uint8_t lw_emac_init_registers(uint8_t * ethAddr) {
    }
    else {
       pEth->opmode = 0;
-   } 
+   }
 
    /*
     * Setup DMA MAC receive/transfer channels with XCOUNT 0 (which we use

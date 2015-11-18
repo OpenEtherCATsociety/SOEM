@@ -7,7 +7,7 @@
  *
  * This test is specifically build for the E/BOX.
  *
- * (c)Arthur Ketels 2011 
+ * (c)Arthur Ketels 2011
  */
 
 #include <stdio.h>
@@ -39,13 +39,13 @@ typedef struct PACKED
    int32         ain[2];
    uint32        tsain;
    int32         enc[2];
-} in_EBOXt;   
+} in_EBOXt;
 
 typedef struct PACKED
 {
    uint8         counter;
    int16         stream[100];
-} in_EBOX_streamt;   
+} in_EBOX_streamt;
 
 typedef struct PACKED
 {
@@ -53,12 +53,12 @@ typedef struct PACKED
    uint8         dout;
    int16         aout[2];
    uint16        pwmout[2];
-} out_EBOXt;   
+} out_EBOXt;
 
 typedef struct PACKED
 {
    uint8         control;
-} out_EBOX_streamt;   
+} out_EBOX_streamt;
 
 // total samples to capture
 #define MAXSTREAM 200000
@@ -93,30 +93,30 @@ int16      stream2[MAXSTREAM];
 int output_cvs(char *fname, int length)
 {
    FILE *fp;
- 
+
    int  i;
 
    fp = fopen(fname, "w");
-   if(fp == NULL) 
+   if(fp == NULL)
       return 0;
    for (i = 0; i < length; i++)
    {
       fprintf(fp, "%d %d %d\n", i, stream1[i], stream2[i]);
    }
    fclose(fp);
-   
+
    return 1;
 }
 
 void eboxtest(char *ifname)
 {
    int cnt, i;
-   
+
    printf("Starting E/BOX test\n");
-   
+
    /* initialise SOEM, bind socket to ifname */
    if (ec_init(ifname))
-   {   
+   {
       printf("ec_init on %s succeeded.\n",ifname);
       /* find and auto-config slaves */
       if ( ec_config_init(FALSE) > 0 )
@@ -130,9 +130,9 @@ void eboxtest(char *ifname)
             // reprogram PDO mapping to set slave in stream mode
             // this can only be done in pre-OP state
             os=sizeof(ob2); ob2 = 0x1601;
-            ec_SDOwrite(1,0x1c12,01,FALSE,os,&ob2,EC_TIMEOUTRXM);   
+            ec_SDOwrite(1,0x1c12,01,FALSE,os,&ob2,EC_TIMEOUTRXM);
             os=sizeof(ob2); ob2 = 0x1a01;
-            ec_SDOwrite(1,0x1c13,01,FALSE,os,&ob2,EC_TIMEOUTRXM);   
+            ec_SDOwrite(1,0x1c13,01,FALSE,os,&ob2,EC_TIMEOUTRXM);
          }
 
          ec_config_map(&IOmap);
@@ -141,10 +141,10 @@ void eboxtest(char *ifname)
 
          /* wait for all slaves to reach SAFE_OP state */
          ec_statecheck(0, EC_STATE_SAFE_OP,  EC_TIMEOUTSTATE);
-         
+
          /* configure DC options for every DC capable slave found in the list */
          printf("DC capable : %d\n",ec_configdc());
-         
+
          /* check configuration */
          if (( ec_slavecount >= 1 ) &&
              (strcmp(ec_slave[1].name,"E/BOX") == 0)
@@ -166,10 +166,10 @@ void eboxtest(char *ifname)
             }
             printf("Request operational state for all slaves\n");
 
-            /* send one processdata cycle to init SM in slaves */   
+            /* send one processdata cycle to init SM in slaves */
             ec_send_processdata();
             ec_receive_processdata(EC_TIMEOUTRET);
-               
+
             ec_slave[0].state = EC_STATE_OPERATIONAL;
             /* request OP state for all slaves */
             ec_writestate(0);
@@ -202,12 +202,12 @@ void eboxtest(char *ifname)
             else
             {
                printf("Not all slaves reached operational state.\n");
-            }         
+            }
          }
          else
          {
             printf("E/BOX not found in slave configuration.\n");
-         }   
+         }
          ec_dcsync0(1, FALSE, 8000, 0); // SYNC0 off
          printf("Request safe operational state for all slaves\n");
          ec_slave[0].state = EC_STATE_SAFE_OP;
@@ -226,9 +226,9 @@ void eboxtest(char *ifname)
             // restore PDO to standard mode
             // this can only be done is pre-op state
             os=sizeof(ob2); ob2 = 0x1600;
-            ec_SDOwrite(1,0x1c12,01,FALSE,os,&ob2,EC_TIMEOUTRXM);   
+            ec_SDOwrite(1,0x1c12,01,FALSE,os,&ob2,EC_TIMEOUTRXM);
             os=sizeof(ob2); ob2 = 0x1a00;
-            ec_SDOwrite(1,0x1c13,01,FALSE,os,&ob2,EC_TIMEOUTRXM);   
+            ec_SDOwrite(1,0x1c13,01,FALSE,os,&ob2,EC_TIMEOUTRXM);
          }
          printf("Streampos %d\n", streampos);
          output_cvs("stream.txt", streampos);
@@ -244,25 +244,25 @@ void eboxtest(char *ifname)
    else
    {
       printf("No socket connection on %s\nExcecute as root\n",ifname);
-   }   
-}   
+   }
+}
 
 /* add ns to timespec */
 void add_timespec(struct timespec *ts, int64 addtime)
 {
    int64 sec, nsec;
-   
+
    nsec = addtime % NSEC_PER_SEC;
    sec = (addtime - nsec) / NSEC_PER_SEC;
    ts->tv_sec += sec;
    ts->tv_nsec += nsec;
-   if ( ts->tv_nsec > NSEC_PER_SEC ) 
-   { 
+   if ( ts->tv_nsec > NSEC_PER_SEC )
+   {
       nsec = ts->tv_nsec % NSEC_PER_SEC;
       ts->tv_sec += (ts->tv_nsec - nsec) / NSEC_PER_SEC;
       ts->tv_nsec = nsec;
-   }   
-}   
+   }
+}
 
 /* PI calculation to get linux time synced to DC time */
 void ec_sync(int64 reftime, int64 cycletime , int64 *offsettime)
@@ -274,7 +274,7 @@ void ec_sync(int64 reftime, int64 cycletime , int64 *offsettime)
    if(delta>0){ integral++; }
    if(delta<0){ integral--; }
    *offsettime = -(delta / 100) - (integral /20);
-}   
+}
 
 /* RT EtherCAT thread */
 void ecatthread( void *ptr )
@@ -285,7 +285,7 @@ void ecatthread( void *ptr )
    int i;
    int pcounter = 0;
    int64 cycletime;
-   
+
    pthread_mutex_lock(&mutex);
    gettimeofday(&tp, NULL);
 
@@ -297,7 +297,7 @@ void ecatthread( void *ptr )
    toff = 0;
    dorun = 0;
    while(1)
-   {   
+   {
       /* calculate next cycle start */
       add_timespec(&ts, cycletime + toff);
       /* wait to cycle start */
@@ -312,7 +312,7 @@ void ecatthread( void *ptr )
 
          cyclecount++;
 
-         
+
          if((in_EBOX->counter != pcounter) && (streampos < (MAXSTREAM - 1)))
          {
             // check if we have timing problems in master
@@ -335,11 +335,11 @@ void ecatthread( void *ptr )
             }
             pcounter = in_EBOX->counter;
          }
-                      
+
          /* calulate toff to get linux time and DC synced */
          ec_sync(ec_DCtime, cycletime, &toff);
-      }   
-   }    
+      }
+   }
 }
 
 int main(int argc, char *argv[])
@@ -347,9 +347,9 @@ int main(int argc, char *argv[])
    int ctime;
    struct sched_param    param;
    int                   policy = SCHED_OTHER;
-   
+
    printf("SOEM (Simple Open EtherCAT Master)\nE/BOX test\n");
-   
+
    memset(&schedp, 0, sizeof(schedp));
    /* do not set priority above 49, otherwise sockets are starved */
    schedp.sched_priority = 30;
@@ -360,16 +360,16 @@ int main(int argc, char *argv[])
       usleep(1000);
    }
    while (dorun);
-   
+
    if (argc > 1)
-   {      
+   {
       dorun = 1;
       if( argc > 2)
          ctime = atoi(argv[2]);
       else
          ctime = 1000; // 1ms cycle time
       /* create RT thread */
-      pthread_create( &thread1, NULL, (void *) &ecatthread, (void*) &ctime);   
+      pthread_create( &thread1, NULL, (void *) &ecatthread, (void*) &ctime);
       memset(&param, 0, sizeof(param));
       /* give it higher priority */
       param.sched_priority = 40;
@@ -381,12 +381,12 @@ int main(int argc, char *argv[])
    else
    {
       printf("Usage: ebox ifname [cycletime]\nifname = eth0 for example\ncycletime in us\n");
-   }   
-   
+   }
+
    schedp.sched_priority = 0;
    sched_setscheduler(0, SCHED_OTHER, &schedp);
 
    printf("End program\n");
-   
+
    return (0);
 }

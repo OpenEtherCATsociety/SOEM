@@ -39,10 +39,10 @@ void simpletest(char *ifname)
     inOP = FALSE;
 
    printf("Starting simple test\n");
-   
+
    /* initialise SOEM, bind socket to ifname */
    if (ec_init(ifname))
-   {   
+   {
       printf("ec_init on %s succeeded.\n",ifname);
       /* find and auto-config slaves */
 
@@ -105,16 +105,16 @@ void simpletest(char *ifname)
                             printf(" %2.2x", *(ec_slave[0].outputs + j));
                         }
 
-                        printf(" I:");                  
+                        printf(" I:");
                         for(j = 0 ; j < iloop; j++)
                         {
                             printf(" %2.2x", *(ec_slave[0].inputs + j));
-                        }   
+                        }
                         printf(" T:%lld\r",ec_DCtime);
                         needlf = TRUE;
                     }
                     osal_usleep(5000);
-                    
+
                 }
                 inOP = FALSE;
             }
@@ -130,7 +130,7 @@ void simpletest(char *ifname)
                             i, ec_slave[i].state, ec_slave[i].ALstatuscode, ec_ALstatuscode2string(ec_slave[i].ALstatuscode));
                     }
                 }
-            }           
+            }
             printf("\nRequest init state for all slaves\n");
             ec_slave[0].state = EC_STATE_INIT;
             /* request INIT state for all slaves */
@@ -147,8 +147,8 @@ void simpletest(char *ifname)
     else
     {
         printf("No socket connection on %s\nExcecute as root\n",ifname);
-    }   
-}   
+    }
+}
 
 OSAL_THREAD_FUNC ecatcheck( void *ptr )
 {
@@ -181,16 +181,16 @@ OSAL_THREAD_FUNC ecatcheck( void *ptr )
                   {
                      printf("WARNING : slave %d is in SAFE_OP, change to OPERATIONAL.\n", slave);
                      ec_slave[slave].state = EC_STATE_OPERATIONAL;
-                     ec_writestate(slave);                              
+                     ec_writestate(slave);
                   }
                   else if(ec_slave[slave].state > 0)
                   {
                      if (ec_reconfig_slave(slave, EC_TIMEOUTMON))
                      {
                         ec_slave[slave].islost = FALSE;
-                        printf("MESSAGE : slave %d reconfigured\n",slave);                           
+                        printf("MESSAGE : slave %d reconfigured\n",slave);
                      }
-                  } 
+                  }
                   else if(!ec_slave[slave].islost)
                   {
                      /* re-check state */
@@ -198,7 +198,7 @@ OSAL_THREAD_FUNC ecatcheck( void *ptr )
                      if (!ec_slave[slave].state)
                      {
                         ec_slave[slave].islost = TRUE;
-                        printf("ERROR : slave %d lost\n",slave);                           
+                        printf("ERROR : slave %d lost\n",slave);
                      }
                   }
                }
@@ -209,13 +209,13 @@ OSAL_THREAD_FUNC ecatcheck( void *ptr )
                      if (ec_recover_slave(slave, EC_TIMEOUTMON))
                      {
                         ec_slave[slave].islost = FALSE;
-                        printf("MESSAGE : slave %d recovered\n",slave);                           
+                        printf("MESSAGE : slave %d recovered\n",slave);
                      }
                   }
                   else
                   {
                      ec_slave[slave].islost = FALSE;
-                     printf("MESSAGE : slave %d found\n",slave);                           
+                     printf("MESSAGE : slave %d found\n",slave);
                   }
                }
             }
@@ -223,17 +223,17 @@ OSAL_THREAD_FUNC ecatcheck( void *ptr )
                printf("OK : all slaves resumed OPERATIONAL.\n");
         }
         osal_usleep(10000);
-    }   
-}   
+    }
+}
 
 int main(int argc, char *argv[])
 {
    printf("SOEM (Simple Open EtherCAT Master)\nSimple test\n");
 
    if (argc > 1)
-   {      
+   {
       /* create thread to handle slave error handling in OP */
-//      pthread_create( &thread1, NULL, (void *) &ecatcheck, (void*) &ctime);   
+//      pthread_create( &thread1, NULL, (void *) &ecatcheck, (void*) &ctime);
       osal_thread_create(&thread1, 128000, &ecatcheck, (void*) &ctime);
       /* start cyclic part */
       simpletest(argv[1]);
@@ -241,8 +241,8 @@ int main(int argc, char *argv[])
    else
    {
       printf("Usage: simple_test ifname1\nifname = eth0 for example\n");
-   }   
-   
+   }
+
    printf("End program\n");
    return (0);
 }

@@ -59,7 +59,7 @@ int EL7031setup(uint16 slave)
 
     // Set PDO mapping using Complete Access
     // Strange, writing CA works, reading CA doesn't
-    // This is a protocol error of the slave. 
+    // This is a protocol error of the slave.
     retval += ec_SDOwrite(slave, 0x1c12, 0x00, TRUE, sizeof(map_1c12), &map_1c12, EC_TIMEOUTSAFE);
     retval += ec_SDOwrite(slave, 0x1c13, 0x00, TRUE, sizeof(map_1c13), &map_1c13, EC_TIMEOUTSAFE);
 
@@ -130,10 +130,10 @@ void simpletest(char *ifname)
     inOP = FALSE;
 
    printf("Starting simple test\n");
-   
+
    /* initialise SOEM, bind socket to ifname */
    if (ec_init(ifname))
-   {   
+   {
       printf("ec_init on %s succeeded.\n",ifname);
       /* find and auto-config slaves */
 
@@ -207,7 +207,7 @@ void simpletest(char *ifname)
             wkc_count = 0;
             inOP = TRUE;
 
-            
+
             /* cyclic loop, reads data from RT thread */
             for(i = 1; i <= 500; i++)
             {
@@ -220,16 +220,16 @@ void simpletest(char *ifname)
                             printf(" %2.2x", *(ec_slave[0].outputs + j));
                         }
 
-                        printf(" I:");                  
+                        printf(" I:");
                         for(j = 0 ; j < iloop; j++)
                         {
                             printf(" %2.2x", *(ec_slave[0].inputs + j));
-                        }   
+                        }
                         printf(" T:%lld\r",ec_DCtime);
                         needlf = TRUE;
                     }
                     osal_usleep(50000);
-                    
+
             }
             inOP = FALSE;
          }
@@ -245,7 +245,7 @@ void simpletest(char *ifname)
                             i, ec_slave[i].state, ec_slave[i].ALstatuscode, ec_ALstatuscode2string(ec_slave[i].ALstatuscode));
                     }
                 }
-         }           
+         }
 
          /* stop RT thread */
          timeKillEvent(mmResult);
@@ -266,11 +266,11 @@ void simpletest(char *ifname)
     else
     {
         printf("No socket connection on %s\nExcecute as root\n",ifname);
-    }   
-}   
+    }
+}
 
-//DWORD WINAPI ecatcheck( LPVOID lpParam ) 
-OSAL_THREAD_FUNC ecatcheck(void *lpParam) 
+//DWORD WINAPI ecatcheck( LPVOID lpParam )
+OSAL_THREAD_FUNC ecatcheck(void *lpParam)
 {
     int slave;
 
@@ -301,16 +301,16 @@ OSAL_THREAD_FUNC ecatcheck(void *lpParam)
                   {
                      printf("WARNING : slave %d is in SAFE_OP, change to OPERATIONAL.\n", slave);
                      ec_slave[slave].state = EC_STATE_OPERATIONAL;
-                     ec_writestate(slave);                              
+                     ec_writestate(slave);
                   }
                   else if(ec_slave[slave].state > 0)
                   {
                      if (ec_reconfig_slave(slave, EC_TIMEOUTMON))
                      {
                         ec_slave[slave].islost = FALSE;
-                        printf("MESSAGE : slave %d reconfigured\n",slave);                           
+                        printf("MESSAGE : slave %d reconfigured\n",slave);
                      }
-                  } 
+                  }
                   else if(!ec_slave[slave].islost)
                   {
                      /* re-check state */
@@ -318,7 +318,7 @@ OSAL_THREAD_FUNC ecatcheck(void *lpParam)
                      if (!ec_slave[slave].state)
                      {
                         ec_slave[slave].islost = TRUE;
-                        printf("ERROR : slave %d lost\n",slave);                           
+                        printf("ERROR : slave %d lost\n",slave);
                      }
                   }
                }
@@ -329,13 +329,13 @@ OSAL_THREAD_FUNC ecatcheck(void *lpParam)
                      if (ec_recover_slave(slave, EC_TIMEOUTMON))
                      {
                         ec_slave[slave].islost = FALSE;
-                        printf("MESSAGE : slave %d recovered\n",slave);                           
+                        printf("MESSAGE : slave %d recovered\n",slave);
                      }
                   }
                   else
                   {
                      ec_slave[slave].islost = FALSE;
-                     printf("MESSAGE : slave %d found\n",slave);                           
+                     printf("MESSAGE : slave %d found\n",slave);
                   }
                }
             }
@@ -343,20 +343,20 @@ OSAL_THREAD_FUNC ecatcheck(void *lpParam)
                printf("OK : all slaves resumed OPERATIONAL.\n");
         }
         osal_usleep(10000);
-    }   
+    }
 
     return 0;
-}  
+}
 
 char ifbuf[1024];
 
 int main(int argc, char *argv[])
 {
-   ec_adaptert * adapter = NULL;   
+   ec_adaptert * adapter = NULL;
    printf("SOEM (Simple Open EtherCAT Master)\nSimple test\n");
 
    if (argc > 1)
-   {      
+   {
       /* create thread to handle slave error handling in OP */
       osal_thread_create(&thread1, 128000, &ecatcheck, (void*) &ctime);
       strcpy(ifbuf, argv[1]);
@@ -374,8 +374,8 @@ int main(int argc, char *argv[])
          printf ("Description : %s, Device to use for wpcap: %s\n", adapter->desc,adapter->name);
          adapter = adapter->next;
       }
-   }   
-   
+   }
+
    printf("End program\n");
    return (0);
 }

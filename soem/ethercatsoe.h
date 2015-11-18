@@ -1,5 +1,5 @@
 /*
- * Simple Open EtherCAT Master Library 
+ * Simple Open EtherCAT Master Library
  *
  * File    : ethercatsoe.h
  * Version : 1.3.1
@@ -39,9 +39,9 @@
  * (www.beckhoff.com).
  */
 
-/** \file 
+/** \file
  * \brief
- * Headerfile for ethercatsoe.c 
+ * Headerfile for ethercatsoe.c
  */
 
 #ifndef _ethercatsoe_
@@ -88,12 +88,12 @@ typedef struct PACKED
    /** maximum length in bytes of list */
    uint16     maxlength;
    union
-   {   
+   {
       uint8   byte[8];
       uint16  word[4];
       uint32  dword[2];
       uint64  lword[1];
-   };   
+   };
 } ec_SoElistt;
 PACKED_END
 

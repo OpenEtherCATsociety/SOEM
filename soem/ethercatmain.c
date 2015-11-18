@@ -63,7 +63,7 @@
 /** delay in us for eeprom ready loop */
 #define EC_LOCALDELAY  200
 
-/** record for ethercat eeprom communications */       
+/** record for ethercat eeprom communications */
 PACKED_BEGIN
 typedef struct PACKED
 {
@@ -95,7 +95,7 @@ typedef struct PACKED
    uint16          w1,w2;
 } ec_emcyt;
 PACKED_END
-   
+
 #ifdef EC_VER1
 /** Main slave data array.
  *  Each slave found on the network gets its own record.
@@ -131,7 +131,7 @@ static ec_eepromFMMUt   ec_FMMU;
 boolean                 EcatError = FALSE;
 
 int64                   ec_DCtime;
-                                                   
+
 ecx_portt               ecx_port;
 ecx_redportt            ecx_redport;
 
@@ -157,9 +157,9 @@ ecx_contextt  ecx_context = {
     &ec_SM,          // .eepSM         =
     &ec_FMMU,        // .eepFMMU       =
     NULL             // .FOEhook()
-};  
+};
 #endif
-    
+
 /** Create list over available network adapters.
  *
  * @return First element in list over available network adapters.
@@ -317,7 +317,7 @@ static void ecx_mbxemergencyerror(ecx_contextt *context, uint16 Slave,uint16 Err
 }
 
 /** Initialise lib in single NIC mode
- * @param[in]  context        = context struct
+ * @param[in]  context = context struct
  * @param[in] ifname   = Dev name, f.e. "eth0"
  * @return >0 if OK
  */
@@ -362,7 +362,7 @@ void ecx_close(ecx_contextt *context)
 /** Read one byte from slave EEPROM via cache.
  *  If the cache location is empty then a read request is made to the slave.
  *  Depending on the slave capabillities the request is 4 or 8 bytes.
- *  @param[in]  context        = context struct
+ *  @param[in] context = context struct
  *  @param[in] slave   = slave number
  *  @param[in] address = eeprom address in bytes (slave uses words)
  *  @return requested byte, if not available then 0xff
@@ -471,10 +471,10 @@ int16 ecx_siifind(ecx_contextt *context, uint16 slave, uint16 cat)
 }
 
 /** Get string from SII string section in slave EEPROM.
- *  @param[in]  context        = context struct
- *  @param[out] str    = requested string, 0x00 if not found
- *  @param[in]  slave  = slave number
- *  @param[in]  Sn     = string number
+ *  @param[in]  context = context struct
+ *  @param[out] str     = requested string, 0x00 if not found
+ *  @param[in]  slave   = slave number
+ *  @param[in]  Sn      = string number
  */
 void ecx_siistring(ecx_contextt *context, char *str, uint16 slave, uint16 Sn)
 {
@@ -529,9 +529,9 @@ void ecx_siistring(ecx_contextt *context, char *str, uint16 slave, uint16 Sn)
 }
 
 /** Get FMMU data from SII FMMU section in slave EEPROM.
- *  @param[in]  context        = context struct
- *  @param[in]  slave  = slave number
- *  @param[out] FMMU   = FMMU struct from SII, max. 4 FMMU's
+ *  @param[in]  context = context struct
+ *  @param[in]  slave   = slave number
+ *  @param[out] FMMU    = FMMU struct from SII, max. 4 FMMU's
  *  @return number of FMMU's defined in section
  */
 uint16 ecx_siiFMMU(ecx_contextt *context, uint16 slave, ec_eepromFMMUt* FMMU)
@@ -569,7 +569,7 @@ uint16 ecx_siiFMMU(ecx_contextt *context, uint16 slave, ec_eepromFMMUt* FMMU)
 }
 
 /** Get SM data from SII SM section in slave EEPROM.
- *  @param[in]  context        = context struct
+ *  @param[in]  context = context struct
  *  @param[in]  slave   = slave number
  *  @param[out] SM      = first SM struct from SII
  *  @return number of SM's defined in section
@@ -605,10 +605,10 @@ uint16 ecx_siiSM(ecx_contextt *context, uint16 slave, ec_eepromSMt* SM)
 }
 
 /** Get next SM data from SII SM section in slave EEPROM.
- *  @param[in]  context        = context struct
- *  @param[in]  slave  = slave number
- *  @param[out] SM     = first SM struct from SII
- *  @param[in]  n      = SM number
+ *  @param[in]  context = context struct
+ *  @param[in]  slave   = slave number
+ *  @param[out] SM      = first SM struct from SII
+ *  @param[in]  n       = SM number
  *  @return >0 if OK
  */
 uint16 ecx_siiSMnext(ecx_contextt *context, uint16 slave, ec_eepromSMt* SM, uint16 n)
@@ -639,10 +639,10 @@ uint16 ecx_siiSMnext(ecx_contextt *context, uint16 slave, ec_eepromSMt* SM, uint
 }
 
 /** Get PDO data from SII PDO section in slave EEPROM.
- *  @param[in]  context        = context struct
- *  @param[in]  slave  = slave number
- *  @param[out] PDO    = PDO struct from SII
- *  @param[in]  t      = 0=RXPDO 1=TXPDO
+ *  @param[in]  context = context struct
+ *  @param[in]  slave   = slave number
+ *  @param[out] PDO     = PDO struct from SII
+ *  @param[in]  t       = 0=RXPDO 1=TXPDO
  *  @return mapping size in bits of PDO
  */
 int ecx_siiPDO(ecx_contextt *context, uint16 slave, ec_eepromPDOt* PDO, uint8 t)
@@ -751,7 +751,7 @@ int ecx_FPRD_multi(ecx_contextt *context, int n, uint16 *configlst, ec_alstatust
 }
 
 /** Read all slave states in ec_slave.
- * @param[in]  context        = context struct
+ * @param[in] context = context struct
  * @return lowest state found
  */
 int ecx_readstate(ecx_contextt *context)
@@ -792,7 +792,7 @@ int ecx_readstate(ecx_contextt *context)
          context->slavelist[0].ALstatuscode |= context->slavelist[slave].ALstatuscode;
       }
       fslave = lslave + 1;
-   } while(lslave < *(context->slavecount));   
+   } while(lslave < *(context->slavecount));
    context->slavelist[0].state = lowest;
 
    return lowest;
@@ -800,7 +800,7 @@ int ecx_readstate(ecx_contextt *context)
 
 /** Write slave state, if slave = 0 then write to all slaves.
  * The function does not check if the actual state is changed.
- * @param[in]  context        = context struct
+ * @param[in]  context = context struct
  * @param[in] slave    = Slave number, 0 = master
  * @return 0
  */
@@ -824,7 +824,7 @@ int ecx_writestate(ecx_contextt *context, uint16 slave)
 
 /** Check actual slave state.
  * This is a blocking function.
- * @param[in]  context        = context struct
+ * @param[in] context     = context struct
  * @param[in] slave       = Slave number, 0 = all slaves
  * @param[in] reqstate    = Requested state
  * @param[in] timeout     = Timout value in us
@@ -895,7 +895,7 @@ void ec_clearmbx(ec_mbxbuft *Mbx)
 }
 
 /** Check if IN mailbox of slave is empty.
- * @param[in]  context        = context struct
+ * @param[in] context  = context struct
  * @param[in] slave    = Slave number
  * @param[in] timeout  = Timeout in us
  * @return >0 is success
@@ -930,7 +930,7 @@ int ecx_mbxempty(ecx_contextt *context, uint16 slave, int timeout)
 }
 
 /** Write IN mailbox to slave.
- * @param[in]  context        = context struct
+ * @param[in]  context    = context struct
  * @param[in]  slave      = Slave number
  * @param[out] mbx        = Mailbox data
  * @param[in]  timeout    = Timeout in us
@@ -963,7 +963,7 @@ int ecx_mbxsend(ecx_contextt *context, uint16 slave,ec_mbxbuft *mbx, int timeout
 
 /** Read OUT mailbox from slave.
  * Supports Mailbox Link Layer with repeat requests.
- * @param[in]  context        = context struct
+ * @param[in]  context    = context struct
  * @param[in]  slave      = Slave number
  * @param[out] mbx        = Mailbox data
  * @param[in]  timeout    = Timeout in us
@@ -1058,7 +1058,7 @@ int ecx_mbxreceive(ecx_contextt *context, uint16 slave, ec_mbxbuft *mbx, int tim
 }
 
 /** Dump complete EEPROM data from slave in buffer.
- * @param[in]  context        = context struct
+ * @param[in]  context  = context struct
  * @param[in]  slave    = Slave number
  * @param[out] esibuf   = EEPROM data buffer, make sure it is big enough.
  */
@@ -1099,7 +1099,7 @@ void ecx_esidump(ecx_contextt *context, uint16 slave, uint8 *esibuf)
 }
 
 /** Read EEPROM from slave bypassing cache.
- * @param[in]  context        = context struct
+ * @param[in] context   = context struct
  * @param[in] slave     = Slave number
  * @param[in] eeproma   = (WORD) Address in the EEPROM
  * @param[in] timeout   = Timeout in us.
@@ -1116,7 +1116,7 @@ uint32 ecx_readeeprom(ecx_contextt *context, uint16 slave, uint16 eeproma, int t
 }
 
 /** Write EEPROM to slave bypassing cache.
- * @param[in]  context        = context struct
+ * @param[in] context   = context struct
  * @param[in] slave     = Slave number
  * @param[in] eeproma   = (WORD) Address in the EEPROM
  * @param[in] data      = 16bit data
@@ -1133,7 +1133,7 @@ int ecx_writeeeprom(ecx_contextt *context, uint16 slave, uint16 eeproma, uint16 
 }
 
 /** Set eeprom control to master. Only if set to PDI.
- * @param[in]  context        = context struct
+ * @param[in] context   = context struct
  * @param[in] slave     = Slave number
  * @return >0 if OK
  */
@@ -1217,7 +1217,7 @@ uint16 ecx_eeprom_waitnotbusyAP(ecx_contextt *context, uint16 aiadr,uint16 *esta
 }
 
 /** Read EEPROM from slave bypassing cache. APRD method.
- * @param[in]  context        = context struct
+ * @param[in] context     = context struct
  * @param[in] aiadr       = auto increment address of slave
  * @param[in] eeproma     = (WORD) Address in the EEPROM
  * @param[in] timeout     = Timeout in us.
@@ -1296,8 +1296,8 @@ uint64 ecx_readeepromAP(ecx_contextt *context, uint16 aiadr, uint16 eeproma, int
 }
 
 /** Write EEPROM to slave bypassing cache. APWR method.
- * @param[in]  context        = context struct
- * @param[in] aiadr      = configured address of slave
+ * @param[in] context   = context struct
+ * @param[in] aiadr     = configured address of slave
  * @param[in] eeproma   = (WORD) Address in the EEPROM
  * @param[in] data      = 16bit data
  * @param[in] timeout   = Timeout in us.
@@ -1386,7 +1386,7 @@ uint16 ecx_eeprom_waitnotbusyFP(ecx_contextt *context, uint16 configadr,uint16 *
 }
 
 /** Read EEPROM from slave bypassing cache. FPRD method.
- * @param[in]  context        = context struct
+ * @param[in] context     = context struct
  * @param[in] configadr   = configured address of slave
  * @param[in] eeproma     = (WORD) Address in the EEPROM
  * @param[in] timeout     = Timeout in us.
@@ -1529,7 +1529,7 @@ int ecx_writeeepromFP(ecx_contextt *context, uint16 configadr, uint16 eeproma, u
 
 /** Read EEPROM from slave bypassing cache.
  * Parallel read step 1, make request to slave.
- * @param[in]  context        = context struct
+ * @param[in] context     = context struct
  * @param[in] slave       = Slave number
  * @param[in] eeproma     = (WORD) Address in the EEPROM
  */
@@ -1562,8 +1562,8 @@ void ecx_readeeprom1(ecx_contextt *context, uint16 slave, uint16 eeproma)
 /** Read EEPROM from slave bypassing cache.
  * Parallel read step 2, actual read from slave.
  * @param[in]  context        = context struct
- * @param[in] slave       = Slave number                                  
- * @param[in] timeout     = Timeout in us.  
+ * @param[in] slave       = Slave number
+ * @param[in] timeout     = Timeout in us.
  * @return EEPROM data 32bit
  */
 uint32 ecx_readeeprom2(ecx_contextt *context, uint16 slave, int timeout)
@@ -1900,101 +1900,225 @@ void ec_packeterror(uint16 Slave, uint16 Index, uint8 SubIdx, uint16 ErrorCode)
    ecx_packeterror(&ecx_context, Slave, Index, SubIdx, ErrorCode);
 }
 
+/** Initialise lib in single NIC mode
+ * @param[in] ifname   = Dev name, f.e. "eth0"
+ * @return >0 if OK
+ * @see ecx_init
+ */
 int ec_init(char * ifname)
 {
    return ecx_init(&ecx_context, ifname);
 }
 
+/** Initialise lib in redundant NIC mode
+ * @param[in]  ifname   = Primary Dev name, f.e. "eth0"
+ * @param[in]  if2name  = Secondary Dev name, f.e. "eth1"
+ * @return >0 if OK
+ * @see ecx_init_redundant
+ */
 int ec_init_redundant(char *ifname, char *if2name)
 {
    return ecx_init_redundant (&ecx_context, &ecx_redport, ifname, if2name);
 }
 
+/** Close lib.
+ * @see ecx_close
+ */
 void ec_close(void)
 {
    ecx_close(&ecx_context);
 };
 
+/** Read one byte from slave EEPROM via cache.
+ *  If the cache location is empty then a read request is made to the slave.
+ *  Depending on the slave capabillities the request is 4 or 8 bytes.
+ *  @param[in] slave   = slave number
+ *  @param[in] address = eeprom address in bytes (slave uses words)
+ *  @return requested byte, if not available then 0xff
+ * @see ecx_siigetbyte
+ */
 uint8 ec_siigetbyte(uint16 slave, uint16 address)
 {
    return ecx_siigetbyte (&ecx_context, slave, address);
 }
 
+/** Find SII section header in slave EEPROM.
+ *  @param[in] slave   = slave number
+ *  @param[in] cat     = section category
+ *  @return byte address of section at section length entry, if not available then 0
+ *  @see ecx_siifind
+ */
 int16 ec_siifind(uint16 slave, uint16 cat)
 {
    return ecx_siifind (&ecx_context, slave, cat);
 }
 
+/** Get string from SII string section in slave EEPROM.
+ *  @param[out] str    = requested string, 0x00 if not found
+ *  @param[in]  slave  = slave number
+ *  @param[in]  Sn     = string number
+ *  @see ecx_siistring
+ */
 void ec_siistring(char *str, uint16 slave, uint16 Sn)
 {
    ecx_siistring(&ecx_context, str, slave, Sn);
 }
 
+/** Get FMMU data from SII FMMU section in slave EEPROM.
+ *  @param[in]  slave  = slave number
+ *  @param[out] FMMU   = FMMU struct from SII, max. 4 FMMU's
+ *  @return number of FMMU's defined in section
+ *  @see ecx_siiFMMU
+ */
 uint16 ec_siiFMMU(uint16 slave, ec_eepromFMMUt* FMMU)
 {
    return ecx_siiFMMU (&ecx_context, slave, FMMU);
 }
 
+/** Get SM data from SII SM section in slave EEPROM.
+ *  @param[in]  slave   = slave number
+ *  @param[out] SM      = first SM struct from SII
+ *  @return number of SM's defined in section
+ *  @see ecx_siiSM
+ */
 uint16 ec_siiSM(uint16 slave, ec_eepromSMt* SM)
 {
    return ecx_siiSM (&ecx_context, slave, SM);
 }
 
+/** Get next SM data from SII SM section in slave EEPROM.
+ *  @param[in]  slave  = slave number
+ *  @param[out] SM     = first SM struct from SII
+ *  @param[in]  n      = SM number
+ *  @return >0 if OK
+ *  @see ecx_siiSMnext
+ */
 uint16 ec_siiSMnext(uint16 slave, ec_eepromSMt* SM, uint16 n)
 {
    return ecx_siiSMnext (&ecx_context, slave, SM, n);
 }
 
+/** Get PDO data from SII PDO section in slave EEPROM.
+ *  @param[in]  slave  = slave number
+ *  @param[out] PDO    = PDO struct from SII
+ *  @param[in]  t      = 0=RXPDO 1=TXPDO
+ *  @return mapping size in bits of PDO
+ *  @see ecx_siiPDO
+ */
 int ec_siiPDO(uint16 slave, ec_eepromPDOt* PDO, uint8 t)
 {
    return ecx_siiPDO (&ecx_context, slave, PDO, t);
 }
 
+/** Read all slave states in ec_slave.
+ * @return lowest state found
+ * @see ecx_readstate
+ */
 int ec_readstate(void)
 {
    return ecx_readstate (&ecx_context);
 }
 
+/** Write slave state, if slave = 0 then write to all slaves.
+ * The function does not check if the actual state is changed.
+ * @param[in] slave = Slave number, 0 = master
+ * @return 0
+ * @see ecx_writestate
+ */
 int ec_writestate(uint16 slave)
 {
    return ecx_writestate(&ecx_context, slave);
 }
 
+/** Check actual slave state.
+ * This is a blocking function.
+ * @param[in] slave       = Slave number, 0 = all slaves
+ * @param[in] reqstate    = Requested state
+ * @param[in] timeout     = Timout value in us
+ * @return Requested state, or found state after timeout.
+ * @see ecx_statecheck
+ */
 uint16 ec_statecheck(uint16 slave, uint16 reqstate, int timeout)
 {
    return ecx_statecheck (&ecx_context, slave, reqstate, timeout);
 }
 
+/** Check if IN mailbox of slave is empty.
+ * @param[in] slave    = Slave number
+ * @param[in] timeout  = Timeout in us
+ * @return >0 is success
+ * @see ecx_mbxempty
+ */
 int ec_mbxempty(uint16 slave, int timeout)
 {
    return ecx_mbxempty (&ecx_context, slave, timeout);
 }
 
+/** Write IN mailbox to slave.
+ * @param[in]  slave      = Slave number
+ * @param[out] mbx        = Mailbox data
+ * @param[in]  timeout    = Timeout in us
+ * @return Work counter (>0 is success)
+ * @see ecx_mbxsend
+ */
 int ec_mbxsend(uint16 slave,ec_mbxbuft *mbx, int timeout)
 {
    return ecx_mbxsend (&ecx_context, slave, mbx, timeout);
 }
 
+/** Read OUT mailbox from slave.
+ * Supports Mailbox Link Layer with repeat requests.
+ * @param[in]  slave      = Slave number
+ * @param[out] mbx        = Mailbox data
+ * @param[in]  timeout    = Timeout in us
+ * @return Work counter (>0 is success)
+ * @see ecx_mbxreceive
+ */
 int ec_mbxreceive(uint16 slave, ec_mbxbuft *mbx, int timeout)
 {
    return ecx_mbxreceive (&ecx_context, slave, mbx, timeout);
 }
 
+/** Dump complete EEPROM data from slave in buffer.
+ * @param[in]  slave    = Slave number
+ * @param[out] esibuf   = EEPROM data buffer, make sure it is big enough.
+ * @see ecx_esidump
+ */
 void ec_esidump(uint16 slave, uint8 *esibuf)
 {
    ecx_esidump (&ecx_context, slave, esibuf);
 }
 
+/** Read EEPROM from slave bypassing cache.
+ * @param[in] slave     = Slave number
+ * @param[in] eeproma   = (WORD) Address in the EEPROM
+ * @param[in] timeout   = Timeout in us.
+ * @return EEPROM data 32bit
+ * @see ecx_readeeprom
+ */
 uint32 ec_readeeprom(uint16 slave, uint16 eeproma, int timeout)
 {
    return ecx_readeeprom (&ecx_context, slave, eeproma, timeout);
 }
 
+/** Write EEPROM to slave bypassing cache.
+ * @param[in] slave     = Slave number
+ * @param[in] eeproma   = (WORD) Address in the EEPROM
+ * @param[in] data      = 16bit data
+ * @param[in] timeout   = Timeout in us.
+ * @return >0 if OK
+ * @see ecx_writeeeprom
+ */
 int ec_writeeeprom(uint16 slave, uint16 eeproma, uint16 data, int timeout)
 {
    return ecx_writeeeprom (&ecx_context, slave, eeproma, data, timeout);
 }
 
+/** Set eeprom control to master. Only if set to PDI.
+ * @param[in] slave = Slave number
+ * @return >0 if OK
+ * @see ecx_eeprom2master
+ */
 int ec_eeprom2master(uint16 slave)
 {
    return ecx_eeprom2master(&ecx_context, slave);
@@ -2010,11 +2134,25 @@ uint16 ec_eeprom_waitnotbusyAP(uint16 aiadr,uint16 *estat, int timeout)
    return ecx_eeprom_waitnotbusyAP (&ecx_context, aiadr, estat, timeout);
 }
 
+/** Read EEPROM from slave bypassing cache. APRD method.
+ * @param[in] aiadr       = auto increment address of slave
+ * @param[in] eeproma     = (WORD) Address in the EEPROM
+ * @param[in] timeout     = Timeout in us.
+ * @return EEPROM data 64bit or 32bit
+ */
 uint64 ec_readeepromAP(uint16 aiadr, uint16 eeproma, int timeout)
 {
    return ecx_readeepromAP (&ecx_context, aiadr, eeproma, timeout);
 }
 
+/** Write EEPROM to slave bypassing cache. APWR method.
+ * @param[in] aiadr     = configured address of slave
+ * @param[in] eeproma   = (WORD) Address in the EEPROM
+ * @param[in] data      = 16bit data
+ * @param[in] timeout   = Timeout in us.
+ * @return >0 if OK
+ * @see ecx_writeeepromAP
+ */
 int ec_writeeepromAP(uint16 aiadr, uint16 eeproma, uint16 data, int timeout)
 {
    return ecx_writeeepromAP (&ecx_context, aiadr, eeproma, data, timeout);
@@ -2025,31 +2163,80 @@ uint16 ec_eeprom_waitnotbusyFP(uint16 configadr,uint16 *estat, int timeout)
    return ecx_eeprom_waitnotbusyFP (&ecx_context, configadr, estat, timeout);
 }
 
+/** Read EEPROM from slave bypassing cache. FPRD method.
+ * @param[in] configadr   = configured address of slave
+ * @param[in] eeproma     = (WORD) Address in the EEPROM
+ * @param[in] timeout     = Timeout in us.
+ * @return EEPROM data 64bit or 32bit
+ * @see ecx_readeepromFP
+ */
 uint64 ec_readeepromFP(uint16 configadr, uint16 eeproma, int timeout)
 {
    return ecx_readeepromFP (&ecx_context, configadr, eeproma, timeout);
 }
 
+/** Write EEPROM to slave bypassing cache. FPWR method.
+ * @param[in] configadr   = configured address of slave
+ * @param[in] eeproma     = (WORD) Address in the EEPROM
+ * @param[in] data        = 16bit data
+ * @param[in] timeout     = Timeout in us.
+ * @return >0 if OK
+ * @see ecx_writeeepromFP
+ */
 int ec_writeeepromFP(uint16 configadr, uint16 eeproma, uint16 data, int timeout)
 {
    return ecx_writeeepromFP (&ecx_context, configadr, eeproma, data, timeout);
 }
 
+/** Read EEPROM from slave bypassing cache.
+ * Parallel read step 1, make request to slave.
+ * @param[in] slave       = Slave number
+ * @param[in] eeproma     = (WORD) Address in the EEPROM
+ * @see ecx_readeeprom1
+ */
 void ec_readeeprom1(uint16 slave, uint16 eeproma)
 {
    ecx_readeeprom1 (&ecx_context, slave, eeproma);
 }
 
+/** Read EEPROM from slave bypassing cache.
+ * Parallel read step 2, actual read from slave.
+ * @param[in] slave       = Slave number
+ * @param[in] timeout     = Timeout in us.
+ * @return EEPROM data 32bit
+ * @see ecx_readeeprom2
+ */
 uint32 ec_readeeprom2(uint16 slave, int timeout)
 {
    return ecx_readeeprom2 (&ecx_context, slave, timeout);
 }
 
+/** Transmit processdata to slaves.
+ * Uses LRW, or LRD/LWR if LRW is not allowed (blockLRW).
+ * Both the input and output processdata are transmitted.
+ * The outputs with the actual data, the inputs have a placeholder.
+ * The inputs are gathered with the receive processdata function.
+ * In contrast to the base LRW function this function is non-blocking.
+ * If the processdata does not fit in one datagram, multiple are used.
+ * In order to recombine the slave response, a stack is used.
+ * @param[in]  group          = group number
+ * @return >0 if processdata is transmitted.
+ * @see ecx_send_processdata_group
+ */
 int ec_send_processdata_group(uint8 group)
 {
    return ecx_send_processdata_group (&ecx_context, group);
 }
 
+/** Receive processdata from slaves.
+ * Second part from ec_send_processdata().
+ * Received datagrams are recombined with the processdata with help from the stack.
+ * If a datagram contains input processdata it copies it to the processdata structure.
+ * @param[in]  group          = group number
+ * @param[in]  timeout        = Timeout in us.
+ * @return Work counter.
+ * @see ecx_receive_processdata_group
+ */
 int ec_receive_processdata_group(uint8 group, int timeout)
 {
    return ecx_receive_processdata_group (&ecx_context, group, timeout);

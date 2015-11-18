@@ -1,5 +1,5 @@
 /*
- * Simple Open EtherCAT Master Library 
+ * Simple Open EtherCAT Master Library
  *
  * File    : ethercatcoe.h
  * Version : 1.3.1
@@ -39,9 +39,9 @@
  * (www.beckhoff.com).
  */
 
-/** \file 
+/** \file
  * \brief
- * Headerfile for ethercatcoe.c 
+ * Headerfile for ethercatcoe.c
  */
 
 #ifndef _ethercatcoe_
@@ -59,7 +59,7 @@ extern "C"
 #define EC_MAXOELIST   256
 
 /* Storage for object description list */
-typedef struct 
+typedef struct
 {
    /** slave number */
    uint16  Slave;
@@ -78,7 +78,7 @@ typedef struct
 } ec_ODlistt;
 
 /* storage for object list entry information */
-typedef struct 
+typedef struct
 {
    /** number of entries in list */
    uint16 Entries;

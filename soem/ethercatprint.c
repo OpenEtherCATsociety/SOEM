@@ -8,6 +8,7 @@
  * Copyright (C) 2005-2015 Arthur Ketels
  * Copyright (C) 2008-2009 TU/e Technische Universiteit Eindhoven
  * Copyright (C) 2014-2015 rt-labs AB , Sweden
+ * Copyright (C) 2015 Aversan Inc.
  *
  * SOEM is free software; you can redistribute it and/or modify it under
  * the terms of the GNU General Public License version 2 as published by the Free
@@ -170,8 +171,9 @@ const ec_ALstatuscodelist_t ec_ALstatuscodelist[] = {
    {0x0033 , "DC sync IO error" },
    {0x0034 , "DC sync timeout error" },
    {0x0035 , "DC invalid sync cycle time" },
-   {0x0035 , "DC invalid sync0 cycle time" },
-   {0x0035 , "DC invalid sync1 cycle time" },
+   {0x0036 , "DC invalid sync0 cycle time" },
+   {0x0037 , "DC invalid sync1 cycle time" },
+   {0x0041 , "MBX_AOE" },
    {0x0042 , "MBX_EOE" },
    {0x0043 , "MBX_COE" },
    {0x0044 , "MBX_FOE" },

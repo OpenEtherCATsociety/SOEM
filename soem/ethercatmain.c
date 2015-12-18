@@ -784,9 +784,9 @@ int ecx_readstate(ecx_contextt *context)
          configadr = context->slavelist[slave].configadr;
          rval = etohs(sl[slave - fslave].alstatus);
          context->slavelist[slave].ALstatuscode = etohs(sl[slave - fslave].alstatuscode);
-         if (rval < lowest)
+         if ((rval & 0xf) < lowest)
          {
-            lowest = rval;
+            lowest = (rval & 0xf);
          }
          context->slavelist[slave].state = rval;
          context->slavelist[0].ALstatuscode |= context->slavelist[slave].ALstatuscode;

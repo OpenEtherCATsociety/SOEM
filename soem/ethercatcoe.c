@@ -1235,7 +1235,8 @@ int ecx_readODdescription(ecx_contextt *context, uint16 Item, ec_ODlistt *pODlis
 int ecx_readOEsingle(ecx_contextt *context, uint16 Item, uint8 SubI, ec_ODlistt *pODlist, ec_OElistt *pOElist)
 {
    ec_SDOservicet *SDOp, *aSDOp;
-   uint16 wkc, Index, Slave;
+   int wkc;
+   uint16 Index, Slave;
    int16 n;
    ec_mbxbuft MbxIn, MbxOut;
    uint8 cnt;

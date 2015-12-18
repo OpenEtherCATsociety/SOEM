@@ -1283,7 +1283,8 @@ int ecx_config_map_group(ecx_contextt *context, void *pIOmap, uint8 group)
 int ecx_recover_slave(ecx_contextt *context, uint16 slave, int timeout)
 {
    int rval;
-   uint16 ADPh, configadr, readadr, wkc;
+   int wkc;
+   uint16 ADPh, configadr, readadr;
 
    rval = 0;
    configadr = context->slavelist[slave].configadr;

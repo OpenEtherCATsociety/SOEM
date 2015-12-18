@@ -800,26 +800,29 @@ int ecx_readstate(ecx_contextt *context)
 
 /** Write slave state, if slave = 0 then write to all slaves.
  * The function does not check if the actual state is changed.
- * @param[in]  context = context struct
+ * @param[in]  context        = context struct
  * @param[in] slave    = Slave number, 0 = master
- * @return 0
+ * @return Workcounter or EC_NOFRAME
  */
 int ecx_writestate(ecx_contextt *context, uint16 slave)
 {
+   int ret;
    uint16 configadr, slstate;
 
    if (slave == 0)
    {
       slstate = htoes(context->slavelist[slave].state);
-      ecx_BWR(context->port, 0, ECT_REG_ALCTL, sizeof(slstate), &slstate, EC_TIMEOUTRET3); /* write slave status */
+      ret = ecx_BWR(context->port, 0, ECT_REG_ALCTL, sizeof(slstate),
+	            &slstate, EC_TIMEOUTRET3);
    }
    else
    {
       configadr = context->slavelist[slave].configadr;
 
-      ecx_FPWRw(context->port, configadr, ECT_REG_ALCTL, htoes(context->slavelist[slave].state), EC_TIMEOUTRET3); /* write slave status */
+      ret = ecx_FPWRw(context->port, configadr, ECT_REG_ALCTL,
+	        htoes(context->slavelist[slave].state), EC_TIMEOUTRET3);
    }
-   return 0;
+   return ret;
 }
 
 /** Check actual slave state.

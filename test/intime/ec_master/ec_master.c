@@ -36,14 +36,7 @@
 #include <rt.h>
 #include <traceapi.h>
 
-#include "nicdrv.h"
-#include "ethercattype.h"
-#include "ethercatbase.h"
-#include "ethercatmain.h"
-#include "ethercatconfig.h"
-#include "ethercatcoe.h"
-#include "ethercatdc.h"
-#include "ethercatprint.h"
+#include "ethercat.h"
 
 
 char IOmap[4096];

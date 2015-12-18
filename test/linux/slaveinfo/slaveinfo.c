@@ -15,14 +15,7 @@
 #include <string.h>
 #include <inttypes.h>
 
-#include "ethercattype.h"
-#include "nicdrv.h"
-#include "ethercatbase.h"
-#include "ethercatmain.h"
-#include "ethercatconfig.h"
-#include "ethercatcoe.h"
-#include "ethercatdc.h"
-#include "ethercatprint.h"
+#include "ethercat.h"
 
 char IOmap[4096];
 ec_ODlistt ODlist;

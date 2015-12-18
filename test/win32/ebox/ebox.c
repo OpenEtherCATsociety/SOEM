@@ -21,13 +21,7 @@
 #include <pthread.h>
 #include <math.h>
 
-#include "ethercattype.h"
-#include "nicdrv.h"
-#include "ethercatbase.h"
-#include "ethercatmain.h"
-#include "ethercatcoe.h"
-#include "ethercatconfig.h"
-#include "ethercatdc.h"
+#include "ethercat.h"
 
 #define NSEC_PER_SEC 1000000000
 

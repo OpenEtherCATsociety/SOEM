@@ -176,7 +176,17 @@ int ecx_detect_slaves(ecx_contextt *context)
    wkc = ecx_BRD(context->port, 0x0000, ECT_REG_TYPE, sizeof(w), &w, EC_TIMEOUTSAFE);  /* detect number of slaves */
    if (wkc > 0)
    {
-      *(context->slavecount) = wkc;
+      /* this is strictly "less than" since the master is "slave 0" */
+      if (wkc < EC_MAXSLAVE)
+      {
+         *(context->slavecount) = wkc;
+      }
+      else
+      {
+         EC_PRINT("Error: too many slaves on network: num_slaves=%d, EC_MAXSLAVE=%d\n",
+               wkc, EC_MAXSLAVE);
+         return -2;
+      }
    }
    return wkc;
 }

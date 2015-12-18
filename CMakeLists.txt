@@ -67,6 +67,4 @@ install(FILES ${SOEM_HEADERS} ${OSAL_HEADERS} ${OSHW_HEADERS} DESTINATION ${SOEM
 
 add_subdirectory(test/linux/slaveinfo)
 add_subdirectory(test/linux/eepromtool)
-if(NOT DEFINED HOST_INSTALL)
-   add_subdirectory(test/linux/simple_test)
-endif()
+add_subdirectory(test/linux/simple_test)

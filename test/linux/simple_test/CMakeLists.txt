@@ -9,4 +9,6 @@ elseif(UNIX)
    target_link_libraries(simple_test pthread rt)
 endif()
 
-install(TARGETS simple_test DESTINATION bin)
+if(NOT DEFINED HOST_INSTALL)
+   install(TARGETS simple_test DESTINATION bin)
+endif()

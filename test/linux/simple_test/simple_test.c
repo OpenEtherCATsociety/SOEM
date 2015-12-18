@@ -11,6 +11,7 @@
 
 #include <stdio.h>
 #include <string.h>
+#include <inttypes.h>
 
 #include "ethercat.h"
 
@@ -102,7 +103,7 @@ void simpletest(char *ifname)
                         {
                             printf(" %2.2x", *(ec_slave[0].inputs + j));
                         }
-                        printf(" T:%lld\r",ec_DCtime);
+                        printf(" T:%"PRId64"\r",ec_DCtime);
                         needlf = TRUE;
                     }
                     osal_usleep(5000);

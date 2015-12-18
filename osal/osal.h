@@ -21,7 +21,7 @@
 #ifndef _osal_
 #define _osal_
 
-#include <osal_defs.h>
+#include "osal_defs.h"
 #include <stdint.h>
 
 /* General types */

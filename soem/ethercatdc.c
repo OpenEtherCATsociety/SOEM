@@ -8,7 +8,6 @@
  * Copyright (C) 2005-2015 Arthur Ketels
  * Copyright (C) 2008-2009 TU/e Technische Universiteit Eindhoven
  * Copyright (C) 2014-2015 rt-labs AB , Sweden
- * Copyright (C) 2015 Aversan Inc.
  *
  * SOEM is free software; you can redistribute it and/or modify it under
  * the terms of the GNU General Public License version 2 as published by the Free
@@ -69,7 +68,7 @@
  * @param [in] CyclTime         Cycltime in ns.
  * @param [in] CyclShift        CyclShift in ns.
  */
-void ecx_dcsync0(ecx_contextt *context, uint16 slave, boolean act, uint32 CyclTime, int32 CyclShift)
+void ecx_dcsync0(ecx_contextt *context, uint16 slave, boolean act, uint32 CyclTime, uint32 CyclShift)
 {
    uint8 h, RA;
    uint16 slaveh;
@@ -123,7 +122,7 @@ void ecx_dcsync0(ecx_contextt *context, uint16 slave, boolean act, uint32 CyclTi
                                 as SYNC0.
  * @param [in] CyclShift        CyclShift in ns.
  */
-void ecx_dcsync01(ecx_contextt *context, uint16 slave, boolean act, uint32 CyclTime0, uint32 CyclTime1, int32 CyclShift)
+void ecx_dcsync01(ecx_contextt *context, uint16 slave, boolean act, uint32 CyclTime0, uint32 CyclTime1, uint32 CyclShift)
 {
    uint8 h, RA;
    uint16 slaveh;
@@ -456,12 +455,12 @@ boolean ecx_configdc(ecx_contextt *context)
 }
 
 #ifdef EC_VER1
-void ec_dcsync0(uint16 slave, boolean act, uint32 CyclTime, int32 CyclShift)
+void ec_dcsync0(uint16 slave, boolean act, uint32 CyclTime, uint32 CyclShift)
 {
    ecx_dcsync0(&ecx_context, slave, act, CyclTime, CyclShift);
 }
 
-void ec_dcsync01(uint16 slave, boolean act, uint32 CyclTime0, int32 CyclTime1, uint32 CyclShift)
+void ec_dcsync01(uint16 slave, boolean act, uint32 CyclTime0, uint32 CyclTime1, uint32 CyclShift)
 {
    ecx_dcsync01(&ecx_context, slave, act, CyclTime0, CyclTime1, CyclShift);
 }

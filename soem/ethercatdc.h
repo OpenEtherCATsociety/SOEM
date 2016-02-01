@@ -8,7 +8,6 @@
  * Copyright (C) 2005-2015 Arthur Ketels
  * Copyright (C) 2008-2009 TU/e Technische Universiteit Eindhoven
  * Copyright (C) 2014-2015 rt-labs AB , Sweden
- * Copyright (C) 2015 Aversan Inc.
  *
  * SOEM is free software; you can redistribute it and/or modify it under
  * the terms of the GNU General Public License version 2 as published by the Free
@@ -60,8 +59,8 @@ void ec_dcsync01(uint16 slave, boolean act, uint32 CyclTime0, uint32 CyclTime1, 
 #endif
 
 boolean ecx_configdc(ecx_contextt *context);
-void ecx_dcsync0(ecx_contextt *context, uint16 slave, boolean act, uint32 CyclTime, int32 CyclShift);
-void ecx_dcsync01(ecx_contextt *context, uint16 slave, boolean act, uint32 CyclTime0, uint32 CyclTime1, int32 CyclShift);
+void ecx_dcsync0(ecx_contextt *context, uint16 slave, boolean act, uint32 CyclTime, uint32 CyclShift);
+void ecx_dcsync01(ecx_contextt *context, uint16 slave, boolean act, uint32 CyclTime0, uint32 CyclTime1, uint32 CyclShift);
 
 #ifdef __cplusplus
 }

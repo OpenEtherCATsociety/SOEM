@@ -2,7 +2,12 @@ cmake_minimum_required(VERSION 2.8.4)
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/Modules")
 project(SOEM C)
 
-set(CMAKE_INSTALL_PREFIX ${CMAKE_SOURCE_DIR}/install)
+if(DEFINED HOST_INSTALL)
+   set(SOEM_INCLUDE_INSTALL_DIR include/soem)
+else()
+   set(CMAKE_INSTALL_PREFIX ${CMAKE_SOURCE_DIR}/install)
+   set(SOEM_INCLUDE_INSTALL_DIR include)
+endif()
 
 message("CMAKE_SYSTEM_NAME is ${CMAKE_SYSTEM_NAME}")
 
@@ -57,9 +62,11 @@ elseif(UNIX)
   target_link_libraries(soem pthread rt)
 endif()
 
-install(TARGETS soem DESTINATION bin)
-install(FILES ${SOEM_HEADERS} ${OSAL_HEADERS} ${OSHW_HEADERS} DESTINATION include)
+install(TARGETS soem DESTINATION lib)
+install(FILES ${SOEM_HEADERS} ${OSAL_HEADERS} ${OSHW_HEADERS} DESTINATION ${SOEM_INCLUDE_INSTALL_DIR})
 
 add_subdirectory(test/linux/slaveinfo)
 add_subdirectory(test/linux/eepromtool)
-add_subdirectory(test/linux/simple_test)
+if(NOT DEFINED HOST_INSTALL)
+   add_subdirectory(test/linux/simple_test)
+endif()

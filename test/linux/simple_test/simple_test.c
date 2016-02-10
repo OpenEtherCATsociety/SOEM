@@ -11,16 +11,9 @@
 
 #include <stdio.h>
 #include <string.h>
+#include <inttypes.h>
 
-#include "ethercattype.h"
-#include "nicdrv.h"
-#include "ethercatbase.h"
-#include "ethercatmain.h"
-#include "ethercatdc.h"
-#include "ethercatcoe.h"
-#include "ethercatfoe.h"
-#include "ethercatconfig.h"
-#include "ethercatprint.h"
+#include "ethercat.h"
 
 #define EC_TIMEOUTMON 500
 
@@ -110,7 +103,7 @@ void simpletest(char *ifname)
                         {
                             printf(" %2.2x", *(ec_slave[0].inputs + j));
                         }
-                        printf(" T:%lld\r",ec_DCtime);
+                        printf(" T:%"PRId64"\r",ec_DCtime);
                         needlf = TRUE;
                     }
                     osal_usleep(5000);

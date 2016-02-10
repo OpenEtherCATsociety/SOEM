@@ -8,14 +8,7 @@
  */
 
 #include <kern.h>
-#include "ethercattype.h"
-#include "nicdrv.h"
-#include "ethercatbase.h"
-#include "ethercatmain.h"
-#include "ethercatcoe.h"
-#include "ethercatfoe.h"
-#include "ethercatconfig.h"
-#include "ethercatprint.h"
+#include "ethercat.h"
 #include "string.h"
 #include <oshw.h>
 #include <config.h>

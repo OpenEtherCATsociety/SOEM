@@ -66,7 +66,7 @@ extern "C"
  * comment if application uses only ecx_ functions and own context */
 #define EC_VER1
 
-#include <osal.h>
+#include "osal.h"
 
 /** return value general error */
 #define EC_ERROR           -3

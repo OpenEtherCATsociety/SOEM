@@ -42,6 +42,11 @@
 #ifndef _osal_defs_
 #define _osal_defs_
 
+#ifdef __cplusplus
+extern "C"
+{
+#endif
+
 #ifndef PACKED
     #ifdef _MSC_VER
     #define PACKED_BEGIN __pragma(pack(push, 1))
@@ -57,5 +62,9 @@
 #define OSAL_THREAD_HANDLE   RTHANDLE
 #define OSAL_THREAD_FUNC     void
 #define OSAL_THREAD_FUNC_RT  void
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

@@ -28,14 +28,14 @@
  * This exception does not invalidate any other reasons why a work based on
  * this file might be covered by the GNU General Public License.
  *
- * The EtherCAT Technology, the trade name and logo ìEtherCATî are the intellectual
+ * The EtherCAT Technology, the trade name and logo ‚ÄúEtherCAT‚Äù are the intellectual
  * property of, and protected by Beckhoff Automation GmbH. You can use SOEM for
  * the sole purpose of creating, using and/or selling or otherwise distributing
  * an EtherCAT network master provided that an EtherCAT Master License is obtained
  * from Beckhoff Automation GmbH.
  *
  * In case you did not receive a copy of the EtherCAT Master License along with
- * SOEM write to Beckhoff Automation GmbH, Eiserstraﬂe 5, D-33415 Verl, Germany
+ * SOEM write to Beckhoff Automation GmbH, Eiserstra√üe 5, D-33415 Verl, Germany
  * (www.beckhoff.com).
  */
 

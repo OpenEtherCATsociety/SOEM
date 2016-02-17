@@ -856,13 +856,11 @@ int ecx_readPDOmap(ecx_contextt *context, uint16 Slave, int *Osize, int *Isize)
    /* positive result from slave ? */
    if ((wkc > 0) && (nSM > 2))
    {
-      /* make nSM equal to number of defined SM */
-      nSM--;
       /* limit to maximum number of SM defined, if true the slave can't be configured */
       if (nSM > EC_MAXSM)
          nSM = EC_MAXSM;
       /* iterate for every SM type defined */
-      for (iSM = 2 ; iSM <= nSM ; iSM++)
+      for (iSM = 2 ; iSM < nSM ; iSM++)
       {
          rdl = sizeof(tSM); tSM = 0;
          /* read SyncManager Communication Type */
@@ -958,8 +956,7 @@ int ecx_readPDOmapCA(ecx_contextt *context, uint16 Slave, int *Osize, int *Isize
    /* positive result from slave ? */
    if ((wkc > 0) && (context->SMcommtype->n > 2))
    {
-      /* make nSM equal to number of defined SM */
-      nSM = context->SMcommtype->n - 1;
+      nSM = context->SMcommtype->n;
       /* limit to maximum number of SM defined, if true the slave can't be configured */
       if (nSM > EC_MAXSM)
       {
@@ -967,7 +964,7 @@ int ecx_readPDOmapCA(ecx_contextt *context, uint16 Slave, int *Osize, int *Isize
          ecx_packeterror(context, Slave, 0, 0, 10); /* #SM larger than EC_MAXSM */
       }
       /* iterate for every SM type defined */
-      for (iSM = 2 ; iSM <= nSM ; iSM++)
+      for (iSM = 2 ; iSM < nSM ; iSM++)
       {
          tSM = context->SMcommtype->SMtype[iSM];
 
@@ -1235,7 +1232,8 @@ int ecx_readODdescription(ecx_contextt *context, uint16 Item, ec_ODlistt *pODlis
 int ecx_readOEsingle(ecx_contextt *context, uint16 Item, uint8 SubI, ec_ODlistt *pODlist, ec_OElistt *pOElist)
 {
    ec_SDOservicet *SDOp, *aSDOp;
-   uint16 wkc, Index, Slave;
+   int wkc;
+   uint16 Index, Slave;
    int16 n;
    ec_mbxbuft MbxIn, MbxOut;
    uint8 cnt;

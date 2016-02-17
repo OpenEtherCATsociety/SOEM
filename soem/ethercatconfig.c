@@ -176,7 +176,17 @@ int ecx_detect_slaves(ecx_contextt *context)
    wkc = ecx_BRD(context->port, 0x0000, ECT_REG_TYPE, sizeof(w), &w, EC_TIMEOUTSAFE);  /* detect number of slaves */
    if (wkc > 0)
    {
-      *(context->slavecount) = wkc;
+      /* this is strictly "less than" since the master is "slave 0" */
+      if (wkc < EC_MAXSLAVE)
+      {
+         *(context->slavecount) = wkc;
+      }
+      else
+      {
+         EC_PRINT("Error: too many slaves on network: num_slaves=%d, EC_MAXSLAVE=%d\n",
+               wkc, EC_MAXSLAVE);
+         return -2;
+      }
    }
    return wkc;
 }
@@ -1273,7 +1283,8 @@ int ecx_config_map_group(ecx_contextt *context, void *pIOmap, uint8 group)
 int ecx_recover_slave(ecx_contextt *context, uint16 slave, int timeout)
 {
    int rval;
-   uint16 ADPh, configadr, readadr, wkc;
+   int wkc;
+   uint16 ADPh, configadr, readadr;
 
    rval = 0;
    configadr = context->slavelist[slave].configadr;

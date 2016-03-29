@@ -227,7 +227,7 @@ typedef struct
    uint16           DCnext;
    /** previous DC slave */
    uint16           DCprevious;
-   /** DC cyle time in ns */
+   /** DC cycle time in ns */
    int32            DCcycle;
    /** DC shift from clock modulus boundary */
    int32            DCshift;

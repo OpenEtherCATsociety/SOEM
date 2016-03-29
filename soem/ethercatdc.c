@@ -68,7 +68,7 @@
  * @param [in] CyclTime         Cycltime in ns.
  * @param [in] CyclShift        CyclShift in ns.
  */
-void ecx_dcsync0(ecx_contextt *context, uint16 slave, boolean act, uint32 CyclTime, uint32 CyclShift)
+void ecx_dcsync0(ecx_contextt *context, uint16 slave, boolean act, uint32 CyclTime, int32 CyclShift)
 {
    uint8 h, RA;
    uint16 slaveh;
@@ -108,6 +108,11 @@ void ecx_dcsync0(ecx_contextt *context, uint16 slave, boolean act, uint32 CyclTi
    tc = htoel(CyclTime);
    (void)ecx_FPWR(context->port, slaveh, ECT_REG_DCCYCLE0, sizeof(tc), &tc, EC_TIMEOUTRET); /* SYNC0 cycle time */
    (void)ecx_FPWR(context->port, slaveh, ECT_REG_DCSYNCACT, sizeof(RA), &RA, EC_TIMEOUTRET); /* activate cyclic operation */
+
+    // update ec_slave state
+    context->slavelist[slave].DCactive = (uint8)act;
+    context->slavelist[slave].DCshift = CyclShift;
+    context->slavelist[slave].DCcycle = CyclTime;
 }
 
 /**
@@ -122,7 +127,7 @@ void ecx_dcsync0(ecx_contextt *context, uint16 slave, boolean act, uint32 CyclTi
                                 as SYNC0.
  * @param [in] CyclShift        CyclShift in ns.
  */
-void ecx_dcsync01(ecx_contextt *context, uint16 slave, boolean act, uint32 CyclTime0, uint32 CyclTime1, uint32 CyclShift)
+void ecx_dcsync01(ecx_contextt *context, uint16 slave, boolean act, uint32 CyclTime0, uint32 CyclTime1, int32 CyclShift)
 {
    uint8 h, RA;
    uint16 slaveh;
@@ -168,6 +173,11 @@ void ecx_dcsync01(ecx_contextt *context, uint16 slave, boolean act, uint32 CyclT
    tc = htoel(CyclTime1);
    (void)ecx_FPWR(context->port, slaveh, ECT_REG_DCCYCLE1, sizeof(tc), &tc, EC_TIMEOUTRET); /* SYNC1 cycle time */
    (void)ecx_FPWR(context->port, slaveh, ECT_REG_DCSYNCACT, sizeof(RA), &RA, EC_TIMEOUTRET); /* activate cyclic operation */
+
+    // update ec_slave state
+    context->slavelist[slave].DCactive = (uint8)act;
+    context->slavelist[slave].DCshift = CyclShift;
+    context->slavelist[slave].DCcycle = CyclTime0;
 }
 
 /* latched port time of slave */
@@ -406,17 +416,17 @@ boolean ecx_configdc(ecx_contextt *context)
                   ecx_porttime(context, parent,
                     ecx_prevport(context, parent, context->slavelist[i].parentport));
             /* current slave has children */
-            /* those childrens delays need to be substacted */
+            /* those children's delays need to be subtracted */
             if (context->slavelist[i].topology > 1)
             {
                dt1 = ecx_porttime(context, i,
                         ecx_prevport(context, i, context->slavelist[i].entryport)) -
                      ecx_porttime(context, i, context->slavelist[i].entryport);
             }
-            /* we are only interrested in positive diference */
+            /* we are only interested in positive difference */
             if (dt1 > dt3) dt1 = -dt1;
             /* current slave is not the first child of parent */
-            /* previous childs delays need to be added */
+            /* previous child's delays need to be added */
             if ((child - parent) > 1)
             {
                dt2 = ecx_porttime(context, parent,
@@ -457,12 +467,12 @@ boolean ecx_configdc(ecx_contextt *context)
 }
 
 #ifdef EC_VER1
-void ec_dcsync0(uint16 slave, boolean act, uint32 CyclTime, uint32 CyclShift)
+void ec_dcsync0(uint16 slave, boolean act, uint32 CyclTime, int32 CyclShift)
 {
    ecx_dcsync0(&ecx_context, slave, act, CyclTime, CyclShift);
 }
 
-void ec_dcsync01(uint16 slave, boolean act, uint32 CyclTime0, uint32 CyclTime1, uint32 CyclShift)
+void ec_dcsync01(uint16 slave, boolean act, uint32 CyclTime0, uint32 CyclTime1, int32 CyclShift)
 {
    ecx_dcsync01(&ecx_context, slave, act, CyclTime0, CyclTime1, CyclShift);
 }

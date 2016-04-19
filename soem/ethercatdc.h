@@ -54,13 +54,13 @@ extern "C"
 
 #ifdef EC_VER1
 boolean ec_configdc();
-void ec_dcsync0(uint16 slave, boolean act, uint32 CyclTime, uint32 CyclShift);
-void ec_dcsync01(uint16 slave, boolean act, uint32 CyclTime0, uint32 CyclTime1, uint32 CyclShift);
+void ec_dcsync0(uint16 slave, boolean act, uint32 CyclTime, int32 CyclShift);
+void ec_dcsync01(uint16 slave, boolean act, uint32 CyclTime0, uint32 CyclTime1, int32 CyclShift);
 #endif
 
 boolean ecx_configdc(ecx_contextt *context);
-void ecx_dcsync0(ecx_contextt *context, uint16 slave, boolean act, uint32 CyclTime, uint32 CyclShift);
-void ecx_dcsync01(ecx_contextt *context, uint16 slave, boolean act, uint32 CyclTime0, uint32 CyclTime1, uint32 CyclShift);
+void ecx_dcsync0(ecx_contextt *context, uint16 slave, boolean act, uint32 CyclTime, int32 CyclShift);
+void ecx_dcsync01(ecx_contextt *context, uint16 slave, boolean act, uint32 CyclTime0, uint32 CyclTime1, int32 CyclShift);
 
 #ifdef __cplusplus
 }

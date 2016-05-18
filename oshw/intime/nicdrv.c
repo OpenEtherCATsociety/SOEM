@@ -137,13 +137,13 @@ int ecx_setupnic(ecx_portt *port, const char *ifname, int secondary)
    if (status != E_OK)
    {
       ECAT_PRINT_ERROR("hpeOpen failed with status %04x ", status);
-	  if(status == E_EXIST) ECAT_PRINT_ERROR("E_EXIST\n");
-	  else if(status == E_STATE) ECAT_PRINT_ERROR("E_STATE\n");
+      if(status == E_EXIST) ECAT_PRINT_ERROR("E_EXIST\n");
+      else if(status == E_STATE) ECAT_PRINT_ERROR("E_STATE\n");
       else if(status == E_PARAM) ECAT_PRINT_ERROR("E_PARAM\n");
-	  else if(status == E_INVALID_ADDR) ECAT_PRINT_ERROR("E_INVALID_ADDR\n");
-	  else if(status == E_IO) ECAT_PRINT_ERROR("E_IO\n");
-	  else if(status == E_TIME) ECAT_PRINT_ERROR("E_TIME\n");
-	  else ECAT_PRINT_ERROR("UNKNOWN\n");
+      else if(status == E_INVALID_ADDR) ECAT_PRINT_ERROR("E_INVALID_ADDR\n");
+      else if(status == E_IO) ECAT_PRINT_ERROR("E_IO\n");
+      else if(status == E_TIME) ECAT_PRINT_ERROR("E_TIME\n");
+      else ECAT_PRINT_ERROR("UNKNOWN\n");
       result = 0;
       goto end;
    }
@@ -534,6 +534,7 @@ int ecx_inframe(ecx_portt *port, int idx, int stacknumber)
    }
    else
    {
+      WaitForRtControl(port->rx_region);
       /* non blocking call to retrieve frame from socket */
       if (ecx_recvpkt(port, stacknumber))
       {
@@ -572,6 +573,7 @@ int ecx_inframe(ecx_portt *port, int idx, int stacknumber)
             }
          }
       }
+      ReleaseRtControl();
    }
 
    /* WKC if mathing frame found */

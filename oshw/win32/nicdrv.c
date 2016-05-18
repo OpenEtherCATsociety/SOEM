@@ -457,8 +457,8 @@ int ecx_inframe(ecx_portt *port, int idx, int stacknumber)
             }
             else
             {
-               /* check if index exist? */
-               if (idxf < EC_MAXBUF)
+               /* check if index exist and someone is waiting for it */
+               if (idxf < EC_MAXBUF && (*stack->rxbufstat)[idxf] == EC_BUF_TX)
                {
                   rxbuf = &(*stack->rxbuf)[idxf];
                   /* put it in the buffer array (strip ethernet header) */
@@ -584,11 +584,6 @@ int ecx_waitinframe(ecx_portt *port, int idx, int timeout)
 
    osal_timer_start (&timer, timeout);
    wkc = ecx_waitinframe_red(port, idx, &timer);
-   /* if nothing received, clear buffer index status so it can be used again */
-   if (wkc <= EC_NOFRAME)
-   {
-      ec_setbufstat(idx, EC_BUF_EMPTY);
-   }
 
    return wkc;
 }

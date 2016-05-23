@@ -1863,6 +1863,11 @@ int ecx_receive_processdata_group(ecx_contextt *context, uint8 group, int timeou
       pos = ecx_pullindex(context);
    }
 
+   if (pos == -1) {
+      context->idxstack->pushed = 0;
+      context->idxstack->pulled = 0;
+   }
+
    /* if no frames has arrived */
    if (valid_wkc == 0)
    {

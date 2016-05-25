@@ -1623,6 +1623,18 @@ static int ecx_pullindex(ecx_contextt *context)
    return rval;
 }
 
+/** 
+ * Clear the idx stack.
+ * 
+ * @param context           = context struct
+ */
+static void ecx_clearindex(ecx_contextt *context)  {
+
+   context->idxstack->pushed = 0;
+   context->idxstack->pulled = 0;
+
+}
+
 /** Transmit processdata to slaves.
  * Uses LRW, or LRD/LWR if LRW is not allowed (blockLRW).
  * Both the input and output processdata are transmitted.
@@ -1655,11 +1667,7 @@ int ecx_send_processdata_group(ecx_contextt *context, uint8 group)
    LogAdr = context->grouplist[group].logstartaddr;
    if (length)
    {
-      if(!group)
-      {
-         context->idxstack->pushed = 0;
-         context->idxstack->pulled = 0;
-      }
+
       wkc = 1;
       /* LRW blocked by one or more slaves ? */
       if (context->grouplist[group].blockLRW)
@@ -1863,10 +1871,7 @@ int ecx_receive_processdata_group(ecx_contextt *context, uint8 group, int timeou
       pos = ecx_pullindex(context);
    }
 
-   if (pos == -1) {
-      context->idxstack->pushed = 0;
-      context->idxstack->pulled = 0;
-   }
+   ecx_clearindex(context);
 
    /* if no frames has arrived */
    if (valid_wkc == 0)

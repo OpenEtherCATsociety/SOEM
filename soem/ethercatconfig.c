@@ -793,8 +793,9 @@ static int ecx_map_sm(ecx_contextt *context, uint16 slave)
    {
       if (context->slavelist[slave].SM[nSM].StartAddr)
       {
-         /* check if SM length is zero -> clear enable flag */
-         if( context->slavelist[slave].SM[nSM].SMlength == 0)
+         /* check if SM length is zero or Type 0 -> clear enable flag */
+         if( context->slavelist[slave].SM[nSM].SMlength == 0) ||
+           ( context->slavelist[slave].SMtype[nSM] == 0) )
          {
             context->slavelist[slave].SM[nSM].SMflags =
                htoel( etohl(context->slavelist[slave].SM[nSM].SMflags) & EC_SMENABLEMASK);

@@ -28,14 +28,14 @@
  * This exception does not invalidate any other reasons why a work based on
  * this file might be covered by the GNU General Public License.
  *
- * The EtherCAT Technology, the trade name and logo “EtherCAT” are the intellectual
+ * The EtherCAT Technology, the trade name and logo "EtherCAT" are the intellectual
  * property of, and protected by Beckhoff Automation GmbH. You can use SOEM for
  * the sole purpose of creating, using and/or selling or otherwise distributing
  * an EtherCAT network master provided that an EtherCAT Master License is obtained
  * from Beckhoff Automation GmbH.
  *
  * In case you did not receive a copy of the EtherCAT Master License along with
- * SOEM write to Beckhoff Automation GmbH, Eiserstraße 5, D-33415 Verl, Germany
+ * SOEM write to Beckhoff Automation GmbH, Eiserstrasse 5, D-33415 Verl, Germany
  * (www.beckhoff.com).
  */
 
@@ -103,7 +103,7 @@ int ec_SDOwrite(uint16 Slave, uint16 Index, uint8 SubIndex,
 int ec_RxPDO(uint16 Slave, uint16 RxPDOnumber , int psize, void *p);
 int ec_TxPDO(uint16 slave, uint16 TxPDOnumber , int *psize, void *p, int timeout);
 int ec_readPDOmap(uint16 Slave, int *Osize, int *Isize);
-int ec_readPDOmapCA(uint16 Slave, int *Osize, int *Isize);
+int ec_readPDOmapCA(uint16 Slave, int Thread_n, int *Osize, int *Isize);
 int ec_readODlist(uint16 Slave, ec_ODlistt *pODlist);
 int ec_readODdescription(uint16 Item, ec_ODlistt *pODlist);
 int ec_readOEsingle(uint16 Item, uint8 SubI, ec_ODlistt *pODlist, ec_OElistt *pOElist);
@@ -118,7 +118,7 @@ int ecx_SDOwrite(ecx_contextt *context, uint16 Slave, uint16 Index, uint8 SubInd
 int ecx_RxPDO(ecx_contextt *context, uint16 Slave, uint16 RxPDOnumber , int psize, void *p);
 int ecx_TxPDO(ecx_contextt *context, uint16 slave, uint16 TxPDOnumber , int *psize, void *p, int timeout);
 int ecx_readPDOmap(ecx_contextt *context, uint16 Slave, int *Osize, int *Isize);
-int ecx_readPDOmapCA(ecx_contextt *context, uint16 Slave, int *Osize, int *Isize);
+int ecx_readPDOmapCA(ecx_contextt *context, uint16 Slave, int Thread_n, int *Osize, int *Isize);
 int ecx_readODlist(ecx_contextt *context, uint16 Slave, ec_ODlistt *pODlist);
 int ecx_readODdescription(ecx_contextt *context, uint16 Item, ec_ODlistt *pODlist);
 int ecx_readOEsingle(ecx_contextt *context, uint16 Item, uint8 SubI, ec_ODlistt *pODlist, ec_OElistt *pOElist);

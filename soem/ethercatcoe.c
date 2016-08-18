@@ -1452,12 +1452,13 @@ int ec_readPDOassign(uint16 Slave, uint16 PDOassign)
 /** Read PDO assign structure in Complete Access mode
  * @param[in]  Slave         = Slave number
  * @param[in]  PDOassign     = PDO assign object
+ * @param[in]  Thread_n      = Calling thread index
  * @return total bitlength of PDO assign
  * @see ecx_readPDOmap
  */
-int ec_readPDOassignCA(uint16 Slave, uint16 PDOassign)
+int ec_readPDOassignCA(uint16 Slave, uint16 PDOassign, int Thread_n)
 {
-   return ecx_readPDOassignCA(&ecx_context, Slave, 0, PDOassign);
+   return ecx_readPDOassignCA(&ecx_context, Slave, Thread_n, PDOassign);
 }
 
 /** CoE read PDO mapping.

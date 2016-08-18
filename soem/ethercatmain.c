@@ -117,11 +117,11 @@ static ec_eringt        ec_elist;
 static ec_idxstackT     ec_idxstack;
 
 /** SyncManager Communication Type struct to store data of one slave */
-static ec_SMcommtypet   ec_SMcommtype;
+static ec_SMcommtypet   ec_SMcommtype[EC_MAX_MAPT];
 /** PDO assign struct to store data of one slave */
-static ec_PDOassignt    ec_PDOassign;
+static ec_PDOassignt    ec_PDOassign[EC_MAX_MAPT];
 /** PDO description struct to store data of one slave */
-static ec_PDOdesct      ec_PDOdesc;
+static ec_PDOdesct      ec_PDOdesc[EC_MAX_MAPT];
 
 /** buffer for EEPROM SM data */
 static ec_eepromSMt     ec_SM;
@@ -136,27 +136,27 @@ ecx_portt               ecx_port;
 ecx_redportt            ecx_redport;
 
 ecx_contextt  ecx_context = {
-    &ecx_port,       // .port          =
-    &ec_slave[0],    // .slavelist     =
-    &ec_slavecount,  // .slavecount    =
-    EC_MAXSLAVE,     // .maxslave      =
-    &ec_group[0],    // .grouplist     =
-    EC_MAXGROUP,     // .maxgroup      =
-    &ec_esibuf[0],   // .esibuf        =
-    &ec_esimap[0],   // .esimap        =
-    0,               // .esislave      =
-    &ec_elist,       // .elist         =
-    &ec_idxstack,    // .idxstack      =
-    &EcatError,      // .ecaterror     =
-    0,               // .DCtO          =
-    0,               // .DCl           =
-    &ec_DCtime,      // .DCtime        =
-    &ec_SMcommtype,  // .SMcommtype    =
-    &ec_PDOassign,   // .PDOassign     =
-    &ec_PDOdesc,     // .PDOdesc       =
-    &ec_SM,          // .eepSM         =
-    &ec_FMMU,        // .eepFMMU       =
-    NULL             // .FOEhook()
+    &ecx_port,          // .port          =
+    &ec_slave[0],       // .slavelist     =
+    &ec_slavecount,     // .slavecount    =
+    EC_MAXSLAVE,        // .maxslave      =
+    &ec_group[0],       // .grouplist     =
+    EC_MAXGROUP,        // .maxgroup      =
+    &ec_esibuf[0],      // .esibuf        =
+    &ec_esimap[0],      // .esimap        =
+    0,                  // .esislave      =
+    &ec_elist,          // .elist         =
+    &ec_idxstack,       // .idxstack      =
+    &EcatError,         // .ecaterror     =
+    0,                  // .DCtO          =
+    0,                  // .DCl           =
+    &ec_DCtime,         // .DCtime        =
+    &ec_SMcommtype[0],  // .SMcommtype    =
+    &ec_PDOassign[0],   // .PDOassign     =
+    &ec_PDOdesc[0],     // .PDOdesc       =
+    &ec_SM,             // .eepSM         =
+    &ec_FMMU,           // .eepFMMU       =
+    NULL                // .FOEhook()
 };
 #endif
 

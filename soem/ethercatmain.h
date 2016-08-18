@@ -73,6 +73,8 @@ extern "C"
 #define EC_MAXFMMU        4
 /** max. Adapter */
 #define EC_MAXLEN_ADAPTERNAME    128
+/** define maximum number of concurrent threads in mapping */
+#define EC_MAX_MAPT           8
 
 typedef struct ec_adapter ec_adaptert;
 struct ec_adapter

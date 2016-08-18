@@ -67,18 +67,16 @@
 #define EC_PRINT(...) do {} while (0)
 #endif
 
-/* define maximum number of concurrent threads in mapping */
-#define MAX_MAPT 8
-
 typedef struct
 {
+   int thread_n;
    int running;
    ecx_contextt *context;
    uint16 slave;
 } ecx_mapt_t;
 
-ecx_mapt_t ecx_mapt[MAX_MAPT];
-OSAL_THREAD_HANDLE ecx_threadh[MAX_MAPT];
+ecx_mapt_t ecx_mapt[EC_MAX_MAPT];
+OSAL_THREAD_HANDLE ecx_threadh[EC_MAX_MAPT];
 
 #ifdef EC_VER1
 /** Slave configuration structure */
@@ -665,7 +663,7 @@ static int ecx_lookup_mapping(ecx_contextt *context, uint16 slave, int *Osize, i
    return 0;
 }
 
-static int ecx_map_coe_soe(ecx_contextt *context, uint16 slave)
+static int ecx_map_coe_soe(ecx_contextt *context, uint16 slave, int thread_n)
 {
    int Isize, Osize;
    int rval;
@@ -691,7 +689,7 @@ static int ecx_map_coe_soe(ecx_contextt *context, uint16 slave)
          if (context->slavelist[slave].CoEdetails & ECT_COEDET_SDOCA) /* has Complete Access */
          {
             /* read PDO mapping via CoE and use Complete Access */
-            rval = ecx_readPDOmapCA(context, slave, &Osize, &Isize);
+            rval = ecx_readPDOmapCA(context, slave, thread_n, &Osize, &Isize);
          }
          if (!rval) /* CA not available or not succeeded */
          {
@@ -823,7 +821,7 @@ OSAL_THREAD_FUNC ecx_mapper_thread(void *param)
 {
    ecx_mapt_t *maptp;
    maptp = param;
-   ecx_map_coe_soe(maptp->context, maptp->slave);
+   ecx_map_coe_soe(maptp->context, maptp->slave, maptp->thread_n);
    maptp->running = 0;
 }
 
@@ -831,11 +829,11 @@ static int ecx_find_mapt(void)
 {
    int p;
    p = 0;
-   while((p < MAX_MAPT) && ecx_mapt[p].running)
+   while((p < EC_MAX_MAPT) && ecx_mapt[p].running)
    {
       p++;
    }
-   if(p < MAX_MAPT)
+   if(p < EC_MAX_MAPT)
    {
       return p;
    }
@@ -849,7 +847,7 @@ static int ecx_get_threadcount(void)
 {
    int thrc, thrn;
    thrc = 0;
-   for(thrn = 0 ; thrn < MAX_MAPT ; thrn++)
+   for(thrn = 0 ; thrn < EC_MAX_MAPT ; thrn++)
    {
       thrc += ecx_mapt[thrn].running;
    }
@@ -887,7 +885,7 @@ int ecx_config_map_group(ecx_contextt *context, void *pIOmap, uint8 group)
       context->grouplist[group].outputsWKC = 0;
       context->grouplist[group].inputsWKC = 0;
 
-      for(thrn = 0 ; thrn < MAX_MAPT ; thrn++)
+      for(thrn = 0 ; thrn < EC_MAX_MAPT ; thrn++)
       {
          ecx_mapt[thrn].running = 0;
       }
@@ -896,10 +894,10 @@ int ecx_config_map_group(ecx_contextt *context, void *pIOmap, uint8 group)
       {
          if (!group || (group == context->slavelist[slave].group))
          {
-            if(MAX_MAPT <= 1)
+            if(EC_MAX_MAPT <= 1)
             {
                /* serialised version */
-               ecx_map_coe_soe(context, slave);
+               ecx_map_coe_soe(context, slave, 0);
             }
             else
             {
@@ -910,6 +908,7 @@ int ecx_config_map_group(ecx_contextt *context, void *pIOmap, uint8 group)
                }
                ecx_mapt[thrn].context = context;
                ecx_mapt[thrn].slave = slave;
+               ecx_mapt[thrn].thread_n = thrn;
                ecx_mapt[thrn].running = 1;
                osal_thread_create(&(ecx_threadh[thrn]), 128000,
                   &ecx_mapper_thread, &(ecx_mapt[thrn]));

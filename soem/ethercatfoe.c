@@ -57,8 +57,6 @@
 #include "ethercatmain.h"
 #include "ethercatfoe.h"
 
-#define EC_MAXFOEDATA 512
-
 /** FOE structure.
  * Used for Read, Write, Data, Ack and Error mailbox packets.
  */
@@ -76,9 +74,9 @@ typedef struct PACKED
    };
    union
    {
-      char          FileName[EC_MAXFOEDATA];
-      uint8         Data[EC_MAXFOEDATA];
-      char          ErrorText[EC_MAXFOEDATA];
+      char          FileName[EC_MAXMBX];
+      uint8         Data[EC_MAXMBX];
+      char          ErrorText[EC_MAXMBX];
    };
 } ec_FOEt;
 PACKED_END

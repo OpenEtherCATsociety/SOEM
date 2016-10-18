@@ -849,24 +849,24 @@ uint16 ecx_statecheck(ecx_contextt *context, uint16 slave, uint16 reqstate, int 
    {
       if (slave < 1)
       {
-	 uint16 bitWiseState;
-	 uint16 slaveIndex;
+	 uint16 bitwisestate;
+	 uint16 slaveindex;
 	      
          rval = 0;
          ecx_BRD(context->port, 0, ECT_REG_ALSTAT, sizeof(rval), &rval , EC_TIMEOUTRET);
          rval = etohs(rval);
-         bitWiseState = (rval & 0x0f);
+         bitwisestate = (rval & 0x0f);
 
          if((rval & 0xf0) == 0)
          {
             /* No slave has toggled the error flag so the alstatuscode (even if different from 0) should be ignored */
-            for(slaveIndex = 0; slaveIndex < *(context->slavecount); slaveIndex++)
+            for(slaveindex = 0; slaveindex < *(context->slavecount); slaveindex++)
             {
-               ec_slave[slaveIndex].ALstatuscode = 0x0000;
+               context->slavelist[slaveindex].ALstatuscode = 0x0000;
             }
          }
 
-         switch(bitWiseState)
+         switch(bitwisestate)
          {
             case EC_STATE_INIT:
             case EC_STATE_PRE_OP:
@@ -874,9 +874,9 @@ uint16 ecx_statecheck(ecx_contextt *context, uint16 slave, uint16 reqstate, int 
             case EC_STATE_SAFE_OP:
             case EC_STATE_OPERATIONAL:
                /* All the slaves have reached the same state so we can update the state of every slave */
-               for(slaveIndex = 0; slaveIndex < *(context->slavecount); slaveIndex++)
+               for(slaveindex = 0; slaveindex < *(context->slavecount); slaveindex++)
                {
-                  ec_slave[slaveIndex].state = bitWiseState;
+                  context->slavelist[slaveindex].state = bitwisestate;
                }
                break;
             default:

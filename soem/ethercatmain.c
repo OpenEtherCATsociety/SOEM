@@ -849,9 +849,9 @@ uint16 ecx_statecheck(ecx_contextt *context, uint16 slave, uint16 reqstate, int 
    {
       if (slave < 1)
       {
-	 uint16 bitwisestate;
-	 uint16 slaveindex;
-	      
+         uint16 bitwisestate;
+         uint16 slaveindex;
+    
          rval = 0;
          ecx_BRD(context->port, 0, ECT_REG_ALSTAT, sizeof(rval), &rval , EC_TIMEOUTRET);
          rval = etohs(rval);

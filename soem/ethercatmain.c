@@ -878,8 +878,9 @@ int ecx_writestate(ecx_contextt *context, uint16 slave)
 
 /** Check actual slave state.
  * This is a blocking function.
+ * To refresh the state of all slaves ecx_readstate()should be called
  * @param[in] context     = context struct
- * @param[in] slave       = Slave number, 0 = all slaves
+ * @param[in] slave       = Slave number, 0 = all slaves (only the "slavelist[0].state" is refreshed)
  * @param[in] reqstate    = Requested state
  * @param[in] timeout     = Timout value in us
  * @return Requested state, or found state after timeout.
@@ -900,73 +901,9 @@ uint16 ecx_statecheck(ecx_contextt *context, uint16 slave, uint16 reqstate, int 
    {
       if (slave < 1)
       {
-         uint16 bitwisestate;
-         uint16 slaveindex;
-         boolean allslavessamestate;
-         boolean noerrorflag;
-    
          rval = 0;
          ecx_BRD(context->port, 0, ECT_REG_ALSTAT, sizeof(rval), &rval , EC_TIMEOUTRET);
          rval = etohs(rval);
-         bitwisestate = (rval & 0x0f);
-
-         if ((rval & EC_STATE_ERROR) == 0)
-         {
-            noerrorflag = TRUE;
-            context->slavelist[0].ALstatuscode = 0;
-         }   
-         else
-         {
-            noerrorflag = FALSE;
-         }
-
-         switch (bitwisestate)
-         {
-            case EC_STATE_INIT:
-            case EC_STATE_PRE_OP:
-            case EC_STATE_BOOT:
-            case EC_STATE_SAFE_OP:
-            case EC_STATE_OPERATIONAL:
-               allslavessamestate = TRUE;
-               break;
-            default:
-               allslavessamestate = FALSE;
-               break;
-         }
-
-         if (noerrorflag || allslavessamestate)
-         {
-             if (noerrorflag && allslavessamestate)
-             {
-                /* No slave has toggled the error flag so the alstatuscode
-                 * (even if different from 0) should be ignored and 
-                 * the slaves have reached the same state so the internal state
-                 * can be updated without sending any datagram. */
-                for (slaveindex = 1; slaveindex <= *(context->slavecount); slaveindex++)
-                {
-                   context->slavelist[slaveindex].ALstatuscode = 0x0000;
-                   context->slavelist[slaveindex].state = bitwisestate;
-                 }
-             }
-             else if (noerrorflag)
-             {
-                /* No slave has toggled the error flag so the alstatuscode
-                 * (even if different from 0) should be ignored. */
-                for (slaveindex = 1; slaveindex <= *(context->slavecount); slaveindex++)
-                {
-                   context->slavelist[slaveindex].ALstatuscode = 0x0000;
-                }
-             }
-             else
-             {
-                /* All the slaves have reached the same state therefore
-                 * the internal state can be updated without sending any datagram. */  
-                for (slaveindex = 1; slaveindex <= *(context->slavecount); slaveindex++)
-                {
-                   context->slavelist[slaveindex].state = bitwisestate;
-                }
-             }
-         }   
       }
       else
       {

@@ -756,45 +756,96 @@ int ecx_FPRD_multi(ecx_contextt *context, int n, uint16 *configlst, ec_alstatust
  */
 int ecx_readstate(ecx_contextt *context)
 {
-   uint16 slave, fslave, lslave, configadr, lowest, rval;
+   uint16 slave, fslave, lslave, configadr, lowest, rval, bitwisestate;
    ec_alstatust sl[MAX_FPRD_MULTI];
    uint16 slca[MAX_FPRD_MULTI];
+   boolean noerrorflag, allslavessamestate;
 
-   lowest = 0xff;
-   context->slavelist[0].ALstatuscode = 0;
-   fslave = 1;
-   do
+   /* Try to establish the state of all slaves sending only one broadcast datargam.
+    * This way a number of datagrams equal to the number of slaves will be sent only if needed.*/
+   rval = 0;
+   ecx_BRD(context->port, 0, ECT_REG_ALSTAT, sizeof(rval), &rval, EC_TIMEOUTRET);
+   rval = etohs(rval);
+   bitwisestate = (rval & 0x0f);
+
+   if ((rval & EC_STATE_ERROR) == 0)
    {
-      lslave = *(context->slavecount);
-      if ((lslave - fslave) >= MAX_FPRD_MULTI)
-      {
-         lslave = fslave + MAX_FPRD_MULTI - 1;
-      }
-      for (slave = fslave; slave <= lslave; slave++)
-      {
-         const ec_alstatust zero = {0, 0, 0};
+      noerrorflag = TRUE;
+      context->slavelist[0].ALstatuscode = 0;
+   }   
+   else
+   {
+      noerrorflag = FALSE;
+   }
 
-         configadr = context->slavelist[slave].configadr;
-         slca[slave - fslave] = configadr;
-         sl[slave - fslave] = zero;
-      }
-      ecx_FPRD_multi(context, (lslave - fslave) + 1, &(slca[0]), &(sl[0]), EC_TIMEOUTRET3);
-      for (slave = fslave; slave <= lslave; slave++)
+   switch (bitwisestate)
+   {
+      case EC_STATE_INIT:
+      case EC_STATE_PRE_OP:
+      case EC_STATE_BOOT:
+      case EC_STATE_SAFE_OP:
+      case EC_STATE_OPERATIONAL:
+         allslavessamestate = TRUE;
+         context->slavelist[0].state = bitwisestate;
+         break;
+      default:
+         allslavessamestate = FALSE;
+         break;
+   }
+    
+   if (noerrorflag && allslavessamestate)
+   {
+      /* No slave has toggled the error flag so the alstatuscode
+       * (even if different from 0) should be ignored and
+       * the slaves have reached the same state so the internal state
+       * can be updated without sending any datagram. */
+      for (slave = 1; slave <= *(context->slavecount); slave++)
       {
-         configadr = context->slavelist[slave].configadr;
-         rval = etohs(sl[slave - fslave].alstatus);
-         context->slavelist[slave].ALstatuscode = etohs(sl[slave - fslave].alstatuscode);
-         if ((rval & 0xf) < lowest)
+         context->slavelist[slave].ALstatuscode = 0x0000;
+         context->slavelist[slave].state = bitwisestate;
+      }
+      lowest = bitwisestate;
+   }
+   else
+   {
+      /* Not all slaves have the same state or at least one is in error so one datagram per slave
+       * is needed. */
+      context->slavelist[0].ALstatuscode = 0;
+      lowest = 0xff;
+      fslave = 1;
+      do
+      {
+         lslave = *(context->slavecount);
+         if ((lslave - fslave) >= MAX_FPRD_MULTI)
          {
-            lowest = (rval & 0xf);
+            lslave = fslave + MAX_FPRD_MULTI - 1;
          }
-         context->slavelist[slave].state = rval;
-         context->slavelist[0].ALstatuscode |= context->slavelist[slave].ALstatuscode;
-      }
-      fslave = lslave + 1;
-   } while(lslave < *(context->slavecount));
-   context->slavelist[0].state = lowest;
+         for (slave = fslave; slave <= lslave; slave++)
+         {
+            const ec_alstatust zero = { 0, 0, 0 };
 
+            configadr = context->slavelist[slave].configadr;
+            slca[slave - fslave] = configadr;
+            sl[slave - fslave] = zero;
+         }
+         ecx_FPRD_multi(context, (lslave - fslave) + 1, &(slca[0]), &(sl[0]), EC_TIMEOUTRET3);
+         for (slave = fslave; slave <= lslave; slave++)
+         {
+            configadr = context->slavelist[slave].configadr;
+            rval = etohs(sl[slave - fslave].alstatus);
+            context->slavelist[slave].ALstatuscode = etohs(sl[slave - fslave].alstatuscode);
+            if ((rval & 0xf) < lowest)
+            {
+               lowest = (rval & 0xf);
+            }
+            context->slavelist[slave].state = rval;
+            context->slavelist[0].ALstatuscode |= context->slavelist[slave].ALstatuscode;
+         }
+         fslave = lslave + 1;
+      } while (lslave < *(context->slavecount));
+      context->slavelist[0].state = lowest;
+   }
+  
    return lowest;
 }
 
@@ -827,8 +878,9 @@ int ecx_writestate(ecx_contextt *context, uint16 slave)
 
 /** Check actual slave state.
  * This is a blocking function.
+ * To refresh the state of all slaves ecx_readstate()should be called
  * @param[in] context     = context struct
- * @param[in] slave       = Slave number, 0 = all slaves
+ * @param[in] slave       = Slave number, 0 = all slaves (only the "slavelist[0].state" is refreshed)
  * @param[in] reqstate    = Requested state
  * @param[in] timeout     = Timout value in us
  * @return Requested state, or found state after timeout.

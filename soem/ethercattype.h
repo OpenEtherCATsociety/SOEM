@@ -86,9 +86,9 @@ extern "C"
 /** datagram type EtherCAT */
 #define EC_ECATTYPE        0x1000
 /** number of frame buffers per channel (tx, rx1 rx2) */
-#define EC_MAXBUF          16
+#define EC_MAXBUF          256
 /** timeout value in us for tx frame to return to rx */
-#define EC_TIMEOUTRET      2000
+#define EC_TIMEOUTRET      5000
 /** timeout value in us for safe data transfer, max. triple retry */
 #define EC_TIMEOUTRET3     (EC_TIMEOUTRET * 3)
 /** timeout value in us for return "safe" variant (f.e. wireless) */

@@ -1,4 +1,4 @@
-/*
+﻿/*
  * Simple Open EtherCAT Master Library
  *
  * File    : ethercatconfig.c

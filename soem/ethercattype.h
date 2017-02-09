@@ -179,12 +179,14 @@ typedef enum
 /** Possible EtherCAT slave states */
 typedef enum
 {
+   /** No valid state. */
+   EC_STATE_NONE           = 0x00,
    /** Init state*/
    EC_STATE_INIT           = 0x01,
    /** Pre-operational. */
    EC_STATE_PRE_OP         = 0x02,
    /** Boot state*/
-   EC_STATE_BOOT            = 0x03,
+   EC_STATE_BOOT           = 0x03,
    /** Safe-operational. */
    EC_STATE_SAFE_OP        = 0x04,
    /** Operational */

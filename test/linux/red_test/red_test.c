@@ -257,7 +257,7 @@ OSAL_THREAD_FUNC ecatcheck( void *ptr )
                      ec_slave[slave].state = EC_STATE_OPERATIONAL;
                      ec_writestate(slave);
                   }
-                  else if(ec_slave[slave].state > 0)
+                  else if(ec_slave[slave].state > EC_STATE_NONE)
                   {
                      if (ec_reconfig_slave(slave, EC_TIMEOUTMON))
                      {
@@ -269,7 +269,7 @@ OSAL_THREAD_FUNC ecatcheck( void *ptr )
                   {
                      /* re-check state */
                      ec_statecheck(slave, EC_STATE_OPERATIONAL, EC_TIMEOUTRET);
-                     if (!ec_slave[slave].state)
+                     if (ec_slave[slave].state == EC_STATE_NONE)
                      {
                         ec_slave[slave].islost = TRUE;
                         printf("ERROR : slave %d lost\n",slave);
@@ -278,7 +278,7 @@ OSAL_THREAD_FUNC ecatcheck( void *ptr )
                }
                if (ec_slave[slave].islost)
                {
-                  if(!ec_slave[slave].state)
+                  if(ec_slave[slave].state == EC_STATE_NONE)
                   {
                      if (ec_recover_slave(slave, EC_TIMEOUTMON))
                      {

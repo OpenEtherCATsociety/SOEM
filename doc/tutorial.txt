@@ -38,7 +38,7 @@ have a dedicated NIC selected in the nicdrv.c. It returns >0 if succeeded.
 \code
   
    /* initialise SOEM, bind socket to ifname */
-   if (ec_init(ifname))
+   if (ec_init(ifname) > 0)
 
 \endcode
 
@@ -120,8 +120,10 @@ That is the primary key to detect errors.
 \code
 
 char IOmap[128];
+int  usedmem;
 ...
-      ec_config_map(&IOmap);
+      usedmem = ec_config_map(&IOmap);
+      if (usedmem <= sizeof(IOmap))
 ...
 \endcode
 
@@ -258,7 +260,7 @@ if( inOP && ((wkc < expectedWKC) || ec_group[currentgroup].docheckstate))
              ec_slave[slave].state = EC_STATE_OPERATIONAL;
              ec_writestate(slave);      
           }
-          else if(ec_slave[slave].state > 0)
+          else if(ec_slave[slave].state > EC_STATE_NONE)
           { 
              if (ec_reconfig_slave(slave, EC_TIMEOUTMON))
              {
@@ -270,7 +272,7 @@ if( inOP && ((wkc < expectedWKC) || ec_group[currentgroup].docheckstate))
           {
             /* re-check state */
             ec_statecheck(slave, EC_STATE_OPERATIONAL, EC_TIMEOUTRET);
-            if (!ec_slave[slave].state)
+            if (ec_slave[slave].state == EC_STATE_NONE)
             {
               ec_slave[slave].islost = TRUE;
               printf("ERROR : slave %d lost\n",slave);   
@@ -279,7 +281,7 @@ if( inOP && ((wkc < expectedWKC) || ec_group[currentgroup].docheckstate))
        }
        if (ec_slave[slave].islost)
        {
-         if(!ec_slave[slave].state)
+         if(ec_slave[slave].state == EC_STATE_NONE)
          {
            if (ec_recover_slave(slave, EC_TIMEOUTMON))
            {

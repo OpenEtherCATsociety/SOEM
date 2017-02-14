@@ -259,7 +259,7 @@ typedef struct
    uint8            group;
    /** first unused FMMU */
    uint8            FMMUunused;
-   /** TRUE is slave is not responding at all */
+   /** Boolean for tracking whether the slave is (not) responding, not used/set by the SOEM library */
    boolean          islost;
    /** registered configuration function PO->SO */
    int              (*PO2SOconfig)(uint16 slave);

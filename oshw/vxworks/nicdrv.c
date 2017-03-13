@@ -459,6 +459,7 @@ static int ec_outfram_send(ETHERCAT_PKT_DEV * pPktDev, void * buf, int len)
    pPacket->mBlkHdr.mLen = len;
    pPacket->mBlkHdr.mFlags |= M_HEADER;
    pPacket->mBlkHdr.mData = pPacket->pClBlk->clNode.pClBuf;
+   pPacket->mBlkPktHdr.len  = len; 
 
    netMblkFromBufCopy(pPacket, buf, 0, pPacket->mBlkHdr.mLen, M_DONTWAIT, NULL);
    status = muxTkSend(pPktDev->pCookie, pPacket, NULL, htons(ETH_P_ECAT), NULL);

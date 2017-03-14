@@ -48,6 +48,24 @@ static double qpc2usec;
 
 #define USECS_PER_SEC     1000000
 
+int osal_getabsolutetimeofday(struct timeval *tv, struct timezone *tz)
+{
+	FILETIME SystemTime;
+	int64 SystemTime64, usecs;
+	int64 Offset = -134774LL * 86400LL * 1000LL * 1000LL * 10LL; // Difference between 1601 and 1970 in 100 ns.
+
+	GetSystemTimeAsFileTime(&SystemTime);
+
+	SystemTime64 = ((int64)(SystemTime.dwHighDateTime) << 32) + (int64)SystemTime.dwLowDateTime;
+	SystemTime64 = SystemTime64 + Offset;
+	usecs = SystemTime64 / 10;
+
+	tv->tv_sec = (long)(usecs / 1000000);
+	tv->tv_usec = (long)(usecs - (tv->tv_sec * 1000000));
+
+	return 1;
+}
+
 int osal_gettimeofday (struct timeval *tv, struct timezone *tz)
 {
    int64_t wintime, usecs;
@@ -70,7 +88,7 @@ ec_timet osal_current_time (void)
    struct timeval current_time;
    ec_timet return_value;
 
-   osal_gettimeofday (&current_time, 0);
+   osal_getabsolutetimeofday(&current_time, 0);
    return_value.sec = current_time.tv_sec;
    return_value.usec = current_time.tv_usec;
    return return_value;

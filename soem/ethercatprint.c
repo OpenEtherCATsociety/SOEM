@@ -8,6 +8,7 @@
  * Copyright (C) 2005-2015 Arthur Ketels
  * Copyright (C) 2008-2009 TU/e Technische Universiteit Eindhoven
  * Copyright (C) 2014-2015 rt-labs AB , Sweden
+ * Copyright (C) 2015 Aversan Inc.
  *
  * SOEM is free software; you can redistribute it and/or modify it under
  * the terms of the GNU General Public License version 2 as published by the Free

@@ -64,6 +64,7 @@ if(BUILD_STATIC)
   endif()
 else()
   add_library(soem SHARED ${SOEM_SOURCES} ${OSAL_SOURCES} ${OSHW_SOURCES} ${OSHW_ARCHSOURCES})
+  set_property(TARGET soem PROPERTY POSITION_INDEPENDENT_CODE ON)
 endif()
 
 install(TARGETS soem DESTINATION lib)

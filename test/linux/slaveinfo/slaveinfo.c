@@ -569,7 +569,7 @@ void slaveinfo(char *ifname)
                        ec_slave[cnt].FMMU[j].FMMUtype, ec_slave[cnt].FMMU[j].FMMUactive);
             }
             printf(" FMMUfunc 0:%d 1:%d 2:%d 3:%d\n",
-                     ec_slave[cnt].FMMU0func, ec_slave[cnt].FMMU2func, ec_slave[cnt].FMMU2func, ec_slave[cnt].FMMU3func);
+                     ec_slave[cnt].FMMU0func, ec_slave[cnt].FMMU1func, ec_slave[cnt].FMMU2func, ec_slave[cnt].FMMU3func);
             printf(" MBX length wr: %d rd: %d MBX protocols : %2.2x\n", ec_slave[cnt].mbx_l, ec_slave[cnt].mbx_rl, ec_slave[cnt].mbx_proto);
             ssigen = ec_siifind(cnt, ECT_SII_GENERAL);
             /* SII general section */

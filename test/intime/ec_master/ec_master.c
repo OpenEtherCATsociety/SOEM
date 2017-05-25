@@ -220,7 +220,7 @@ void slaveinfo(char *ifname)
                            ctx[ctx_count].slavelist[cnt].FMMU[j].FMMUtype, ctx[ctx_count].slavelist[cnt].FMMU[j].FMMUactive);
                }
                printf(" FMMUfunc 0:%d 1:%d 2:%d 3:%d\n",
-                        ctx[ctx_count].slavelist[cnt].FMMU0func, ctx[ctx_count].slavelist[cnt].FMMU2func, ctx[ctx_count].slavelist[cnt].FMMU2func,
+                        ctx[ctx_count].slavelist[cnt].FMMU0func, ctx[ctx_count].slavelist[cnt].FMMU1func, ctx[ctx_count].slavelist[cnt].FMMU2func,
                         ctx[ctx_count].slavelist[cnt].FMMU3func);
                printf(" MBX length wr: %d rd: %d MBX protocols : %2.2x\n", ctx[ctx_count].slavelist[cnt].mbx_l,
                         ctx[ctx_count].slavelist[cnt].mbx_rl, ctx[ctx_count].slavelist[cnt].mbx_proto);

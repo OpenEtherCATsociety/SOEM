@@ -49,11 +49,13 @@ ec_timet osal_current_time(void)
 
 void osal_time_diff(ec_timet *start, ec_timet *end, ec_timet *diff)
 {
-   diff->sec = end->sec - start->sec;
-   diff->usec = end->usec - start->usec;
-   if (diff->usec < 0) {
-     --diff->sec;
-     diff->usec += 1000000;
+   if (end->usec < start->usec) {
+      diff->sec = end->sec - start->sec - 1;
+      diff->usec = end->usec + 1000000 - start->usec;
+   }
+   else {
+      diff->sec = end->sec - start->sec;
+      diff->usec = end->usec - start->usec;
    }
 }
 

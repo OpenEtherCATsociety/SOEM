@@ -16,8 +16,16 @@ extern "C"
 
 /* General types */
 typedef uint8_t             boolean;
+<<<<<<< HEAD
+#ifndef SYLIXOS
+=======
+#ifndef TRUE
+>>>>>>> 0c21a55... Fixed TRUE and FALSE redefined bug.
 #define TRUE                1
+#endif
+#ifndef FALSE
 #define FALSE               0
+#endif
 typedef int8_t              int8;
 typedef int16_t             int16;
 typedef int32_t             int32;

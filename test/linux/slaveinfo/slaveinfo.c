@@ -14,6 +14,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <inttypes.h>
+#include <sys/mman.h>
 
 #include "ethercat.h"
 
@@ -622,7 +623,11 @@ char ifbuf[1024];
 int main(int argc, char *argv[])
 {
    ec_adaptert * adapter = NULL;
+   struct sched_param param = { .sched_priority = 1 };
+   
    printf("SOEM (Simple Open EtherCAT Master)\nSlaveinfo\n");
+   mlockall(MCL_CURRENT|MCL_FUTURE);
+   pthread_setschedparam(pthread_self(), SCHED_FIFO, &param);
 
    if (argc > 1)
    {

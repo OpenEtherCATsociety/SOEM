@@ -9,6 +9,8 @@
  * (c)Arthur Ketels 2010 - 2011
  */
 
+#include <signal.h>
+#include <sys/mman.h>
 #include <stdio.h>
 #include <string.h>
 #include <inttypes.h>
@@ -65,6 +67,8 @@ void simpletest(char *ifname)
          expectedWKC = (ec_group[0].outputsWKC * 2) + ec_group[0].inputsWKC;
          printf("Calculated workcounter %d\n", expectedWKC);
          ec_slave[0].state = EC_STATE_OPERATIONAL;
+         ec_group[0].blockLRW = 1;  // block LRW, use LRD+LWR
+         
          /* send one valid process data to make outputs in slaves happy*/
          ec_send_processdata();
          ec_receive_processdata(EC_TIMEOUTRET);
@@ -221,12 +225,15 @@ OSAL_THREAD_FUNC ecatcheck( void *ptr )
 
 int main(int argc, char *argv[])
 {
+   struct sched_param param = { .sched_priority = 40 };    
    printf("SOEM (Simple Open EtherCAT Master)\nSimple test\n");
+
+   mlockall(MCL_CURRENT|MCL_FUTURE);
+   pthread_setschedparam(pthread_self(), SCHED_FIFO, &param);
 
    if (argc > 1)
    {
       /* create thread to handle slave error handling in OP */
-//      pthread_create( &thread1, NULL, (void *) &ecatcheck, (void*) &ctime);
       osal_thread_create(&thread1, 128000, &ecatcheck, (void*) &ctime);
       /* start cyclic part */
       simpletest(argv[1]);

@@ -5,7 +5,7 @@
 
 /** \file
  * \brief
- * Headerfile for ethercatbase.c
+ * Headerfile for oshw.c
  */
 
 #ifndef _oshw_

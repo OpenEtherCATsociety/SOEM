@@ -8,6 +8,7 @@ if (CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
 endif()
 
 set(SOEM_INCLUDE_INSTALL_DIR include/soem)
+set(SOEM_LIB_INSTALL_DIR lib)
 
 if(WIN32)
   set(OS "win32")
@@ -32,6 +33,10 @@ elseif(${CMAKE_SYSTEM_NAME} MATCHES "rt-kernel")
   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wno-unused-function")
   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wno-format")
   set(OS_LIBS "-Wl,--start-group -l${BSP} -l${ARCH} -lkern -ldev -lsio -lblock -lfs -lusb -llwip -leth -li2c -lrtc -lcan -lnand -lspi -lnor -lpwm -ladc -ltrace -lc -lm -Wl,--end-group")
+elseif(${CMAKE_SYSTEM_NAME} MATCHES "rtems")
+  message("Building for RTEMS")
+  set(OS "rtems")
+  set(SOEM_LIB_INSTALL_DIR ${LIB_DIR})
 endif()
 
 message("OS is ${OS}")
@@ -56,7 +61,9 @@ add_library(soem STATIC
   ${OSHW_EXTRA_SOURCES})
 target_link_libraries(soem ${OS_LIBS})
 
-install(TARGETS soem DESTINATION lib)
+message("LIB_DIR: ${SOEM_LIB_INSTALL_DIR}")
+
+install(TARGETS soem DESTINATION ${SOEM_LIB_INSTALL_DIR})
 install(FILES
   ${SOEM_HEADERS}
   ${OSAL_HEADERS}

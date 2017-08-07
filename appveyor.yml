@@ -1,0 +1,10 @@
+version: "{build}"
+
+install:
+  - cmd: '"C:\Program Files\Microsoft SDKs\Windows\v7.1\Bin\SetEnv.cmd" /x86'
+
+build_script:
+  - cmd: mkdir build
+  - cmd: cd build
+  - cmd: cmake .. -G "NMake Makefiles" -DCMAKE_BUILD_TYPE=Release
+  - cmd: nmake install

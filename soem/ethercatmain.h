@@ -50,7 +50,7 @@ struct ec_adapter
 
 /** record for FMMU */
 PACKED_BEGIN
-typedef struct PACKED
+typedef struct PACKED ec_fmmu
 {
    uint32  LogStart;
    uint16  LogLength;
@@ -67,7 +67,7 @@ PACKED_END
 
 /** record for sync manager */
 PACKED_BEGIN
-typedef struct PACKED
+typedef struct PACKED ec_sm
 {
    uint16  StartAddr;
    uint16  SMlength;
@@ -76,7 +76,7 @@ typedef struct PACKED
 PACKED_END
 
 PACKED_BEGIN
-typedef struct PACKED
+typedef struct PACKED ec_state_status
 {
    uint16  State;
    uint16  Unused;
@@ -101,7 +101,7 @@ PACKED_END
 #define EC_SMENABLEMASK      0xfffeffff
 
 /** for list of ethercat slaves detected */
-typedef struct
+typedef struct ec_slave
 {
    /** state of slave */
    uint16           state;
@@ -232,7 +232,7 @@ typedef struct
 } ec_slavet;
 
 /** for list of ethercat slave groups */
-typedef struct
+typedef struct ec_group
 {
    /** logical start address for this group */
    uint32           logstartaddr;
@@ -269,7 +269,7 @@ typedef struct
 } ec_groupt;
 
 /** SII FMMU structure */
-typedef struct
+typedef struct ec_eepromFMMU
 {
    uint16  Startpos;
    uint8   nFMMU;
@@ -280,7 +280,7 @@ typedef struct
 } ec_eepromFMMUt;
 
 /** SII SM structure */
-typedef struct
+typedef struct ec_eepromSM
 {
    uint16  Startpos;
    uint8   nSM;
@@ -293,7 +293,7 @@ typedef struct
 } ec_eepromSMt;
 
 /** record to store rxPDO and txPDO table from eeprom */
-typedef struct
+typedef struct ec_eepromPDO
 {
    uint16  Startpos;
    uint16  Length;
@@ -309,7 +309,7 @@ typedef uint8 ec_mbxbuft[EC_MAXMBX + 1];
 
 /** standard ethercat mailbox header */
 PACKED_BEGIN
-typedef struct PACKED
+typedef struct PACKED ec_mbxheader
 {
    uint16  length;
    uint16  address;
@@ -320,7 +320,7 @@ PACKED_END
 
 /** ALstatus and ALstatus code */
 PACKED_BEGIN
-typedef struct PACKED
+typedef struct PACKED ec_alstatus
 {
    uint16  alstatus;
    uint16  unused;
@@ -329,7 +329,7 @@ typedef struct PACKED
 PACKED_END
 
 /** stack structure to store segmented LRD/LWR/LRW constructs */
-typedef struct
+typedef struct ec_idxstack
 {
    uint8   pushed;
    uint8   pulled;
@@ -339,7 +339,7 @@ typedef struct
 } ec_idxstackT;
 
 /** ringbuf for error storage */
-typedef struct
+typedef struct ec_ering
 {
    int16     head;
    int16     tail;
@@ -348,7 +348,7 @@ typedef struct
 
 /** SyncManager Communication Type structure for CA */
 PACKED_BEGIN
-typedef struct PACKED
+typedef struct PACKED ec_SMcommtype
 {
    uint8   n;
    uint8   nu1;
@@ -358,7 +358,7 @@ PACKED_END
 
 /** SDO assign structure for CA */
 PACKED_BEGIN
-typedef struct PACKED
+typedef struct PACKED ec_PDOassign
 {
    uint8   n;
    uint8   nu1;
@@ -368,7 +368,7 @@ PACKED_END
 
 /** SDO description structure for CA */
 PACKED_BEGIN
-typedef struct PACKED
+typedef struct PACKED ec_PDOdesc
 {
    uint8   n;
    uint8   nu1;
@@ -377,7 +377,7 @@ typedef struct PACKED
 PACKED_END
 
 /** Context structure , referenced by all ecx functions*/
-typedef struct
+typedef struct ecx_context
 {
    /** port reference, may include red_port */
    ecx_portt      *port;

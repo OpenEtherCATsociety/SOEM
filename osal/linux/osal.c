@@ -25,6 +25,7 @@ int osal_gettimeofday(struct timeval *tv, struct timezone *tz)
 {
    struct timespec ts;
    int return_value;
+   (void)tz;       /* Not used */
 
    /* Use clock_gettime to prevent possible live-lock.
     * Gettimeofday uses CLOCK_REALTIME that can get NTP timeadjust.

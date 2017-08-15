@@ -225,25 +225,25 @@ int eeprom_read(int slave, int start, int length)
          for (i = start ; i < (start + length) ; i+=ainc)
          {
             b8 = ec_readeepromAP(aiadr, i >> 1 , EC_TIMEOUTEEP);
-            ebuf[i] = b8;
-            ebuf[i+1] = b8 >> 8;
-            ebuf[i+2] = b8 >> 16;
-            ebuf[i+3] = b8 >> 24;
-            ebuf[i+4] = b8 >> 32;
-            ebuf[i+5] = b8 >> 40;
-            ebuf[i+6] = b8 >> 48;
-            ebuf[i+7] = b8 >> 56;
+            ebuf[i] = b8 & 0xFF;
+            ebuf[i+1] = (b8 >> 8) & 0xFF;
+            ebuf[i+2] = (b8 >> 16) & 0xFF;
+            ebuf[i+3] = (b8 >> 24) & 0xFF;
+            ebuf[i+4] = (b8 >> 32) & 0xFF;
+            ebuf[i+5] = (b8 >> 40) & 0xFF;
+            ebuf[i+6] = (b8 >> 48) & 0xFF;
+            ebuf[i+7] = (b8 >> 56) & 0xFF;
          }
       }
       else
       {
          for (i = start ; i < (start + length) ; i+=ainc)
          {
-            b4 = ec_readeepromAP(aiadr, i >> 1 , EC_TIMEOUTEEP);
-            ebuf[i] = b4;
-            ebuf[i+1] = b4 >> 8;
-            ebuf[i+2] = b4 >> 16;
-            ebuf[i+3] = b4 >> 24;
+            b4 = ec_readeepromAP(aiadr, i >> 1 , EC_TIMEOUTEEP) & 0xFFFFFFFF;
+            ebuf[i] = b4 & 0xFF;
+            ebuf[i+1] = (b4 >> 8) & 0xFF;
+            ebuf[i+2] = (b4 >> 16) & 0xFF;
+            ebuf[i+3] = (b4 >> 24) & 0xFF;
          }
       }
 

@@ -146,6 +146,7 @@ void simpletest(char *ifname)
 OSAL_THREAD_FUNC ecatcheck( void *ptr )
 {
     int slave;
+    (void)ptr;                  /* Not used */
 
     while(1)
     {

@@ -86,7 +86,7 @@ int ecx_FOEread(ecx_contextt *context, uint16 slave, char *filename, uint32 pass
    ec_clearmbx(&MbxOut);
    aFOEp = (ec_FOEt *)&MbxIn;
    FOEp = (ec_FOEt *)&MbxOut;
-   fnsize = strlen(filename);
+   fnsize = (uint16)strlen(filename);
    maxdata = context->slavelist[slave].mbx_l - 12;
    if (fnsize > maxdata)
    {
@@ -215,7 +215,7 @@ int ecx_FOEwrite(ecx_contextt *context, uint16 slave, char *filename, uint32 pas
    aFOEp = (ec_FOEt *)&MbxIn;
    FOEp = (ec_FOEt *)&MbxOut;
    dofinalzero = FALSE;
-   fnsize = strlen(filename);
+   fnsize = (uint16)strlen(filename);
    maxdata = context->slavelist[slave].mbx_l - 12;
    if (fnsize > maxdata)
    {

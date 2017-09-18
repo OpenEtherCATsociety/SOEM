@@ -590,7 +590,7 @@ int ecx_srconfirm(ecx_portt *port, int idx, int timeout)
    /* if nothing received, clear buffer index status so it can be used again */
    if (wkc <= EC_NOFRAME)
    {
-      ec_setbufstat(idx, EC_BUF_EMPTY);
+      ecx_setbufstat(port, idx, EC_BUF_EMPTY);
    }
 
    return wkc;

@@ -11,6 +11,7 @@ set(SOEM_INCLUDE_INSTALL_DIR include/soem)
 
 if(WIN32)
   set(OS "win32")
+  set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
   include_directories(oshw/win32/wpcap/Include)
   link_directories(${CMAKE_SOURCE_DIR}/oshw/win32/wpcap/Lib)
   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /D _CRT_SECURE_NO_WARNINGS")
@@ -49,11 +50,17 @@ include_directories(osal)
 include_directories(osal/${OS})
 include_directories(oshw/${OS})
 
-add_library(soem STATIC
+add_library(soem SHARED
   ${SOEM_SOURCES}
   ${OSAL_SOURCES}
   ${OSHW_SOURCES}
   ${OSHW_EXTRA_SOURCES})
+add_library(soem-static STATIC
+  ${SOEM_SOURCES}
+  ${OSAL_SOURCES}
+  ${OSHW_SOURCES}
+  ${OSHW_EXTRA_SOURCES})
+set_target_properties(soem-static PROPERTIES OUTPUT_NAME soem)
 target_link_libraries(soem ${OS_LIBS})
 
 install(TARGETS soem DESTINATION lib)

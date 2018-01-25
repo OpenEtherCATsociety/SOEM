@@ -30,19 +30,20 @@
  * This layer if fully transparent for the higher layers.
  */
 
-#include <sys/types.h>
-#include <sys/ioctl.h>
-#include <net/if.h>
-#include <sys/socket.h>
-#include <unistd.h>
 #include <sys/time.h>
 #include <time.h>
+#include <sys/types.h>
+#include <sys/ioctl.h>
+#include <net/bpf.h>
+#include <sys/socket.h>
+#include <net/if.h>
+#include <unistd.h>
 #include <arpa/inet.h>
 #include <stdio.h>
 #include <fcntl.h>
 #include <string.h>
-#include <netpacket/packet.h>
 #include <pthread.h>
+#include <assert.h>
 
 #include "oshw.h"
 #include "osal.h"
@@ -63,9 +64,9 @@ enum
  * differentiate the route the packet traverses through the EtherCAT
  * segment. This is needed to find out the packet flow in redundant
  * configurations. */
-const uint16 priMAC[3] = { 0x0101, 0x0101, 0x0101 };
+const uint16 priMAC[3] = { 0x0201, 0x0101, 0x0101 };
 /** Secondary source MAC address used for EtherCAT. */
-const uint16 secMAC[3] = { 0x0404, 0x0404, 0x0404 };
+const uint16 secMAC[3] = { 0x0604, 0x0404, 0x0404 };
 
 /** second MAC word is used for identification */
 #define RX_PRIM priMAC[1]
@@ -90,11 +91,14 @@ static void ecx_clear_rxbufstat(int *rxbufstat)
 int ecx_setupnic(ecx_portt *port, const char *ifname, int secondary)
 {
    int i;
-   int r, rval, ifindex;
+   int r, rval;
    struct timeval timeout;
    struct ifreq ifr;
-   struct sockaddr_ll sll;
-   int *psock;
+   int *bpf;
+   // const uint8_t bpffnamelen = 12;
+   char fname[13] = {0};
+   const int maxbpffile = 1000;
+   uint true_val = 1;
 
    rval = 0;
    if (secondary)
@@ -103,8 +107,8 @@ int ecx_setupnic(ecx_portt *port, const char *ifname, int secondary)
       if (port->redport)
       {
          /* when using secondary socket it is automatically a redundant setup */
-         psock = &(port->redport->sockhandle);
-         *psock = -1;
+         bpf = &(port->redport->sockhandle);
+         *bpf = -1;
          port->redstate                   = ECT_RED_DOUBLE;
          port->redport->stack.sock        = &(port->redport->sockhandle);
          port->redport->stack.txbuf       = &(port->txbuf);
@@ -137,33 +141,65 @@ int ecx_setupnic(ecx_portt *port, const char *ifname, int secondary)
       port->stack.rxbufstat   = &(port->rxbufstat);
       port->stack.rxsa        = &(port->rxsa);
       ecx_clear_rxbufstat(&(port->rxbufstat[0]));
-      psock = &(port->sockhandle);
+      bpf = &(port->sockhandle);
    }
-   /* we use RAW packet socket, with packet type ETH_P_ECAT */
-   *psock = socket(PF_PACKET, SOCK_RAW, htons(ETH_P_ECAT));
 
+   /* Open a bpf file descriptor */
+   *bpf = -1;
+   for(i = 0; *bpf == -1 && i < maxbpffile; ++i)
+   {
+     sprintf(fname, "/dev/bpf%i", i);
+     *bpf = open(fname, O_RDWR);
+   }
+   
+   if(*bpf == -1)
+   {
+     /* Failed to open bpf */
+     return 0;
+   }
+
+   /* Need to hand the same buffer size as bpf expects,
+      force bpf to use our buffer size! */
+   uint buffer_len = sizeof(ec_bufT);
+   if (ioctl(*bpf, BIOCSBLEN, &buffer_len) == -1) {
+     perror("BIOCGBLEN");
+   }
+   assert(buffer_len >= 1518);
+
+   /* connect bpf to NIC by name */
+   strcpy(ifr.ifr_name, ifname);
+   assert(ioctl(*bpf, BIOCSETIF, &ifr) == 0);
+
+   /* Set required bpf options */
+
+   /* Activate immediate mode */
+   if (ioctl(*bpf, BIOCIMMEDIATE, &true_val) == -1) {
+     perror("BIOCIMMEDIATE");
+   }
+
+   /* Set interface in promiscuous mode */
+   if (ioctl(*bpf, BIOCPROMISC, &true_val) == -1) {
+     perror("BIOCPROMISC");
+   }
+   
+   /* Allow to have custom source address */
+   if (ioctl(*bpf, BIOCSHDRCMPLT, &true_val) == -1) {
+     perror("BIOCSHDRCMPLT");
+   }
+
+   /* Listen only to incomming messages */
+   uint direction = BPF_D_IN;
+   if (ioctl(*bpf, BIOCSDIRECTION, &direction) == -1) {
+     perror("BIOCSDIRECTION");
+   }
+
+   /* Set read timeout */
    timeout.tv_sec =  0;
    timeout.tv_usec = 1;
-   r = setsockopt(*psock, SOL_SOCKET, SO_RCVTIMEO, &timeout, sizeof(timeout));
-   r = setsockopt(*psock, SOL_SOCKET, SO_SNDTIMEO, &timeout, sizeof(timeout));
-   i = 1;
-   r = setsockopt(*psock, SOL_SOCKET, SO_DONTROUTE, &i, sizeof(i));
-   /* connect socket to NIC by name */
-   strcpy(ifr.ifr_name, ifname);
-   r = ioctl(*psock, SIOCGIFINDEX, &ifr);
-   ifindex = ifr.ifr_ifindex;
-   strcpy(ifr.ifr_name, ifname);
-   ifr.ifr_flags = 0;
-   /* reset flags of NIC interface */
-   r = ioctl(*psock, SIOCGIFFLAGS, &ifr);
-   /* set flags of NIC interface, here promiscuous and broadcast */
-   ifr.ifr_flags = ifr.ifr_flags | IFF_PROMISC | IFF_BROADCAST;
-   r = ioctl(*psock, SIOCSIFFLAGS, &ifr);
-   /* bind socket to protocol, in this case RAW EtherCAT */
-   sll.sll_family = AF_PACKET;
-   sll.sll_ifindex = ifindex;
-   sll.sll_protocol = htons(ETH_P_ECAT);
-   r = bind(*psock, (struct sockaddr *)&sll, sizeof(sll));
+   if (ioctl(*bpf, BIOCSRTIMEOUT, &timeout) == -1) {
+     perror("BIOCSRTIMEOUT");
+   }
+
    /* setup ethernet headers in tx buffers so we don't have to repeat it */
    for (i = 0; i < EC_MAXBUF; i++)
    {
@@ -278,7 +314,8 @@ int ecx_outframe(ecx_portt *port, int idx, int stacknumber)
       stack = &(port->redport->stack);
    }
    lp = (*stack->txbuflength)[idx];
-   rval = send(*stack->sock, (*stack->txbuf)[idx], lp, 0);
+   //rval = send(*stack->sock, (*stack->txbuf)[idx], lp, 0);
+   rval = write (*stack->sock,(*stack->txbuf)[idx], lp);
    (*stack->rxbufstat)[idx] = EC_BUF_TX;
 
    return rval;
@@ -311,7 +348,8 @@ int ecx_outframe_red(ecx_portt *port, int idx)
       /* rewrite MAC source address 1 to secondary */
       ehp->sa1 = htons(secMAC[1]);
       /* transmit over secondary socket */
-      send(port->redport->sockhandle, &(port->txbuf2), port->txbuflength2 , 0);
+      //send(port->redport->sockhandle, &(port->txbuf2), port->txbuflength2 , 0);
+      write(port->redport->sockhandle, &(port->txbuf2), port->txbuflength2);
       pthread_mutex_unlock( &(port->tx_mutex) );
       port->redport->rxbufstat[idx] = EC_BUF_TX;
    }
@@ -338,7 +376,8 @@ static int ecx_recvpkt(ecx_portt *port, int stacknumber)
       stack = &(port->redport->stack);
    }
    lp = sizeof(port->tempinbuf);
-   bytesrx = recv(*stack->sock, (*stack->tempbuf), lp, 0);
+   //bytesrx = recv(*stack->sock, (*stack->tempbuf), lp, 0);
+   bytesrx = read(*stack->sock, (*stack->tempbuf), lp);
    port->tempinbufs = bytesrx;
 
    return (bytesrx > 0);
@@ -395,19 +434,22 @@ int ecx_inframe(ecx_portt *port, int idx, int stacknumber)
       /* non blocking call to retrieve frame from socket */
       if (ecx_recvpkt(port, stacknumber))
       {
+         /* The data read from /dev/bpf includes an extra header, skip it. */
+         struct bpf_hdr *bpfh = (struct bpf_hdr *)(stack->tempbuf);
          rval = EC_OTHERFRAME;
-         ehp =(ec_etherheadert*)(stack->tempbuf);
+         ehp =(ec_etherheadert*)(*stack->tempbuf + bpfh->bh_hdrlen);
          /* check if it is an EtherCAT frame */
          if (ehp->etype == htons(ETH_P_ECAT))
          {
-            ecp =(ec_comt*)(&(*stack->tempbuf)[ETH_HEADERSIZE]);
+            /* The EtherCAT header follows the ethernet frame header. */
+            ecp =(ec_comt*)(&ehp[1]);
             l = etohs(ecp->elength) & 0x0fff;
             idxf = ecp->index;
             /* found index equals reqested index ? */
             if (idxf == idx)
             {
-               /* yes, put it in the buffer array (strip ethernet header) */
-               memcpy(rxbuf, &(*stack->tempbuf)[ETH_HEADERSIZE], (*stack->txbuflength)[idx] - ETH_HEADERSIZE);
+               /* yes, put it in the buffer array (strip headers) */
+               memcpy(rxbuf, &(ehp[1]), port->tempinbufs - ((uint32_t)ecp - (uint32_t)*stack->tempbuf));
                /* return WKC */
                rval = ((*rxbuf)[l] + ((uint16)((*rxbuf)[l + 1]) << 8));
                /* mark as completed */

@@ -724,11 +724,19 @@ int ecx_readstate(ecx_contextt *context)
    ec_alstatust sl[MAX_FPRD_MULTI];
    uint16 slca[MAX_FPRD_MULTI];
    boolean noerrorflag, allslavessamestate;
+   boolean allslavespresent = FALSE;
+   int wkc;
 
    /* Try to establish the state of all slaves sending only one broadcast datargam.
     * This way a number of datagrams equal to the number of slaves will be sent only if needed.*/
    rval = 0;
-   ecx_BRD(context->port, 0, ECT_REG_ALSTAT, sizeof(rval), &rval, EC_TIMEOUTRET);
+   wkc = ecx_BRD(context->port, 0, ECT_REG_ALSTAT, sizeof(rval), &rval, EC_TIMEOUTRET);
+
+   if(wkc == *(context->slavecount))
+   {
+      allslavespresent = TRUE;
+   }
+
    rval = etohs(rval);
    bitwisestate = (rval & 0x0f);
 
@@ -757,7 +765,7 @@ int ecx_readstate(ecx_contextt *context)
          break;
    }
     
-   if (noerrorflag && allslavessamestate)
+   if (noerrorflag && allslavessamestate && allslavespresent)
    {
       /* No slave has toggled the error flag so the alstatuscode
        * (even if different from 0) should be ignored and

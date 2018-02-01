@@ -820,7 +820,309 @@ static int ecx_get_threadcount(void)
    return thrc;
 }
 
-/** Map all PDOs in one group of slaves to IOmap.
+static void ecx_config_find_mappings(ecx_contextt *context, uint8 group)
+{
+   int thrn, thrc;
+   uint16 slave;
+
+   for (thrn = 0; thrn < EC_MAX_MAPT; thrn++)
+   {
+      ecx_mapt[thrn].running = 0;
+   }
+   /* find CoE and SoE mapping of slaves in multiple threads */
+   for (slave = 1; slave <= *(context->slavecount); slave++)
+   {
+      if (!group || (group == context->slavelist[slave].group))
+      {
+         if (EC_MAX_MAPT <= 1)
+         {
+            /* serialised version */
+            ecx_map_coe_soe(context, slave, 0);
+         }
+         else
+         {
+            /* multi-threaded version */
+            while ((thrn = ecx_find_mapt()) < 0)
+            {
+               osal_usleep(1000);
+            }
+            ecx_mapt[thrn].context = context;
+            ecx_mapt[thrn].slave = slave;
+            ecx_mapt[thrn].thread_n = thrn;
+            ecx_mapt[thrn].running = 1;
+            osal_thread_create(&(ecx_threadh[thrn]), 128000,
+               &ecx_mapper_thread, &(ecx_mapt[thrn]));
+         }
+      }
+   }
+   /* wait for all threads to finish */
+   do
+   {
+      thrc = ecx_get_threadcount();
+      if (thrc)
+      {
+         osal_usleep(1000);
+      }
+   } while (thrc);
+   /* find SII mapping of slave and program SM */
+   for (slave = 1; slave <= *(context->slavecount); slave++)
+   {
+      if (!group || (group == context->slavelist[slave].group))
+      {
+         ecx_map_sii(context, slave);
+         ecx_map_sm(context, slave);
+      }
+   }
+}
+
+static void ecx_config_create_input_mappings(ecx_contextt *context, void *pIOmap, 
+   uint8 group, int16 slave, uint32 * LogAddr, uint8 * BitPos)
+{
+   int BitCount = 0;
+   int ByteCount = 0;
+   int FMMUsize = 0;
+   int FMMUdone = 0;
+   uint8 SMc = 0;
+   uint16 EndAddr;
+   uint16 SMlength;
+   uint16 configadr;
+   uint8 FMMUc;
+
+   EC_PRINT(" =Slave %d, INPUT MAPPING\n", slave);
+
+   configadr = context->slavelist[slave].configadr;
+   FMMUc = context->slavelist[slave].FMMUunused;
+   if (context->slavelist[slave].Obits) /* find free FMMU */
+   {
+      while (context->slavelist[slave].FMMU[FMMUc].LogStart)
+      {
+         FMMUc++;
+      }
+   }
+   /* search for SM that contribute to the input mapping */
+   while ((SMc < (EC_MAXSM - 1)) && (FMMUdone < ((context->slavelist[slave].Ibits + 7) / 8)))
+   {
+      EC_PRINT("    FMMU %d\n", FMMUc);
+      while ((SMc < (EC_MAXSM - 1)) && (context->slavelist[slave].SMtype[SMc] != 4))
+      {
+         SMc++;
+      }
+      EC_PRINT("      SM%d\n", SMc);
+      context->slavelist[slave].FMMU[FMMUc].PhysStart =
+         context->slavelist[slave].SM[SMc].StartAddr;
+      SMlength = etohs(context->slavelist[slave].SM[SMc].SMlength);
+      ByteCount += SMlength;
+      BitCount += SMlength * 8;
+      EndAddr = etohs(context->slavelist[slave].SM[SMc].StartAddr) + SMlength;
+      while ((BitCount < context->slavelist[slave].Ibits) && (SMc < (EC_MAXSM - 1))) /* more SM for input */
+      {
+         SMc++;
+         while ((SMc < (EC_MAXSM - 1)) && (context->slavelist[slave].SMtype[SMc] != 4))
+         {
+            SMc++;
+         }
+         /* if addresses from more SM connect use one FMMU otherwise break up in mutiple FMMU */
+         if (etohs(context->slavelist[slave].SM[SMc].StartAddr) > EndAddr)
+         {
+            break;
+         }
+         EC_PRINT("      SM%d\n", SMc);
+         SMlength = etohs(context->slavelist[slave].SM[SMc].SMlength);
+         ByteCount += SMlength;
+         BitCount += SMlength * 8;
+         EndAddr = etohs(context->slavelist[slave].SM[SMc].StartAddr) + SMlength;
+      }
+
+      /* bit oriented slave */
+      if (!context->slavelist[slave].Ibytes)
+      {
+         context->slavelist[slave].FMMU[FMMUc].LogStart = htoel(*LogAddr);
+         context->slavelist[slave].FMMU[FMMUc].LogStartbit = *BitPos;
+         *BitPos += context->slavelist[slave].Ibits - 1;
+         if (*BitPos > 7)
+         {
+            *LogAddr += 1;
+            *BitPos -= 8;
+         }
+         FMMUsize = *LogAddr - etohl(context->slavelist[slave].FMMU[FMMUc].LogStart) + 1;
+         context->slavelist[slave].FMMU[FMMUc].LogLength = htoes(FMMUsize);
+         context->slavelist[slave].FMMU[FMMUc].LogEndbit = *BitPos;
+         *BitPos += 1;
+         if (*BitPos > 7)
+         {
+            *LogAddr += 1;
+            *BitPos -= 8;
+         }
+      }
+      /* byte oriented slave */
+      else
+      {
+         if (*BitPos)
+         {
+            *LogAddr += 1;
+            *BitPos = 0;
+         }
+         context->slavelist[slave].FMMU[FMMUc].LogStart = htoel(*LogAddr);
+         context->slavelist[slave].FMMU[FMMUc].LogStartbit = *BitPos;
+         *BitPos = 7;
+         FMMUsize = ByteCount;
+         if ((FMMUsize + FMMUdone)> (int)context->slavelist[slave].Ibytes)
+         {
+            FMMUsize = context->slavelist[slave].Ibytes - FMMUdone;
+         }
+         *LogAddr += FMMUsize;
+         context->slavelist[slave].FMMU[FMMUc].LogLength = htoes(FMMUsize);
+         context->slavelist[slave].FMMU[FMMUc].LogEndbit = *BitPos;
+         *BitPos = 0;
+      }
+      FMMUdone += FMMUsize;
+      if (context->slavelist[slave].FMMU[FMMUc].LogLength)
+      {
+         context->slavelist[slave].FMMU[FMMUc].PhysStartBit = 0;
+         context->slavelist[slave].FMMU[FMMUc].FMMUtype = 1;
+         context->slavelist[slave].FMMU[FMMUc].FMMUactive = 1;
+         /* program FMMU for input */
+         ecx_FPWR(context->port, configadr, ECT_REG_FMMU0 + (sizeof(ec_fmmut) * FMMUc),
+            sizeof(ec_fmmut), &(context->slavelist[slave].FMMU[FMMUc]), EC_TIMEOUTRET3);
+         /* add one for an input FMMU */
+         context->grouplist[group].inputsWKC++;
+      }
+      if (!context->slavelist[slave].inputs)
+      {
+         context->slavelist[slave].inputs =
+            (uint8 *)(pIOmap)+etohl(context->slavelist[slave].FMMU[FMMUc].LogStart);
+         context->slavelist[slave].Istartbit =
+            context->slavelist[slave].FMMU[FMMUc].LogStartbit;
+         EC_PRINT("    Inputs %p startbit %d\n",
+            context->slavelist[slave].inputs,
+            context->slavelist[slave].Istartbit);
+      }
+      FMMUc++;
+   }
+   context->slavelist[slave].FMMUunused = FMMUc;
+}
+
+static void ecx_config_create_output_mappings(ecx_contextt *context, void *pIOmap, 
+   uint8 group, int16 slave, uint32 * LogAddr, uint8 * BitPos)
+{
+   int BitCount = 0;
+   int ByteCount = 0;
+   int FMMUsize = 0;
+   int FMMUdone = 0;
+   uint8 SMc = 0;
+   uint16 EndAddr;
+   uint16 SMlength;
+   uint16 configadr;
+   uint8 FMMUc;
+
+   EC_PRINT("  OUTPUT MAPPING\n");
+
+   FMMUc = context->slavelist[slave].FMMUunused;
+   configadr = context->slavelist[slave].configadr;
+
+   /* search for SM that contribute to the output mapping */
+   while ((SMc < (EC_MAXSM - 1)) && (FMMUdone < ((context->slavelist[slave].Obits + 7) / 8)))
+   {
+      EC_PRINT("    FMMU %d\n", FMMUc);
+      while ((SMc < (EC_MAXSM - 1)) && (context->slavelist[slave].SMtype[SMc] != 3))
+      {
+         SMc++;
+      }
+      EC_PRINT("      SM%d\n", SMc);
+      context->slavelist[slave].FMMU[FMMUc].PhysStart =
+         context->slavelist[slave].SM[SMc].StartAddr;
+      SMlength = etohs(context->slavelist[slave].SM[SMc].SMlength);
+      ByteCount += SMlength;
+      BitCount += SMlength * 8;
+      EndAddr = etohs(context->slavelist[slave].SM[SMc].StartAddr) + SMlength;
+      while ((BitCount < context->slavelist[slave].Obits) && (SMc < (EC_MAXSM - 1))) /* more SM for output */
+      {
+         SMc++;
+         while ((SMc < (EC_MAXSM - 1)) && (context->slavelist[slave].SMtype[SMc] != 3))
+         {
+            SMc++;
+         }
+         /* if addresses from more SM connect use one FMMU otherwise break up in mutiple FMMU */
+         if (etohs(context->slavelist[slave].SM[SMc].StartAddr) > EndAddr)
+         {
+            break;
+         }
+         EC_PRINT("      SM%d\n", SMc);
+         SMlength = etohs(context->slavelist[slave].SM[SMc].SMlength);
+         ByteCount += SMlength;
+         BitCount += SMlength * 8;
+         EndAddr = etohs(context->slavelist[slave].SM[SMc].StartAddr) + SMlength;
+      }
+
+      /* bit oriented slave */
+      if (!context->slavelist[slave].Obytes)
+      {
+         context->slavelist[slave].FMMU[FMMUc].LogStart = htoel(*LogAddr);
+         context->slavelist[slave].FMMU[FMMUc].LogStartbit = *BitPos;
+         *BitPos += context->slavelist[slave].Obits - 1;
+         if (*BitPos > 7)
+         {
+            *LogAddr += 1;
+            *BitPos -= 8;
+         }
+         FMMUsize = *LogAddr - etohl(context->slavelist[slave].FMMU[FMMUc].LogStart) + 1;
+         context->slavelist[slave].FMMU[FMMUc].LogLength = htoes(FMMUsize);
+         context->slavelist[slave].FMMU[FMMUc].LogEndbit = *BitPos;
+         *BitPos += 1;
+         if (*BitPos > 7)
+         {
+            *LogAddr += 1;
+            *BitPos -= 8;
+         }
+      }
+      /* byte oriented slave */
+      else
+      {
+         if (*BitPos)
+         {
+            *LogAddr += 1;
+            *BitPos = 0;
+         }
+         context->slavelist[slave].FMMU[FMMUc].LogStart = htoel(*LogAddr);
+         context->slavelist[slave].FMMU[FMMUc].LogStartbit = *BitPos;
+         *BitPos = 7;
+         FMMUsize = ByteCount;
+         if ((FMMUsize + FMMUdone)> (int)context->slavelist[slave].Obytes)
+         {
+            FMMUsize = context->slavelist[slave].Obytes - FMMUdone;
+         }
+         *LogAddr += FMMUsize;
+         context->slavelist[slave].FMMU[FMMUc].LogLength = htoes(FMMUsize);
+         context->slavelist[slave].FMMU[FMMUc].LogEndbit = *BitPos;
+         *BitPos = 0;
+      }
+      FMMUdone += FMMUsize;
+      context->slavelist[slave].FMMU[FMMUc].PhysStartBit = 0;
+      context->slavelist[slave].FMMU[FMMUc].FMMUtype = 2;
+      context->slavelist[slave].FMMU[FMMUc].FMMUactive = 1;
+      /* program FMMU for output */
+      ecx_FPWR(context->port, configadr, ECT_REG_FMMU0 + (sizeof(ec_fmmut) * FMMUc),
+         sizeof(ec_fmmut), &(context->slavelist[slave].FMMU[FMMUc]), EC_TIMEOUTRET3);
+      context->grouplist[group].outputsWKC++;
+      if (!context->slavelist[slave].outputs)
+      {
+         context->slavelist[slave].outputs =
+            (uint8 *)(pIOmap)+etohl(context->slavelist[slave].FMMU[FMMUc].LogStart);
+         context->slavelist[slave].Ostartbit =
+            context->slavelist[slave].FMMU[FMMUc].LogStartbit;
+         EC_PRINT("    slave %d Outputs %p startbit %d\n",
+            slave,
+            context->slavelist[slave].outputs,
+            context->slavelist[slave].Ostartbit);
+      }
+      FMMUc++;
+   }
+   context->slavelist[slave].FMMUunused = FMMUc;
+}
+
+/** Map all PDOs in one group of slaves to IOmap with Outputs/Inputs
+* in sequential order (legacy SOEM way).
+*
  *
  * @param[in]  context    = context struct
  * @param[out] pIOmap     = pointer to IOmap
@@ -830,16 +1132,12 @@ static int ecx_get_threadcount(void)
 int ecx_config_map_group(ecx_contextt *context, void *pIOmap, uint8 group)
 {
    uint16 slave, configadr;
-   int BitCount, ByteCount, FMMUsize, FMMUdone;
-   uint16 SMlength, EndAddr;
    uint8 BitPos;
-   uint8 SMc, FMMUc;
    uint32 LogAddr = 0;
    uint32 oLogAddr = 0;
    uint32 diff;
    uint16 currentsegment = 0;
    uint32 segmentsize = 0;
-   int thrn, thrc;
 
    if ((*(context->slavecount) > 0) && (group < context->maxgroup))
    {
@@ -851,165 +1149,20 @@ int ecx_config_map_group(ecx_contextt *context, void *pIOmap, uint8 group)
       context->grouplist[group].outputsWKC = 0;
       context->grouplist[group].inputsWKC = 0;
 
-      for(thrn = 0 ; thrn < EC_MAX_MAPT ; thrn++)
-      {
-         ecx_mapt[thrn].running = 0;
-      }
-      /* find CoE and SoE mapping of slaves in multiple threads */
-      for (slave = 1; slave <= *(context->slavecount); slave++)
-      {
-         if (!group || (group == context->slavelist[slave].group))
-         {
-            if(EC_MAX_MAPT <= 1)
-            {
-               /* serialised version */
-               ecx_map_coe_soe(context, slave, 0);
-            }
-            else
-            {
-               /* multi-threaded version */
-               while((thrn = ecx_find_mapt()) < 0)
-               {
-                  osal_usleep(1000);
-               }
-               ecx_mapt[thrn].context = context;
-               ecx_mapt[thrn].slave = slave;
-               ecx_mapt[thrn].thread_n = thrn;
-               ecx_mapt[thrn].running = 1;
-               osal_thread_create(&(ecx_threadh[thrn]), 128000,
-                  &ecx_mapper_thread, &(ecx_mapt[thrn]));
-            }
-         }
-      }
-      /* wait for all threads to finish */
-      do
-      {
-         thrc = ecx_get_threadcount();
-         if(thrc)
-         {
-            osal_usleep(1000);
-         }
-      } while(thrc);
-      /* find SII mapping of slave and program SM */
-      for (slave = 1; slave <= *(context->slavecount); slave++)
-      {
-         if (!group || (group == context->slavelist[slave].group))
-         {
-            ecx_map_sii(context, slave);
-            ecx_map_sm(context, slave);
-         }
-      }
+      /* Find mappings and program syncmanagers */
+      ecx_config_find_mappings(context, group);
 
-      /* do input mapping of slave and program FMMUs */
+      /* do output mapping of slave and program FMMUs */
       for (slave = 1; slave <= *(context->slavecount); slave++)
       {
          configadr = context->slavelist[slave].configadr;
 
          if (!group || (group == context->slavelist[slave].group))
          {
-            FMMUc = context->slavelist[slave].FMMUunused;
-            SMc = 0;
-            BitCount = 0;
-            ByteCount = 0;
-            EndAddr = 0;
-            FMMUsize = 0;
-            FMMUdone = 0;
             /* create output mapping */
             if (context->slavelist[slave].Obits)
             {
-               EC_PRINT("  OUTPUT MAPPING\n");
-               /* search for SM that contribute to the output mapping */
-               while ( (SMc < (EC_MAXSM - 1)) && (FMMUdone < ((context->slavelist[slave].Obits + 7) / 8)))
-               {
-                  EC_PRINT("    FMMU %d\n", FMMUc);
-                  while ( (SMc < (EC_MAXSM - 1)) && (context->slavelist[slave].SMtype[SMc] != 3)) SMc++;
-                  EC_PRINT("      SM%d\n", SMc);
-                  context->slavelist[slave].FMMU[FMMUc].PhysStart =
-                     context->slavelist[slave].SM[SMc].StartAddr;
-                  SMlength = etohs(context->slavelist[slave].SM[SMc].SMlength);
-                  ByteCount += SMlength;
-                  BitCount += SMlength * 8;
-                  EndAddr = etohs(context->slavelist[slave].SM[SMc].StartAddr) + SMlength;
-                  while ( (BitCount < context->slavelist[slave].Obits) && (SMc < (EC_MAXSM - 1)) ) /* more SM for output */
-                  {
-                     SMc++;
-                     while ( (SMc < (EC_MAXSM - 1)) && (context->slavelist[slave].SMtype[SMc] != 3)) SMc++;
-                     /* if addresses from more SM connect use one FMMU otherwise break up in mutiple FMMU */
-                     if ( etohs(context->slavelist[slave].SM[SMc].StartAddr) > EndAddr )
-                     {
-                        break;
-                     }
-                     EC_PRINT("      SM%d\n", SMc);
-                     SMlength = etohs(context->slavelist[slave].SM[SMc].SMlength);
-                     ByteCount += SMlength;
-                     BitCount += SMlength * 8;
-                     EndAddr = etohs(context->slavelist[slave].SM[SMc].StartAddr) + SMlength;
-                  }
-
-                  /* bit oriented slave */
-                  if (!context->slavelist[slave].Obytes)
-                  {
-                     context->slavelist[slave].FMMU[FMMUc].LogStart = htoel(LogAddr);
-                     context->slavelist[slave].FMMU[FMMUc].LogStartbit = BitPos;
-                     BitPos += context->slavelist[slave].Obits - 1;
-                     if (BitPos > 7)
-                     {
-                        LogAddr++;
-                        BitPos -= 8;
-                     }
-                     FMMUsize = LogAddr - etohl(context->slavelist[slave].FMMU[FMMUc].LogStart) + 1;
-                     context->slavelist[slave].FMMU[FMMUc].LogLength = htoes(FMMUsize);
-                     context->slavelist[slave].FMMU[FMMUc].LogEndbit = BitPos;
-                     BitPos ++;
-                     if (BitPos > 7)
-                     {
-                        LogAddr++;
-                        BitPos -= 8;
-                     }
-                  }
-                  /* byte oriented slave */
-                  else
-                  {
-                     if (BitPos)
-                     {
-                        LogAddr++;
-                        BitPos = 0;
-                     }
-                     context->slavelist[slave].FMMU[FMMUc].LogStart = htoel(LogAddr);
-                     context->slavelist[slave].FMMU[FMMUc].LogStartbit = BitPos;
-                     BitPos = 7;
-                     FMMUsize = ByteCount;
-                     if ((FMMUsize + FMMUdone)> (int)context->slavelist[slave].Obytes)
-                     {
-                        FMMUsize = context->slavelist[slave].Obytes - FMMUdone;
-                     }
-                     LogAddr += FMMUsize;
-                     context->slavelist[slave].FMMU[FMMUc].LogLength = htoes(FMMUsize);
-                     context->slavelist[slave].FMMU[FMMUc].LogEndbit = BitPos;
-                     BitPos = 0;
-                  }
-                  FMMUdone += FMMUsize;
-                  context->slavelist[slave].FMMU[FMMUc].PhysStartBit = 0;
-                  context->slavelist[slave].FMMU[FMMUc].FMMUtype = 2;
-                  context->slavelist[slave].FMMU[FMMUc].FMMUactive = 1;
-                  /* program FMMU for output */
-                  ecx_FPWR(context->port, configadr, ECT_REG_FMMU0 + (sizeof(ec_fmmut) * FMMUc),
-                     sizeof(ec_fmmut), &(context->slavelist[slave].FMMU[FMMUc]), EC_TIMEOUTRET3);
-                  context->grouplist[group].outputsWKC++;
-                  if (!context->slavelist[slave].outputs)
-                  {
-                     context->slavelist[slave].outputs =
-                        (uint8 *)(pIOmap) + etohl(context->slavelist[slave].FMMU[FMMUc].LogStart);
-                     context->slavelist[slave].Ostartbit =
-                        context->slavelist[slave].FMMU[FMMUc].LogStartbit;
-                     EC_PRINT("    slave %d Outputs %p startbit %d\n",
-                        slave,
-                        context->slavelist[slave].outputs,
-                        context->slavelist[slave].Ostartbit);
-                  }
-                  FMMUc++;
-               }
-               context->slavelist[slave].FMMUunused = FMMUc;
+               ecx_config_create_output_mappings (context, pIOmap, group, slave, &LogAddr, &BitPos);
                diff = LogAddr - oLogAddr;
                oLogAddr = LogAddr;
                if ((segmentsize + diff) > (EC_MAXLRWDATA - EC_FIRSTDCDATAGRAM))
@@ -1064,116 +1217,11 @@ int ecx_config_map_group(ecx_contextt *context, void *pIOmap, uint8 group)
          configadr = context->slavelist[slave].configadr;
          if (!group || (group == context->slavelist[slave].group))
          {
-            FMMUc = context->slavelist[slave].FMMUunused;
-            if (context->slavelist[slave].Obits) /* find free FMMU */
-            {
-               while ( context->slavelist[slave].FMMU[FMMUc].LogStart ) FMMUc++;
-            }
-            SMc = 0;
-            BitCount = 0;
-            ByteCount = 0;
-            EndAddr = 0;
-            FMMUsize = 0;
-            FMMUdone = 0;
             /* create input mapping */
             if (context->slavelist[slave].Ibits)
             {
-               EC_PRINT(" =Slave %d, INPUT MAPPING\n", slave);
-               /* search for SM that contribute to the input mapping */
-               while ( (SMc < (EC_MAXSM - 1)) && (FMMUdone < ((context->slavelist[slave].Ibits + 7) / 8)))
-               {
-                  EC_PRINT("    FMMU %d\n", FMMUc);
-                  while ( (SMc < (EC_MAXSM - 1)) && (context->slavelist[slave].SMtype[SMc] != 4)) SMc++;
-                  EC_PRINT("      SM%d\n", SMc);
-                  context->slavelist[slave].FMMU[FMMUc].PhysStart =
-                     context->slavelist[slave].SM[SMc].StartAddr;
-                  SMlength = etohs(context->slavelist[slave].SM[SMc].SMlength);
-                  ByteCount += SMlength;
-                  BitCount += SMlength * 8;
-                  EndAddr = etohs(context->slavelist[slave].SM[SMc].StartAddr) + SMlength;
-                  while ( (BitCount < context->slavelist[slave].Ibits) && (SMc < (EC_MAXSM - 1)) ) /* more SM for input */
-                  {
-                     SMc++;
-                     while ( (SMc < (EC_MAXSM - 1)) && (context->slavelist[slave].SMtype[SMc] != 4)) SMc++;
-                     /* if addresses from more SM connect use one FMMU otherwise break up in mutiple FMMU */
-                     if ( etohs(context->slavelist[slave].SM[SMc].StartAddr) > EndAddr )
-                     {
-                        break;
-                     }
-                     EC_PRINT("      SM%d\n", SMc);
-                     SMlength = etohs(context->slavelist[slave].SM[SMc].SMlength);
-                     ByteCount += SMlength;
-                     BitCount += SMlength * 8;
-                     EndAddr = etohs(context->slavelist[slave].SM[SMc].StartAddr) + SMlength;
-                  }
-
-                  /* bit oriented slave */
-                  if (!context->slavelist[slave].Ibytes)
-                  {
-                     context->slavelist[slave].FMMU[FMMUc].LogStart = htoel(LogAddr);
-                     context->slavelist[slave].FMMU[FMMUc].LogStartbit = BitPos;
-                     BitPos += context->slavelist[slave].Ibits - 1;
-                     if (BitPos > 7)
-                     {
-                        LogAddr++;
-                        BitPos -= 8;
-                     }
-                     FMMUsize = LogAddr - etohl(context->slavelist[slave].FMMU[FMMUc].LogStart) + 1;
-                     context->slavelist[slave].FMMU[FMMUc].LogLength = htoes(FMMUsize);
-                     context->slavelist[slave].FMMU[FMMUc].LogEndbit = BitPos;
-                     BitPos ++;
-                     if (BitPos > 7)
-                     {
-                        LogAddr++;
-                        BitPos -= 8;
-                     }
-                  }
-                  /* byte oriented slave */
-                  else
-                  {
-                     if (BitPos)
-                     {
-                        LogAddr++;
-                        BitPos = 0;
-                     }
-                     context->slavelist[slave].FMMU[FMMUc].LogStart = htoel(LogAddr);
-                     context->slavelist[slave].FMMU[FMMUc].LogStartbit = BitPos;
-                     BitPos = 7;
-                     FMMUsize = ByteCount;
-                     if ((FMMUsize + FMMUdone)> (int)context->slavelist[slave].Ibytes)
-                     {
-                        FMMUsize = context->slavelist[slave].Ibytes - FMMUdone;
-                     }
-                     LogAddr += FMMUsize;
-                     context->slavelist[slave].FMMU[FMMUc].LogLength = htoes(FMMUsize);
-                     context->slavelist[slave].FMMU[FMMUc].LogEndbit = BitPos;
-                     BitPos = 0;
-                  }
-                  FMMUdone += FMMUsize;
-                  if (context->slavelist[slave].FMMU[FMMUc].LogLength)
-                  {
-                     context->slavelist[slave].FMMU[FMMUc].PhysStartBit = 0;
-                     context->slavelist[slave].FMMU[FMMUc].FMMUtype = 1;
-                     context->slavelist[slave].FMMU[FMMUc].FMMUactive = 1;
-                     /* program FMMU for input */
-                     ecx_FPWR(context->port, configadr, ECT_REG_FMMU0 + (sizeof(ec_fmmut) * FMMUc),
-                        sizeof(ec_fmmut), &(context->slavelist[slave].FMMU[FMMUc]), EC_TIMEOUTRET3);
-                     /* add one for an input FMMU */
-                     context->grouplist[group].inputsWKC++;
-                  }
-                  if (!context->slavelist[slave].inputs)
-                  {
-                     context->slavelist[slave].inputs =
-                        (uint8 *)(pIOmap) + etohl(context->slavelist[slave].FMMU[FMMUc].LogStart);
-                     context->slavelist[slave].Istartbit =
-                        context->slavelist[slave].FMMU[FMMUc].LogStartbit;
-                     EC_PRINT("    Inputs %p startbit %d\n",
-                        context->slavelist[slave].inputs,
-                        context->slavelist[slave].Istartbit);
-                  }
-                  FMMUc++;
-               }
-               context->slavelist[slave].FMMUunused = FMMUc;
+ 
+               ecx_config_create_input_mappings(context, pIOmap, group, slave, &LogAddr, &BitPos);
                diff = LogAddr - oLogAddr;
                oLogAddr = LogAddr;
                if ((segmentsize + diff) > (EC_MAXLRWDATA - EC_FIRSTDCDATAGRAM))
@@ -1237,6 +1285,136 @@ int ecx_config_map_group(ecx_contextt *context, void *pIOmap, uint8 group)
 
    return 0;
 }
+
+/** Map all PDOs in one group of slaves to IOmap with Outputs/Inputs
+ * overlapping. NOTE: Must use this for TI ESC when using LRW.
+ *
+ * @param[in]  context    = context struct
+ * @param[out] pIOmap     = pointer to IOmap
+ * @param[in]  group      = group to map, 0 = all groups
+ * @return IOmap size
+ */
+int ecx_config_overlap_map_group(ecx_contextt *context, void *pIOmap, uint8 group)
+{
+   uint16 slave, configadr;
+   uint8 BitPos;
+   uint32 mLogAddr = 0;
+   uint32 siLogAddr = 0;
+   uint32 soLogAddr = 0;
+   uint32 tempLogAddr;
+   uint32 diff;
+   uint16 currentsegment = 0;
+   uint32 segmentsize = 0;
+
+   if ((*(context->slavecount) > 0) && (group < context->maxgroup))
+   {
+      EC_PRINT("ec_config_map_group IOmap:%p group:%d\n", pIOmap, group);
+      mLogAddr = context->grouplist[group].logstartaddr;
+      siLogAddr = mLogAddr;
+      soLogAddr = mLogAddr;
+      BitPos = 0;
+      context->grouplist[group].nsegments = 0;
+      context->grouplist[group].outputsWKC = 0;
+      context->grouplist[group].inputsWKC = 0;
+
+      /* Find mappings and program syncmanagers */
+      ecx_config_find_mappings(context, group);
+      
+      /* do IO mapping of slave and program FMMUs */
+      for (slave = 1; slave <= *(context->slavecount); slave++)
+      {
+         configadr = context->slavelist[slave].configadr;
+         siLogAddr = soLogAddr = mLogAddr;
+
+         if (!group || (group == context->slavelist[slave].group))
+         {
+            /* create output mapping */
+            if (context->slavelist[slave].Obits)
+            {
+               
+               ecx_config_create_output_mappings(context, pIOmap, group, 
+                  slave, &soLogAddr, &BitPos);
+               if (BitPos)
+               {
+                  soLogAddr++;
+                  BitPos = 0;
+               }
+            }
+
+            /* create input mapping */
+            if (context->slavelist[slave].Ibits)
+            {
+               ecx_config_create_input_mappings(context, pIOmap, group, 
+                  slave, &siLogAddr, &BitPos);
+               if (BitPos)
+               {
+                  siLogAddr++;
+                  BitPos = 0;
+               }
+            }
+
+            tempLogAddr = (siLogAddr > soLogAddr) ?  siLogAddr : soLogAddr;
+            diff = tempLogAddr - mLogAddr;
+            mLogAddr = tempLogAddr;
+
+            if ((segmentsize + diff) > (EC_MAXLRWDATA - EC_FIRSTDCDATAGRAM))
+            {
+               context->grouplist[group].IOsegment[currentsegment] = segmentsize;
+               if (currentsegment < (EC_MAXIOSEGMENTS - 1))
+               {
+                  currentsegment++;
+                  segmentsize = diff;
+               }
+            }
+            else
+            {
+               segmentsize += diff;
+            }
+
+            ecx_eeprom2pdi(context, slave); /* set Eeprom control to PDI */
+            ecx_FPWRw(context->port, configadr, ECT_REG_ALCTL, htoes(EC_STATE_SAFE_OP), EC_TIMEOUTRET3); /* set safeop status */
+
+            if (context->slavelist[slave].blockLRW)
+            {
+               context->grouplist[group].blockLRW++;
+            }
+            context->grouplist[group].Ebuscurrent += context->slavelist[slave].Ebuscurrent;
+
+         }
+      }
+
+      context->grouplist[group].IOsegment[currentsegment] = segmentsize;
+      context->grouplist[group].nsegments = currentsegment + 1;
+      context->grouplist[group].Isegment = 0;
+      context->grouplist[group].Ioffset = 0;
+
+      context->grouplist[group].Obytes = soLogAddr;
+      context->grouplist[group].Ibytes = siLogAddr;
+      context->grouplist[group].outputs = pIOmap;
+      context->grouplist[group].inputs = (uint8 *)pIOmap + context->grouplist[group].Obytes;
+
+      /* Move calculated inputs with OBytes offset*/
+      for (slave = 1; slave <= *(context->slavecount); slave++)
+      {
+         context->slavelist[slave].inputs += context->grouplist[group].Obytes;
+      }
+
+      if (!group)
+      {
+         context->slavelist[0].outputs = pIOmap;
+         context->slavelist[0].Obytes = soLogAddr; /* store output bytes in master record */
+         context->slavelist[0].inputs = (uint8 *)pIOmap + context->slavelist[0].Obytes;
+         context->slavelist[0].Ibytes = siLogAddr;
+      }
+
+      EC_PRINT("IOmapSize %d\n", context->grouplist[group].Obytes + context->grouplist[group].Ibytes);
+
+      return (context->grouplist[group].Obytes + context->grouplist[group].Ibytes);
+   }
+
+   return 0;
+}
+
 
 /** Recover slave.
  *
@@ -1368,7 +1546,8 @@ int ec_config_init(uint8 usetable)
    return ecx_config_init(&ecx_context, usetable);
 }
 
-/** Map all PDOs in one group of slaves to IOmap.
+/** Map all PDOs in one group of slaves to IOmap with Outputs/Inputs
+ * in sequential order (legacy SOEM way).
  *
  * @param[out] pIOmap     = pointer to IOmap
  * @param[in]  group      = group to map, 0 = all groups
@@ -1380,7 +1559,21 @@ int ec_config_map_group(void *pIOmap, uint8 group)
    return ecx_config_map_group(&ecx_context, pIOmap, group);
 }
 
-/** Map all PDOs from slaves to IOmap.
+/** Map all PDOs in one group of slaves to IOmap with Outputs/Inputs
+* overlapping. NOTE: Must use this for TI ESC when using LRW.
+*
+* @param[out] pIOmap     = pointer to IOmap
+* @param[in]  group      = group to map, 0 = all groups
+* @return IOmap size
+* @see ecx_config_overlap_map_group
+*/
+int ec_config_overlap_map_group(void *pIOmap, uint8 group)
+{
+   return ecx_config_overlap_map_group(&ecx_context, pIOmap, group);
+}
+
+/** Map all PDOs from slaves to IOmap with Outputs/Inputs
+ * in sequential order (legacy SOEM way).
  *
  * @param[out] pIOmap     = pointer to IOmap
  * @return IOmap size
@@ -1388,6 +1581,17 @@ int ec_config_map_group(void *pIOmap, uint8 group)
 int ec_config_map(void *pIOmap)
 {
    return ec_config_map_group(pIOmap, 0);
+}
+
+/** Map all PDOs from slaves to IOmap with Outputs/Inputs
+* overlapping. NOTE: Must use this for TI ESC when using LRW.
+*
+* @param[out] pIOmap     = pointer to IOmap
+* @return IOmap size
+*/
+int ec_config_overlap_map(void *pIOmap)
+{
+   return ec_config_overlap_map_group(pIOmap, 0);
 }
 
 /** Enumerate / map and init all slaves.
@@ -1403,6 +1607,23 @@ int ec_config(uint8 usetable, void *pIOmap)
    if (wkc)
    {
       ec_config_map(pIOmap);
+   }
+   return wkc;
+}
+
+/** Enumerate / map and init all slaves.
+*
+* @param[in] usetable    = TRUE when using configtable to init slaves, FALSE otherwise
+* @param[out] pIOmap     = pointer to IOmap
+* @return Workcounter of slave discover datagram = number of slaves found
+*/
+int ec_config_overlap(uint8 usetable, void *pIOmap)
+{
+   int wkc;
+   wkc = ec_config_init(usetable);
+   if (wkc)
+   {
+      ec_config_overlap_map(pIOmap);
    }
    return wkc;
 }

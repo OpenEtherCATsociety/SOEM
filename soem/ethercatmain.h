@@ -467,8 +467,10 @@ int ec_writeeepromFP(uint16 configadr, uint16 eeproma, uint16 data, int timeout)
 void ec_readeeprom1(uint16 slave, uint16 eeproma);
 uint32 ec_readeeprom2(uint16 slave, int timeout);
 int ec_send_processdata_group(uint8 group);
+int ec_send_overlap_processdata_group(uint8 group);
 int ec_receive_processdata_group(uint8 group, int timeout);
 int ec_send_processdata(void);
+int ec_send_overlap_processdata(void);
 int ec_receive_processdata(int timeout);
 #endif
 
@@ -507,9 +509,10 @@ uint64 ecx_readeepromFP(ecx_contextt *context, uint16 configadr, uint16 eeproma,
 int ecx_writeeepromFP(ecx_contextt *context, uint16 configadr, uint16 eeproma, uint16 data, int timeout);
 void ecx_readeeprom1(ecx_contextt *context, uint16 slave, uint16 eeproma);
 uint32 ecx_readeeprom2(ecx_contextt *context, uint16 slave, int timeout);
-int ecx_send_processdata_group(ecx_contextt *context, uint8 group);
+int ecx_send_overlap_processdata_group(ecx_contextt *context, uint8 group);
 int ecx_receive_processdata_group(ecx_contextt *context, uint8 group, int timeout);
 int ecx_send_processdata(ecx_contextt *context);
+int ecx_send_overlap_processdata(ecx_contextt *context);
 int ecx_receive_processdata(ecx_contextt *context, int timeout);
 
 #ifdef __cplusplus

@@ -1671,7 +1671,7 @@ static void ecx_clearindex(ecx_contextt *context)  {
  * @param[in]  group          = group number
  * @return >0 if processdata is transmitted.
  */
-int ecx_send_processdata_group(ecx_contextt *context, uint8 group)
+static int ecx_main_send_processdata(ecx_contextt *context, uint8 group, boolean use_overlap_io)
 {
    uint32 LogAdr;
    uint16 w1, w2;
@@ -1681,20 +1681,36 @@ int ecx_send_processdata_group(ecx_contextt *context, uint8 group)
    uint8* data;
    boolean first=FALSE;
    uint16 currentsegment = 0;
+   uint32 iomapinputoffset;
 
    wkc = 0;
    if(context->grouplist[group].hasdc)
    {
       first = TRUE;
    }
-   length = context->grouplist[group].Obytes + context->grouplist[group].Ibytes;
+
+   /* For overlapping IO map use the biggest */
+   if(use_overlap_io == TRUE)
+   {
+      /* For overlap IOmap make the frame EQ big to biggest part */
+      length = (context->grouplist[group].Obytes > context->grouplist[group].Ibytes) ?
+         context->grouplist[group].Obytes : context->grouplist[group].Ibytes;
+      /* Save the offset used to compensate where to save inputs when frame returns */
+      iomapinputoffset = context->grouplist[group].Obytes;
+   }
+   else
+   {
+      length = context->grouplist[group].Obytes + context->grouplist[group].Ibytes;
+      iomapinputoffset = 0;
+   }
+   
    LogAdr = context->grouplist[group].logstartaddr;
-   if (length)
+   if(length)
    {
 
       wkc = 1;
       /* LRW blocked by one or more slaves ? */
-      if (context->grouplist[group].blockLRW)
+      if(context->grouplist[group].blockLRW)
       {
          /* if inputs available generate LRD */
          if(context->grouplist[group].Ibytes)
@@ -1786,6 +1802,8 @@ int ecx_send_processdata_group(ecx_contextt *context, uint8 group)
          else
          {
             data = context->grouplist[group].inputs;
+            /* Clear offset, don't compensate for overlapping IOmap if we only got inputs */
+            iomapinputoffset = 0;
          }
          /* segment transfer if needed */
          do
@@ -1807,8 +1825,12 @@ int ecx_send_processdata_group(ecx_contextt *context, uint8 group)
             }
             /* send frame */
             ecx_outframe_red(context->port, idx);
-            /* push index and data pointer on stack */
-            ecx_pushindex(context, idx, data, sublength);
+            /* push index and data pointer on stack.
+             * the iomapinputoffset compensate for where the inputs are stored 
+             * in the IOmap if we use an overlapping IOmap. If a regular IOmap
+             * is used it should always be 0.
+             */
+            ecx_pushindex(context, idx, (data + iomapinputoffset), sublength);      
             length -= sublength;
             LogAdr += sublength;
             data += sublength;
@@ -1817,6 +1839,40 @@ int ecx_send_processdata_group(ecx_contextt *context, uint8 group)
    }
 
    return wkc;
+}
+
+/** Transmit processdata to slaves.
+* Uses LRW, or LRD/LWR if LRW is not allowed (blockLRW).
+* Both the input and output processdata are transmitted in the overlapped IOmap.
+* The outputs with the actual data, the inputs replace the output data in the
+* returning frame. The inputs are gathered with the receive processdata function.
+* In contrast to the base LRW function this function is non-blocking.
+* If the processdata does not fit in one datagram, multiple are used.
+* In order to recombine the slave response, a stack is used.
+* @param[in]  context        = context struct
+* @param[in]  group          = group number
+* @return >0 if processdata is transmitted.
+*/
+int ecx_send_overlap_processdata_group(ecx_contextt *context, uint8 group)
+{
+   return ecx_main_send_processdata(context, group, TRUE);
+}
+
+/** Transmit processdata to slaves.
+* Uses LRW, or LRD/LWR if LRW is not allowed (blockLRW).
+* Both the input and output processdata are transmitted.
+* The outputs with the actual data, the inputs have a placeholder.
+* The inputs are gathered with the receive processdata function.
+* In contrast to the base LRW function this function is non-blocking.
+* If the processdata does not fit in one datagram, multiple are used.
+* In order to recombine the slave response, a stack is used.
+* @param[in]  context        = context struct
+* @param[in]  group          = group number
+* @return >0 if processdata is transmitted.
+*/
+int ecx_send_processdata_group(ecx_contextt *context, uint8 group)
+{
+   return ecx_main_send_processdata(context, group, FALSE);
 }
 
 /** Receive processdata from slaves.
@@ -1909,6 +1965,11 @@ int ecx_receive_processdata_group(ecx_contextt *context, uint8 group, int timeou
 int ecx_send_processdata(ecx_contextt *context)
 {
    return ecx_send_processdata_group(context, 0);
+}
+
+int ecx_send_overlap_processdata(ecx_contextt *context)
+{
+   return ecx_send_overlap_processdata_group(context, 0);
 }
 
 int ecx_receive_processdata(ecx_contextt *context, int timeout)
@@ -2265,6 +2326,24 @@ int ec_send_processdata_group(uint8 group)
    return ecx_send_processdata_group (&ecx_context, group);
 }
 
+/** Transmit processdata to slaves.
+* Uses LRW, or LRD/LWR if LRW is not allowed (blockLRW).
+* Both the input and output processdata are transmitted in the overlapped IOmap.
+* The outputs with the actual data, the inputs replace the output data in the
+* returning frame. The inputs are gathered with the receive processdata function.
+* In contrast to the base LRW function this function is non-blocking.
+* If the processdata does not fit in one datagram, multiple are used.
+* In order to recombine the slave response, a stack is used.
+* @param[in]  context        = context struct
+* @param[in]  group          = group number
+* @return >0 if processdata is transmitted.
+* @see ecx_send_overlap_processdata_group
+*/
+int ec_send_overlap_processdata_group(uint8 group)
+{
+   return ecx_send_overlap_processdata_group(&ecx_context, group);
+}
+
 /** Receive processdata from slaves.
  * Second part from ec_send_processdata().
  * Received datagrams are recombined with the processdata with help from the stack.
@@ -2282,6 +2361,11 @@ int ec_receive_processdata_group(uint8 group, int timeout)
 int ec_send_processdata(void)
 {
    return ec_send_processdata_group(0);
+}
+
+int ec_send_overlap_processdata(void)
+{
+   return ec_send_overlap_processdata_group(0);
 }
 
 int ec_receive_processdata(int timeout)

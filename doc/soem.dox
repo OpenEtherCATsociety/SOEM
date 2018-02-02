@@ -14,7 +14,7 @@
  * it can be used as user mode program.
  *
  * Preconditions Linux:
- * - Linux 2.6 kernel.
+ * - Linux 2.6 kernel or later.
  * - GCC compiler (others might work, just not tested).
  * - One (or two if in redundant mode) 100Mb/s NIC that can connect to a RAW socket.
  * - Application must run as root / kernel.
@@ -176,42 +176,17 @@
  *
  * Version 1.3.1
  * - Added intime target.
- * - Added rtk\fec target.
+ * - Added rtk fec target.
  * - Compiles under gcc / visual-c / intime / borland-c .
  * - Added multi-threaded configuration for parallel configurations of slaves
  *
+ * Version 1.3.2 : 2018-02-02
+ * - Added rtems target.
+ * - Added support for overlapping IOmap.
+ *
  * \section legal Legal notice
- * Copyright© 2005-2015 Speciaal Machinefabriek Ketels v.o.f. \n
- * Copyright© 2005-2015 Arthur Ketels \n
- * Copyright© 2008-2010 TU/e Technische Universiteit Eindhoven \n
- * Copyright© 2012-2015 RT-labs AB \n
+*
+ * Licensed under the GNU General Public License version 2 with exceptions. See
+ * LICENSE file in the project root for full license information
  *
- * SOEM is free software; you can redistribute it and/or modify it under
- * the terms of the GNU General Public License version 2 as published by the Free
- * Software Foundation.
- *
- * SOEM is distributed in the hope that it will be useful, but WITHOUT ANY
- * WARRANTY; without even the implied warranty of MERCHANTABILITY or
- * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
- * for more details.
- *
- * As a special exception, if other files instantiate templates or use macros
- * or inline functions from this file, or you compile this file and link it
- * with other works to produce a work based on this file, this file does not
- * by itself cause the resulting work to be covered by the GNU General Public
- * License. However the source code for this file must still be made available
- * in accordance with section (3) of the GNU General Public License.
- *
- * This exception does not invalidate any other reasons why a work based on
- * this file might be covered by the GNU General Public License.
- *
- * The EtherCAT Technology, the trade name and logo "EtherCAT" are the intellectual
- * property of, and protected by Beckhoff Automation GmbH. You can use SOEM for
- * the sole purpose of creating, using and/or selling or otherwise distributing
- * an EtherCAT network master provided that an EtherCAT Master License is obtained
- * from Beckhoff Automation GmbH.
- *
- * In case you did not receive a copy of the EtherCAT Master License along with
- * SOEM write to Beckhoff Automation GmbH, Eiserstrasse 5, D-33415 Verl, Germany
- * (www.beckhoff.com).
  */

@@ -181,6 +181,9 @@
  * - Added multi-threaded configuration for parallel configurations of slaves
  *
  * Version 1.3.2 : 2018-02-02
+ * - Made a mistake. DON'T USE!
+ *
+ * Version 1.3.3 : 2018-02-02
  * - Added rtems target.
  * - Added support for overlapping IOmap.
  *

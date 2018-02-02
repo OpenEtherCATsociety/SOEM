@@ -732,7 +732,7 @@ int ecx_readstate(ecx_contextt *context)
    rval = 0;
    wkc = ecx_BRD(context->port, 0, ECT_REG_ALSTAT, sizeof(rval), &rval, EC_TIMEOUTRET);
 
-   if(wkc == *(context->slavecount))
+   if(wkc >= *(context->slavecount))
    {
       allslavespresent = TRUE;
    }

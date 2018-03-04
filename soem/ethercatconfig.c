@@ -763,7 +763,7 @@ static int ecx_map_sm(ecx_contextt *context, uint16 slave)
             context->slavelist[slave].SM[nSM].SMflags =
                htoel( etohl(context->slavelist[slave].SM[nSM].SMflags) & EC_SMENABLEMASK);
          }
-         ecx_FPWR(context->port, configadr, ECT_REG_SM0 + (nSM * sizeof(ec_smt)),
+         ecx_FPWR(context->port, configadr, (uint16)(ECT_REG_SM0 + (nSM * sizeof(ec_smt))),
             sizeof(ec_smt), &context->slavelist[slave].SM[nSM], EC_TIMEOUTRET3);
          EC_PRINT("    SM%d Type:%d StartAddr:%4.4x Flags:%8.8x\n", nSM,
              context->slavelist[slave].SMtype[nSM],
@@ -1507,7 +1507,7 @@ int ecx_reconfig_slave(ecx_contextt *context, uint16 slave, int timeout)
       {
          if (context->slavelist[slave].SM[nSM].StartAddr)
          {
-            ecx_FPWR(context->port, configadr, ECT_REG_SM0 + (nSM * sizeof(ec_smt)),
+            ecx_FPWR(context->port, configadr, (uint16)(ECT_REG_SM0 + (nSM * sizeof(ec_smt))),
                sizeof(ec_smt), &context->slavelist[slave].SM[nSM], timeout);
          }
       }
@@ -1525,7 +1525,7 @@ int ecx_reconfig_slave(ecx_contextt *context, uint16 slave, int timeout)
          /* program configured FMMU */
          for( FMMUc = 0 ; FMMUc < context->slavelist[slave].FMMUunused ; FMMUc++ )
          {
-            ecx_FPWR(context->port, configadr, ECT_REG_FMMU0 + (sizeof(ec_fmmut) * FMMUc),
+            ecx_FPWR(context->port, configadr, (uint16)(ECT_REG_FMMU0 + (sizeof(ec_fmmut) * FMMUc)),
                sizeof(ec_fmmut), &context->slavelist[slave].FMMU[FMMUc], timeout);
          }
       }

@@ -20,7 +20,7 @@
 
 #include "ethercat.h"
 
-#define MAXBUF 32768
+#define MAXBUF 524288
 #define STDBUF 2048
 #define MINBUF 128
 #define CRCBUF 14

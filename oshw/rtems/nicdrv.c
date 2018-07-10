@@ -151,10 +151,11 @@ int ecx_setupnic(ecx_portt *port, const char *ifname, int secondary)
      sprintf(fname, "/dev/bpf%i", i);
      *bpf = open(fname, O_RDWR);
    }
-   
+
    if(*bpf == -1)
    {
      /* Failed to open bpf */
+     perror("Could not open bpf\n");
      return 0;
    }
 
@@ -164,40 +165,52 @@ int ecx_setupnic(ecx_portt *port, const char *ifname, int secondary)
    if (ioctl(*bpf, BIOCSBLEN, &buffer_len) == -1) {
      perror("BIOCGBLEN");
    }
-   assert(buffer_len >= 1518);
+   
+   if (buffer_len < 1518) {
+     printf("buffer_len %d < 1518\n", buffer_len);
+     return 0;
+   }
 
    /* connect bpf to NIC by name */
    strcpy(ifr.ifr_name, ifname);
-   assert(ioctl(*bpf, BIOCSETIF, &ifr) == 0);
+   if(ioctl(*bpf, BIOCSETIF, &ifr) == -1) {
+     perror("BIOCSETIF");
+     return 0;
+   }
 
    /* Set required bpf options */
 
    /* Activate immediate mode */
    if (ioctl(*bpf, BIOCIMMEDIATE, &true_val) == -1) {
      perror("BIOCIMMEDIATE");
+     return 0;
    }
 
    /* Set interface in promiscuous mode */
    if (ioctl(*bpf, BIOCPROMISC, &true_val) == -1) {
      perror("BIOCPROMISC");
+     return 0;
    }
    
    /* Allow to have custom source address */
    if (ioctl(*bpf, BIOCSHDRCMPLT, &true_val) == -1) {
      perror("BIOCSHDRCMPLT");
+     return 0;
    }
 
    /* Listen only to incomming messages */
    uint direction = BPF_D_IN;
    if (ioctl(*bpf, BIOCSDIRECTION, &direction) == -1) {
      perror("BIOCSDIRECTION");
+     return 0;
    }
 
    /* Set read timeout */
    timeout.tv_sec =  0;
-   timeout.tv_usec = 1;
+   timeout.tv_usec = 11000;
    if (ioctl(*bpf, BIOCSRTIMEOUT, &timeout) == -1) {
      perror("BIOCSRTIMEOUT");
+     return 0;
    }
 
    /* setup ethernet headers in tx buffers so we don't have to repeat it */
@@ -207,9 +220,8 @@ int ecx_setupnic(ecx_portt *port, const char *ifname, int secondary)
       port->rxbufstat[i] = EC_BUF_EMPTY;
    }
    ec_setupheader(&(port->txbuf2));
-   if (r == 0) rval = 1;
 
-   return rval;
+   return 1;
 }
 
 /** Close sockets used

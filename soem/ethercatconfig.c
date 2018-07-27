@@ -306,9 +306,10 @@ static int ecx_lookup_prev_sii(ecx_contextt *context, uint16 slave)
  *
  * @param[in] context      = context struct
  * @param[in] usetable     = TRUE when using configtable to init slaves, FALSE otherwise
+ * @param[in] state        = Desired state after init. Valid options are EC_STATE_INIT, EC_STATE_BOOT or EC_STATE_PRE_OP
  * @return Workcounter of slave discover datagram = number of slaves found
  */
-int ecx_config_init(ecx_contextt *context, uint8 usetable)
+int ecx_config_init_to_state(ecx_contextt *context, uint8 usetable, ec_state state)
 {
    uint16 slave, ADPh, configadr, ssigen;
    uint16 topology, estat;
@@ -586,13 +587,28 @@ int ecx_config_init(ecx_contextt *context, uint8 usetable)
             ecx_FPWR(context->port, configadr, ECT_REG_SM0, sizeof(ec_smt) * 2,
                &(context->slavelist[slave].SM[0]), EC_TIMEOUTRET3);
          }
-         /* some slaves need eeprom available to PDI in init->preop transition */
-         ecx_eeprom2pdi(context, slave);
-         /* request pre_op for slave */
-         ecx_FPWRw(context->port, configadr, ECT_REG_ALCTL, htoes(EC_STATE_PRE_OP | EC_STATE_ACK) , EC_TIMEOUTRET3); /* set preop status */
+         
+         if(state == EC_STATE_PRE_OP || state == EC_STATE_BOOT)
+         {
+            /* some slaves need eeprom available to PDI in init->preop or init->boot transition */
+            ecx_eeprom2pdi(context, slave);
+            /* request pre_op for slave */
+            ecx_FPWRw(context->port, configadr, ECT_REG_ALCTL, htoes(state | EC_STATE_ACK) , EC_TIMEOUTRET3); /* set desired status */
+         }
       }
    }
    return wkc;
+}
+
+/** Enumerate and init all slaves.
+ *
+ * @param[in] context      = context struct
+ * @param[in] usetable     = TRUE when using configtable to init slaves, FALSE otherwise
+ * @return Workcounter of slave discover datagram = number of slaves found
+ */
+int ecx_config_init(ecx_contextt *context, uint8 usetable)
+{
+    return ecx_config_init_to_state(context, usetable, EC_STATE_PRE_OP);
 }
 
 /* If slave has SII mapping and same slave ID done before, use previous mapping.

@@ -32,7 +32,7 @@ int ec_reconfig_slave(uint16 slave, int timeout);
 #endif
 
 int ecx_config_init(ecx_contextt *context, uint8 usetable);
-int ecx_config_init_to_state(ecx_contextt *context, uint8 usetable, ec_state state);
+int ecx_config_init_to_state(ecx_contextt *context, uint8 usetable, uint16 state);
 int ecx_config_map_group(ecx_contextt *context, void *pIOmap, uint8 group);
 int ecx_config_overlap_map_group(ecx_contextt *context, void *pIOmap, uint8 group);
 int ecx_recover_slave(ecx_contextt *context, uint16 slave, int timeout);

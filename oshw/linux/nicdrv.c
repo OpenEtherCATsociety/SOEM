@@ -95,6 +95,7 @@ int ecx_setupnic(ecx_portt *port, const char *ifname, int secondary)
    struct ifreq ifr;
    struct sockaddr_ll sll;
    int *psock;
+   pthread_mutexattr_t mutexattr;
 
    rval = 0;
    if (secondary)
@@ -123,9 +124,11 @@ int ecx_setupnic(ecx_portt *port, const char *ifname, int secondary)
    }
    else
    {
-      pthread_mutex_init(&(port->getindex_mutex), NULL);
-      pthread_mutex_init(&(port->tx_mutex)      , NULL);
-      pthread_mutex_init(&(port->rx_mutex)      , NULL);
+      pthread_mutexattr_init(&mutexattr);
+      pthread_mutexattr_setprotocol(&mutexattr  , PTHREAD_PRIO_INHERIT);
+      pthread_mutex_init(&(port->getindex_mutex), &mutexattr);
+      pthread_mutex_init(&(port->tx_mutex)      , &mutexattr);
+      pthread_mutex_init(&(port->rx_mutex)      , &mutexattr);
       port->sockhandle        = -1;
       port->lastidx           = 0;
       port->redstate          = ECT_RED_NONE;

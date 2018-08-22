@@ -363,15 +363,16 @@ int ecx_outframe(ecx_portt *port, int idx, int stacknumber)
    }
    log_RT_event('S',(WORD)3);
 
+   (*stack->rxbufstat)[idx] = EC_BUF_TX;
    status = hpeStartTransmitter(port->handle);
    if (status != E_OK)
    {
+      (*stack->rxbufstat)[idx] = EC_BUF_EMPTY;
       result = -3;
       goto end;
    }
 
    log_RT_event('S',(WORD)4);
-   (*stack->rxbufstat)[idx] = EC_BUF_TX;
    result = lp;
 
 end:
@@ -408,9 +409,13 @@ int ecx_outframe_red(ecx_portt *port, int idx)
       //send(sockhandle2, &ec_txbuf2, ec_txbuflength2 , 0);
       // OBS! redundant not ACTIVE for BFIN, just added to compile
       //ASSERT (0);
-	   hpeAttachTransmitBufferSet(port->redport->handle, port->tx_buffers[idx]);
-      status = hpeStartTransmitter(port->redport->handle);
+      hpeAttachTransmitBufferSet(port->redport->handle, port->tx_buffers[idx]);
       port->redport->rxbufstat[idx] = EC_BUF_TX;
+      status = hpeStartTransmitter(port->redport->handle);
+      if (status != E_OK)
+      {
+         (*stack->rxbufstat)[idx] = EC_BUF_EMPTY;
+      }
    }
 
    return rval;

@@ -474,12 +474,16 @@ int ecx_outframe(ecx_portt *port, int idx, int stacknumber)
       pPktDev = &(port->redport->pktDev);
    }
 
+   (*stack->rxbufstat)[idx] = EC_BUF_TX;
    rval = ec_outfram_send(pPktDev, (char*)(*stack->txbuf)[idx], 
                           (*stack->txbuflength)[idx]);
    if (rval > 0)
    {
-      (*stack->rxbufstat)[idx] = EC_BUF_TX;
       port->pktDev.tx_count++;
+   }
+   else
+   {
+      (*stack->rxbufstat)[idx] = EC_BUF_EMPTY;
    }
    
    return rval;
@@ -511,8 +515,12 @@ int ecx_outframe_red(ecx_portt *port, int idx)
       /* rewrite MAC source address 1 to secondary */
       ehp->sa1 = htons(secMAC[1]);
       /* transmit over secondary interface */
-      rval = ec_outfram_send(&(port->redport->pktDev), &(port->txbuf2), port->txbuflength2);
       port->redport->rxbufstat[idx] = EC_BUF_TX;
+      rval = ec_outfram_send(&(port->redport->pktDev), &(port->txbuf2), port->txbuflength2);
+      if (rval <= 0)
+      {
+         (*stack->rxbufstat)[idx] = EC_BUF_EMPTY;
+      }
    }   
    
    return rval;

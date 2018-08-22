@@ -268,8 +268,12 @@ int ecx_outframe(ecx_portt *port, int idx, int stacknumber)
       stack = &(port->redport->stack);
    }
    lp = (*stack->txbuflength)[idx];
-   rval = pcap_sendpacket(*stack->sock, (*stack->txbuf)[idx], lp);
    (*stack->rxbufstat)[idx] = EC_BUF_TX;
+   rval = pcap_sendpacket(*stack->sock, (*stack->txbuf)[idx], lp);
+   if (rval == PCAP_ERROR)
+   {
+      (*stack->rxbufstat)[idx] = EC_BUF_EMPTY;
+   }
 
    return rval;
 }
@@ -301,9 +305,12 @@ int ecx_outframe_red(ecx_portt *port, int idx)
       /* rewrite MAC source address 1 to secondary */
       ehp->sa1 = htons(secMAC[1]);
       /* transmit over secondary socket */
-      pcap_sendpacket(port->redport->sockhandle, (u_char const *)&(port->txbuf2), port->txbuflength2);
-      LeaveCriticalSection( &(port->tx_mutex) );
       port->redport->rxbufstat[idx] = EC_BUF_TX;
+      if (pcap_sendpacket(port->redport->sockhandle, (u_char const *)&(port->txbuf2), port->txbuflength2) == PCAP_ERROR)
+      {
+         port->redport->rxbufstat[idx] = EC_BUF_EMPTY;
+      }
+      LeaveCriticalSection( &(port->tx_mutex) );
    }
 
    return rval;

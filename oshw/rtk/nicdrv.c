@@ -262,8 +262,8 @@ int ecx_outframe(ecx_portt *port, int idx, int stacknumber)
       stack = &(port->redport->stack);
    }
    lp = (*stack->txbuflength)[idx];
-   rval = bfin_EMAC_send((*stack->txbuf)[idx], lp);
    (*stack->rxbufstat)[idx] = EC_BUF_TX;
+   rval = bfin_EMAC_send((*stack->txbuf)[idx], lp);
 
    return rval;
 }
@@ -298,9 +298,9 @@ int ecx_outframe_red(ecx_portt *port, int idx)
       //send(sockhandle2, &ec_txbuf2, ec_txbuflength2 , 0);
       // OBS! redundant not ACTIVE for BFIN, just added to compile
       ASSERT (0);
+      port->redport->rxbufstat[idx] = EC_BUF_TX;
       bfin_EMAC_send(&(port->txbuf2), port->txbuflength2);
       mtx_unlock (port->tx_mutex);
-      port->redport->rxbufstat[idx] = EC_BUF_TX;
    }
 
    return rval;

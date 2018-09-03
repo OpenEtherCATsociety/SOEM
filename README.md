@@ -1,6 +1,8 @@
 # Simple Open EtherCAT Master Library
 [![Build Status](https://travis-ci.org/OpenEtherCATsociety/SOEM.svg?branch=master)](https://travis-ci.org/OpenEtherCATsociety/SOEM)
 [![Build status](https://ci.appveyor.com/api/projects/status/bqgirjsxog9k1odf?svg=true)](https://ci.appveyor.com/project/hefloryd/soem-5kq8b)
+[![Code Quality: Cpp](https://img.shields.io/lgtm/grade/cpp/g/OpenEtherCATsociety/SOEM.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/OpenEtherCATsociety/SOEM/context:cpp)
+[![Total Alerts](https://img.shields.io/lgtm/alerts/g/OpenEtherCATsociety/SOEM.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/OpenEtherCATsociety/SOEM/alerts)
 
 BUILDING
 ========

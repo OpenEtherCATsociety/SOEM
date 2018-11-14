@@ -696,7 +696,7 @@ int ecx_readPDOassign(ecx_contextt *context, uint16 Slave, uint16 PDOassign)
          /* read PDO assign */
          wkc = ecx_SDOread(context, Slave, PDOassign, (uint8)idxloop, FALSE, &rdl, &rdat, EC_TIMEOUTRXM);
          /* result is index of PDO */
-         idx = etohl(rdat);
+         idx = etohs(rdat);
          if (idx > 0)
          {
             rdl = sizeof(subcnt); subcnt = 0;

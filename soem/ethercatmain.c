@@ -334,7 +334,8 @@ void ecx_close(ecx_contextt *context)
 uint8 ecx_siigetbyte(ecx_contextt *context, uint16 slave, uint16 address)
 {
    uint16 configadr, eadr;
-   uint64 edat;
+   uint64 edat64;
+   uint32 edat32;
    uint16 mapw, mapb;
    int lp,cnt;
    uint8 retval;
@@ -360,17 +361,18 @@ uint8 ecx_siigetbyte(ecx_contextt *context, uint16 slave, uint16 address)
          configadr = context->slavelist[slave].configadr;
          ecx_eeprom2master(context, slave); /* set eeprom control to master */
          eadr = address >> 1;
-         edat = ecx_readeepromFP (context, configadr, eadr, EC_TIMEOUTEEP);
+         edat64 = ecx_readeepromFP (context, configadr, eadr, EC_TIMEOUTEEP);
          /* 8 byte response */
          if (context->slavelist[slave].eep_8byte)
          {
-            put_unaligned64(edat, &(context->esibuf[eadr << 1]));
+            put_unaligned64(edat64, &(context->esibuf[eadr << 1]));
             cnt = 8;
          }
          /* 4 byte response */
          else
          {
-            put_unaligned32(edat, &(context->esibuf[eadr << 1]));
+            edat32 = (uint32)edat64;
+            put_unaligned32(edat32, &(context->esibuf[eadr << 1]));
             cnt = 4;
          }
          /* find bitmap location */

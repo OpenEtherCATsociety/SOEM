@@ -646,7 +646,7 @@ static int ecx_map_coe_soe(ecx_contextt *context, uint16 slave, int thread_n)
    /* execute special slave configuration hook Pre-Op to Safe-OP */
    if(context->slavelist[slave].PO2SOconfig) /* only if registered */
    {
-      context->slavelist[slave].PO2SOconfig(slave);
+      context->slavelist[slave].PO2SOconfig(context, slave);
    }
    /* if slave not found in configlist find IO mapping in slave self */
    if (!context->slavelist[slave].configindex)
@@ -1522,7 +1522,7 @@ int ecx_reconfig_slave(ecx_contextt *context, uint16 slave, int timeout)
          /* execute special slave configuration hook Pre-Op to Safe-OP */
          if(context->slavelist[slave].PO2SOconfig) /* only if registered */
          {
-            context->slavelist[slave].PO2SOconfig(slave);
+            context->slavelist[slave].PO2SOconfig(context, slave);
          }
          ecx_FPWRw(context->port, configadr, ECT_REG_ALCTL, htoes(EC_STATE_SAFE_OP) , timeout); /* set safeop status */
          state = ecx_statecheck(context, slave, EC_STATE_SAFE_OP, EC_TIMEOUTSTATE); /* check state change safe-op */

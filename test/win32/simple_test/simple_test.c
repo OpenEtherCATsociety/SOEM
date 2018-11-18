@@ -38,7 +38,7 @@ void CALLBACK RTthread(UINT uTimerID, UINT uMsg, DWORD_PTR dwUser, DWORD_PTR dw1
     /* do RT control stuff here */
 }
 
-int EL7031setup(uint16 slave)
+int EL7031setup(void *context, uint16 slave)
 {
     int retval;
     uint16 u16val;
@@ -73,7 +73,7 @@ int EL7031setup(uint16 slave)
     return 1;
 }
 
-int AEPsetup(uint16 slave)
+int AEPsetup(void *context, uint16 slave)
 {
     int retval;
     uint8 u8val;

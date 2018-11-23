@@ -377,7 +377,8 @@ typedef struct PACKED ec_PDOdesc
 PACKED_END
 
 /** Context structure , referenced by all ecx functions*/
-typedef struct ecx_context
+typedef struct ecx_context ecx_contextt;
+struct ecx_context
 {
    /** port reference, may include red_port */
    ecx_portt      *port;
@@ -421,7 +422,9 @@ typedef struct ecx_context
    ec_eepromFMMUt *eepFMMU;
    /** registered FoE hook */
    int            (*FOEhook)(uint16 slave, int packetnumber, int datasize);
-} ecx_contextt;
+   /** registered EoE hook */
+   int            (*EOEhook)(ecx_contextt * context, uint16 slave, void * eoembx);
+};
 
 #ifdef EC_VER1
 /** global struct to hold default master context */

@@ -404,7 +404,7 @@ int main(int argc, char *argv[])
         if ((strncmp(argv[3], "-walias", sizeof("-walias")) == 0))
 	    {
 	       mode = MODE_WRITEALIAS;
-		   alias = atoi(argv(4));
+		   alias = atoi(argv[4]);
 	    }
       }
       /* start tool */

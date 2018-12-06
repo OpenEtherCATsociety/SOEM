@@ -29,6 +29,12 @@ Linux
    * `cmake ..`
    * `make`
 
+Documentation
+-------------
+
+See https://openethercatsociety.github.io/doc/soem/
+
+
 Want to contribute to SOEM or SOES?
 -----------------------------------
 

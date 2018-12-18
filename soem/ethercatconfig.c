@@ -32,7 +32,9 @@ typedef struct
 } ecx_mapt_t;
 
 ecx_mapt_t ecx_mapt[EC_MAX_MAPT];
+#if EC_MAX_MAPT > 1
 OSAL_THREAD_HANDLE ecx_threadh[EC_MAX_MAPT];
+#endif
 
 #ifdef EC_VER1
 /** Slave configuration structure */
@@ -785,6 +787,7 @@ static int ecx_map_sm(ecx_contextt *context, uint16 slave)
    return 1;
 }
 
+#if EC_MAX_MAPT > 1
 OSAL_THREAD_FUNC ecx_mapper_thread(void *param)
 {
    ecx_mapt_t *maptp;
@@ -810,6 +813,7 @@ static int ecx_find_mapt(void)
       return -1;
    }
 }
+#endif
 
 static int ecx_get_threadcount(void)
 {
@@ -836,13 +840,7 @@ static void ecx_config_find_mappings(ecx_contextt *context, uint8 group)
    {
       if (!group || (group == context->slavelist[slave].group))
       {
-         if (EC_MAX_MAPT <= 1)
-         {
-            /* serialised version */
-            ecx_map_coe_soe(context, slave, 0);
-         }
-         else
-         {
+#if EC_MAX_MAPT > 1
             /* multi-threaded version */
             while ((thrn = ecx_find_mapt()) < 0)
             {
@@ -854,7 +852,10 @@ static void ecx_config_find_mappings(ecx_contextt *context, uint8 group)
             ecx_mapt[thrn].running = 1;
             osal_thread_create(&(ecx_threadh[thrn]), 128000,
                &ecx_mapper_thread, &(ecx_mapt[thrn]));
-         }
+#else
+            /* serialised version */
+            ecx_map_coe_soe(context, slave, 0);
+#endif
       }
    }
    /* wait for all threads to finish */

@@ -116,7 +116,6 @@ int ecx_setupnic(ecx_portt *port, const char *ifname, int secondary)
          return 0;
       }
    }
-   /*
    else
    {
       pthread_mutex_init(&(port->getindex_mutex), NULL);
@@ -137,14 +136,19 @@ int ecx_setupnic(ecx_portt *port, const char *ifname, int secondary)
    }
 
    // we use RAW packet socket, with packet type ETH_P_ECAT 
-   *psock = socket(PF_PACKET, SOCK_RAW, htons(ETH_P_ECAT));
+   *psock = socket(PF_INET, SOCK_RAW, htons(ETH_P_ECAT));
+
+   //int yes = 1;
+   //setsockopt(soc, IPPROTO_IP, IP_HDRINCL, &yes, sizeof(yes));
+
 
    int i;
-   int r, 
-   int  ifindex;
+   int r;
+//   int  ifindex;
    struct timeval timeout;
    struct ifreq ifr;
    int rval = 0;
+
 
    #define SDL ((struct sockaddr_dl *)ifa->ifa_addr)
    struct sockaddr_dl sll;
@@ -157,8 +161,8 @@ int ecx_setupnic(ecx_portt *port, const char *ifname, int secondary)
    r = setsockopt(*psock, SOL_SOCKET, SO_DONTROUTE, &i, sizeof(i));
    // connect socket to NIC by name 
    strcpy(ifr.ifr_name, ifname);
-   r = ioctl(*psock, SIOCGIFINDEX, &ifr);
-   ifindex = ifr.ifr_ifindex;
+//   r = ioctl(*psock, SIOCGIFINDEX, &ifr);
+//   ifindex = ifr.ifr_ifindex;
    strcpy(ifr.ifr_name, ifname);
    ifr.ifr_flags = 0;
    // reset flags of NIC interface
@@ -167,9 +171,9 @@ int ecx_setupnic(ecx_portt *port, const char *ifname, int secondary)
    ifr.ifr_flags = ifr.ifr_flags | IFF_PROMISC | IFF_BROADCAST;
    r = ioctl(*psock, SIOCSIFFLAGS, &ifr);
    // bind socket to protocol, in this case RAW EtherCAT
-   sll.sll_family = AF_PACKET;
-   sll.sll_ifindex = ifindex;
-   sll.sll_protocol = htons(ETH_P_ECAT);
+//   sll.sdl_family = AF_PACKET;
+//   sll.sdl_index = ifindex;
+//   sll.protocol = htons(ETH_P_ECAT);
    r = bind(*psock, (struct sockaddr *)&sll, sizeof(sll));
    // setup ethernet headers in tx buffers so we don't have to repeat it
    for (i = 0; i < EC_MAXBUF; i++)
@@ -180,7 +184,7 @@ int ecx_setupnic(ecx_portt *port, const char *ifname, int secondary)
    ec_setupheader(&(port->txbuf2));
    if (r == 0) rval = 1;
    return rval;
-   */
+   
    return 0;
 }
 

@@ -41,14 +41,7 @@
 #include <stdio.h>
 #include <fcntl.h>
 #include <string.h>
-
-#ifdef AF_LINK
 #include <net/if_dl.h>
-#endif
-#ifdef AF_PACKET
-#include <netpacket/packet.h>
-#endif
-
 #include <pthread.h>
 
 #include "oshw.h"
@@ -79,14 +72,14 @@ const uint16 secMAC[3] = { 0x0404, 0x0404, 0x0404 };
 /** second MAC word is used for identification */
 #define RX_SEC secMAC[1]
 
-/*static void ecx_clear_rxbufstat(int *rxbufstat)
+static void ecx_clear_rxbufstat(int *rxbufstat)
 {
    int i;
    for(i = 0; i < EC_MAXBUF; i++)
    {
       rxbufstat[i] = EC_BUF_EMPTY;
    }
-}*/
+}
 
 /** Basic setup to connect NIC to socket.
  * @param[in] port        = port context struct
@@ -96,28 +89,9 @@ const uint16 secMAC[3] = { 0x0404, 0x0404, 0x0404 };
  */
 int ecx_setupnic(ecx_portt *port, const char *ifname, int secondary)
 {
-   (void)(port);
    (void)(ifname);
-   (void)(secondary);
-
-/*   int i;
-   int r, rval, ifindex;
-   struct timeval timeout;
-   struct ifreq ifr;
-*/
-
-#ifdef AF_LINK
-   #define SDL ((struct sockaddr_dl *)ifa->ifa_addr)
-//   struct sockaddr_dl sll;
-#endif
-#ifdef AF_PACKET
-   struct sockaddr_ll sll;
-#endif    
-   /*
 
    int *psock;
-
-   rval = 0;
    if (secondary)
    {
       // secondary port struct available? 
@@ -142,6 +116,7 @@ int ecx_setupnic(ecx_portt *port, const char *ifname, int secondary)
          return 0;
       }
    }
+   /*
    else
    {
       pthread_mutex_init(&(port->getindex_mutex), NULL);
@@ -163,6 +138,16 @@ int ecx_setupnic(ecx_portt *port, const char *ifname, int secondary)
 
    // we use RAW packet socket, with packet type ETH_P_ECAT 
    *psock = socket(PF_PACKET, SOCK_RAW, htons(ETH_P_ECAT));
+
+   int i;
+   int r, 
+   int  ifindex;
+   struct timeval timeout;
+   struct ifreq ifr;
+   int rval = 0;
+
+   #define SDL ((struct sockaddr_dl *)ifa->ifa_addr)
+   struct sockaddr_dl sll;
 
    timeout.tv_sec =  0;
    timeout.tv_usec = 1;

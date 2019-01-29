@@ -22,14 +22,6 @@
 #include "ethercatsoe.h"
 #include "ethercatconfig.h"
 
-// define if debug printf is needed
-//#define EC_DEBUG
-
-#ifdef EC_DEBUG
-#define EC_PRINT printf
-#else
-#define EC_PRINT(...) do {} while (0)
-#endif
 
 typedef struct
 {

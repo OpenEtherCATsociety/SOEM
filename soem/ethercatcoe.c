@@ -131,7 +131,7 @@ int ecx_SDOread(ecx_contextt *context, uint16 slave, uint16 index, uint8 subinde
    boolean NotLast;
 
    ec_clearmbx(&MbxIn);
-   /* Empty slave out mailbox if something is in. Timout set to 0 */
+   /* Empty slave out mailbox if something is in. Timeout set to 0 */
    wkc = ecx_mbxreceive(context, slave, (ec_mbxbuft *)&MbxIn, 0);
    ec_clearmbx(&MbxOut);
    aSDOp = (ec_SDOt *)&MbxIn;
@@ -226,7 +226,7 @@ int ecx_SDOread(ecx_contextt *context, uint16 slave, uint16 index, uint8 subinde
                         SDOp->ldata[0] = 0;
                         /* send segmented upload request to slave */
                         wkc = ecx_mbxsend(context, slave, (ec_mbxbuft *)&MbxOut, EC_TIMEOUTTXM);
-                        /* is mailbox transfered to slave ? */
+                        /* is mailbox transferred to slave ? */
                         if (wkc > 0)
                         {
                            ec_clearmbx(&MbxIn);
@@ -246,7 +246,7 @@ int ecx_SDOread(ecx_contextt *context, uint16 slave, uint16 index, uint8 subinde
                                  { /* last segment */
                                     NotLast = FALSE;
                                     if (Framedatasize == 7)
-                                       /* substract unused bytes from frame */
+                                       /* subtract unused bytes from frame */
                                        Framedatasize = Framedatasize - ((aSDOp->Command & 0x0e) >> 1);
                                     /* copy to parameter buffer */
                                     memcpy(hp, &(aSDOp->Index), Framedatasize);
@@ -258,7 +258,7 @@ int ecx_SDOread(ecx_contextt *context, uint16 slave, uint16 index, uint8 subinde
                                     /* increment buffer pointer */
                                     hp += Framedatasize;
                                  }
-                                 /* update parametersize */
+                                 /* update parameter size */
                                  *psize += Framedatasize;
                               }
                               /* unexpected frame returned from slave */
@@ -339,7 +339,7 @@ int ecx_SDOwrite(ecx_contextt *context, uint16 Slave, uint16 Index, uint8 SubInd
    uint8 *hp;
 
    ec_clearmbx(&MbxIn);
-   /* Empty slave out mailbox if something is in. Timout set to 0 */
+   /* Empty slave out mailbox if something is in. Timeout set to 0 */
    wkc = ecx_mbxreceive(context, Slave, (ec_mbxbuft *)&MbxIn, 0);
    ec_clearmbx(&MbxOut);
    aSDOp = (ec_SDOt *)&MbxIn;
@@ -558,7 +558,7 @@ int ecx_RxPDO(ecx_contextt *context, uint16 Slave, uint16 RxPDOnumber, int psize
    uint16 framedatasize;
 
    ec_clearmbx(&MbxIn);
-   /* Empty slave out mailbox if something is in. Timout set to 0 */
+   /* Empty slave out mailbox if something is in. Timeout set to 0 */
    wkc = ecx_mbxreceive(context, Slave, (ec_mbxbuft *)&MbxIn, 0);
    ec_clearmbx(&MbxOut);
    SDOp = (ec_SDOt *)&MbxOut;
@@ -605,7 +605,7 @@ int ecx_TxPDO(ecx_contextt *context, uint16 slave, uint16 TxPDOnumber , int *psi
    uint16 framedatasize;
 
    ec_clearmbx(&MbxIn);
-   /* Empty slave out mailbox if something is in. Timout set to 0 */
+   /* Empty slave out mailbox if something is in. Timeout set to 0 */
    wkc = ecx_mbxreceive(context, slave, (ec_mbxbuft *)&MbxIn, 0);
    ec_clearmbx(&MbxOut);
    aSDOp = (ec_SDOt *)&MbxIn;
@@ -805,7 +805,7 @@ int ecx_readPDOassignCA(ecx_contextt *context, uint16 Slave, int Thread_n,
  * @param[in]  Slave   = Slave number
  * @param[out] Osize   = Size in bits of output mapping (rxPDO) found
  * @param[out] Isize   = Size in bits of input mapping (txPDO) found
- * @return >0 if mapping succesful.
+ * @return >0 if mapping successful.
  */
 int ecx_readPDOmap(ecx_contextt *context, uint16 Slave, int *Osize, int *Isize)
 {
@@ -905,7 +905,7 @@ int ecx_readPDOmap(ecx_contextt *context, uint16 Slave, int *Osize, int *Isize)
  * @param[in]  Thread_n = Calling thread index
  * @param[out] Osize    = Size in bits of output mapping (rxPDO) found
  * @param[out] Isize    = Size in bits of input mapping (txPDO) found
- * @return >0 if mapping succesful.
+ * @return >0 if mapping successful.
  */
 int ecx_readPDOmapCA(ecx_contextt *context, uint16 Slave, int Thread_n, int *Osize, int *Isize)
 {

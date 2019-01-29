@@ -322,7 +322,7 @@ int ecx_config_init(ecx_contextt *context, uint8 usetable)
          ADPh = (uint16)(1 - slave);
          val16 = ecx_APRDw(context->port, ADPh, ECT_REG_PDICTL, EC_TIMEOUTRET3); /* read interface type of slave */
          context->slavelist[slave].Itype = etohs(val16);
-         /* a node offset is used to improve readibility of network frames */
+         /* a node offset is used to improve readability of network frames */
          /* this has no impact on the number of addressable slaves (auto wrap around) */
          ecx_APWRw(context->port, ADPh, ECT_REG_STADR, htoes(slave + EC_NODEOFFSET) , EC_TIMEOUTRET3); /* set node address of slave */
          if (slave == 1)
@@ -923,7 +923,7 @@ static void ecx_config_create_input_mappings(ecx_contextt *context, void *pIOmap
          {
             SMc++;
          }
-         /* if addresses from more SM connect use one FMMU otherwise break up in mutiple FMMU */
+         /* if addresses from more SM connect use one FMMU otherwise break up in multiple FMMU */
          if (etohs(context->slavelist[slave].SM[SMc].StartAddr) > EndAddr)
          {
             break;
@@ -1044,7 +1044,7 @@ static void ecx_config_create_output_mappings(ecx_contextt *context, void *pIOma
          {
             SMc++;
          }
-         /* if addresses from more SM connect use one FMMU otherwise break up in mutiple FMMU */
+         /* if addresses from more SM connect use one FMMU otherwise break up in multiple FMMU */
          if (etohs(context->slavelist[slave].SM[SMc].StartAddr) > EndAddr)
          {
             break;

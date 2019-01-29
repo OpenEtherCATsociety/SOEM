@@ -67,7 +67,7 @@ typedef struct
    int            tempinbufs;
    /** transmit buffers */
    ec_bufT        txbuf[EC_MAXBUF];
-   /** transmit buffer lenghts */
+   /** transmit buffer lengths */
    int            txbuflength[EC_MAXBUF];
    /** temporary tx buffer */
    ec_bufT        txbuf2;

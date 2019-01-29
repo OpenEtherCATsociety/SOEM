@@ -252,7 +252,7 @@ typedef struct ec_group
    int16            Ebuscurrent;
    /** if >0 block use of LRW in processdata */
    uint8            blockLRW;
-   /** IO segegments used */
+   /** IO segments used */
    uint16           nsegments;
    /** 1st input segment */
    uint16           Isegment;
@@ -287,9 +287,9 @@ typedef struct ec_eepromSM
    uint16  PhStart;
    uint16  Plength;
    uint8   Creg;
-   uint8   Sreg;       /* dont care */
+   uint8   Sreg;       /* don't care */
    uint8   Activate;
-   uint8   PDIctrl;      /* dont care */
+   uint8   PDIctrl;      /* don't care */
 } ec_eepromSMt;
 
 /** record to store rxPDO and txPDO table from eeprom */

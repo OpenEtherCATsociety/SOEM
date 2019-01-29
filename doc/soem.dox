@@ -10,7 +10,7 @@
  * how an EtherCAT master functions and how it interacts with EtherCAT slaves.
  *
  * As all applications are different SOEM tries to not impose any design architecture.
- * Under Linux it can be used in generic user mode, PREEMPT_RT or Xenomai. under Windows
+ * Under Linux it can be used in generic user mode, PREEMPT_RT or Xenomai. Under Windows
  * it can be used as user mode program.
  *
  * Preconditions Linux:
@@ -45,7 +45,7 @@
  * - Distributed Clock (DC) support.
  * - Automatic configuration of DC slaves.
  * - Automatic sync of clocks with process data exchange.
- * - Flexible settting of sync0 and sync1 firing per slave.
+ * - Flexible setting of sync0 and sync1 firing per slave.
  * - Access to slave functions through one slave structure.
  * - EEPROM read / write.
  * - Local cache for EEPROM access with automatic 4/8 byte reading.
@@ -63,7 +63,7 @@
  * - SYNC1 generation supported.
  *
  * Features as of 1.2.0 :
- * - Changed license to GPLv2 only. Adresses leagal concerns about master licensing.
+ * - Changed license to GPLv2 only. Addresses legal concerns about master licensing.
  * - Slave init and process data mapping is split in two functions. This allows
  * dynamic user reconfiguration of PDO mapping.
  * - Eeprom transfer to and from PDI
@@ -93,7 +93,7 @@
  * Features as of 1.2.8 :
  * - Changed directory structure.
  * - Changed make file.
- * - Moved hardware / OS dependend part in separate directories.
+ * - Moved hardware / OS dependent part in separate directories.
  * - Added firm_update tool to upload firmware to slaves in Boot state, use with care.
  * - Added DC for LRD/LWR case.
  * - Separated expectedWKC to inputsWKC and outputsWKC.

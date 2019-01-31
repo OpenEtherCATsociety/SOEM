@@ -19,6 +19,7 @@
 #include "ethercatcoe.h"
 #include "ethercatfoe.h"
 #include "ethercatsoe.h"
+#include "ethercateoe.h"
 #include "ethercatconfig.h"
 #include "ethercatprint.h"
 

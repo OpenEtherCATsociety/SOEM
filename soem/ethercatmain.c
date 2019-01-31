@@ -19,9 +19,7 @@
 #include <string.h>
 #include "osal.h"
 #include "oshw.h"
-#include "ethercattype.h"
-#include "ethercatbase.h"
-#include "ethercatmain.h"
+#include "ethercat.h"
 
 
 /** delay in us for eeprom ready loop */
@@ -120,7 +118,8 @@ ecx_contextt  ecx_context = {
     &ec_PDOdesc[0],     // .PDOdesc       =
     &ec_SM,             // .eepSM         =
     &ec_FMMU,           // .eepFMMU       =
-    NULL                // .FOEhook()
+    NULL,               // .FOEhook()
+    NULL                // .EOEhook()
 };
 #endif
 
@@ -1042,7 +1041,7 @@ int ecx_mbxreceive(ecx_contextt *context, uint16 slave, ec_mbxbuft *mbx, int tim
                ecx_mbxerror(context, slave, etohs(MBXEp->Detail));
                wkc = 0; /* prevent emergency to cascade up, it is already handled. */
             }
-            else if ((wkc > 0) && ((mbxh->mbxtype & 0x0f) == 0x03)) /* CoE response? */
+            else if ((wkc > 0) && ((mbxh->mbxtype & 0x0f) == ECT_MBXT_COE)) /* CoE response? */
             {
                EMp = (ec_emcyt *)mbx;
                if ((etohs(EMp->CANOpen) >> 12) == 0x01) /* Emergency request? */
@@ -1050,6 +1049,25 @@ int ecx_mbxreceive(ecx_contextt *context, uint16 slave, ec_mbxbuft *mbx, int tim
                   ecx_mbxemergencyerror(context, slave, etohs(EMp->ErrorCode), EMp->ErrorReg,
                           EMp->bData, etohs(EMp->w1), etohs(EMp->w2));
                   wkc = 0; /* prevent emergency to cascade up, it is already handled. */
+               }
+            }
+            else if ((wkc > 0) && ((mbxh->mbxtype & 0x0f) == ECT_MBXT_EOE)) /* EoE response? */
+            {
+               ec_EOEt * eoembx = (ec_EOEt *)mbx;
+               uint16 frameinfo1 = etohs(eoembx->frameinfo1);
+               /* All non fragment data frame types are expected to be handled by
+               * slave send/receive API if the EoE hook is set
+               */
+               if (EOE_HDR_FRAME_TYPE_GET(frameinfo1) == EOE_FRAG_DATA)
+               {
+                  if (context->EOEhook)
+                  {
+                     if (context->EOEhook(context, slave, eoembx) > 0)
+                     {
+                        /* Fragment handled by EoE hook */
+                        wkc = 0;
+                     }
+                  }
                }
             }
             else

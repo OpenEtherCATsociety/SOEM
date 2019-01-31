@@ -450,16 +450,17 @@ enum
 /** Error types */
 typedef enum
 {
-   EC_ERR_TYPE_SDO_ERROR         = 0,
-   EC_ERR_TYPE_EMERGENCY         = 1,
-   EC_ERR_TYPE_PACKET_ERROR      = 3,
-   EC_ERR_TYPE_SDOINFO_ERROR     = 4,
-   EC_ERR_TYPE_FOE_ERROR         = 5,
-   EC_ERR_TYPE_FOE_BUF2SMALL     = 6,
-   EC_ERR_TYPE_FOE_PACKETNUMBER  = 7,
-   EC_ERR_TYPE_SOE_ERROR         = 8,
-   EC_ERR_TYPE_MBX_ERROR         = 9,
-   EC_ERR_TYPE_FOE_FILE_NOTFOUND = 10
+   EC_ERR_TYPE_SDO_ERROR            = 0,
+   EC_ERR_TYPE_EMERGENCY            = 1,
+   EC_ERR_TYPE_PACKET_ERROR         = 3,
+   EC_ERR_TYPE_SDOINFO_ERROR        = 4,
+   EC_ERR_TYPE_FOE_ERROR            = 5,
+   EC_ERR_TYPE_FOE_BUF2SMALL        = 6,
+   EC_ERR_TYPE_FOE_PACKETNUMBER     = 7,
+   EC_ERR_TYPE_SOE_ERROR            = 8,
+   EC_ERR_TYPE_MBX_ERROR            = 9,
+   EC_ERR_TYPE_FOE_FILE_NOTFOUND    = 10,
+   EC_ERR_TYPE_EOE_INVALID_RX_DATA  = 11
 } ec_err_type;
 
 /** Struct to retrieve errors. */

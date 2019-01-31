@@ -767,6 +767,12 @@ static int ecx_map_sm(ecx_contextt *context, uint16 slave)
             context->slavelist[slave].SM[nSM].SMflags =
                htoel( etohl(context->slavelist[slave].SM[nSM].SMflags) & EC_SMENABLEMASK);
          }
+         /* if SM length is non zero always set enable flag */
+         else
+         {
+            context->slavelist[slave].SM[nSM].SMflags =
+               htoel( etohl(context->slavelist[slave].SM[nSM].SMflags) | ~EC_SMENABLEMASK);
+         }
          ecx_FPWR(context->port, configadr, (uint16)(ECT_REG_SM0 + (nSM * sizeof(ec_smt))),
             sizeof(ec_smt), &context->slavelist[slave].SM[nSM], EC_TIMEOUTRET3);
          EC_PRINT("    SM%d Type:%d StartAddr:%4.4x Flags:%8.8x\n", nSM,

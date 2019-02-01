@@ -386,7 +386,7 @@ int ecx_EOEsend(ecx_contextt *context, uint16 slave, uint8 port, int psize, void
       memcpy(EOEp->data, &buf[txframeoffset], txframesize);
 
       /* send EoE request to slave */
-      wkc = ecx_mbxsend(context, slave, (ec_mbxbuft *)&MbxOut, EC_TIMEOUTTXM);
+      wkc = ecx_mbxsend(context, slave, (ec_mbxbuft *)&MbxOut, timeout);
       if ((NotLast == TRUE)  && (wkc > 0))
       {
          txframeoffset += txframesize;
@@ -453,9 +453,21 @@ int ecx_EOErecv(ecx_contextt *context, uint16 slave, uint8 port, int * psize, vo
 
          if (rxfragmentno == 0)
          {
-            rxframesize = (EOE_HDR_FRAME_OFFSET_GET(frameinfo2) << 5);
             rxframeoffset = 0;
             rxframeno = EOE_HDR_FRAME_NO_GET(frameinfo2);
+            rxframesize = (EOE_HDR_FRAME_OFFSET_GET(frameinfo2) << 5);
+            if (rxframesize > buffersize)
+            {
+               wkc = -EC_ERR_TYPE_EOE_INVALID_RX_DATA;
+               /* Exit here*/
+               break;
+            }
+            if (port != EOE_HDR_FRAME_PORT_GET(frameinfo1))
+            {
+               wkc = -EC_ERR_TYPE_EOE_INVALID_RX_DATA;
+               /* Exit here*/
+               break;
+            }
          }
          else
          {

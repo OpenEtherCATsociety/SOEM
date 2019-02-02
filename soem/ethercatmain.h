@@ -229,6 +229,8 @@ typedef struct ec_slave
    int              (*PO2SOconfig)(uint16 slave);
    /** readable name */
    char             name[EC_MAXNAME + 1];
+   /** To keep track of failed SAFE_OP -> OP attempts **/
+   uint8            toOPFailCntr;
 } ec_slavet;
 
 /** for list of ethercat slave groups */

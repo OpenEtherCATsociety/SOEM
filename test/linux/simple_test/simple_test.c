@@ -167,8 +167,14 @@ OSAL_THREAD_FUNC ecatcheck( void *ptr )
                   ec_group[currentgroup].docheckstate = TRUE;
                   if (ec_slave[slave].state == (EC_STATE_SAFE_OP + EC_STATE_ERROR))
                   {
-                     printf("ERROR : slave %d is in SAFE_OP + ERROR, attempting ack.\n", slave);
-                     ec_slave[slave].state = (EC_STATE_SAFE_OP + EC_STATE_ACK);
+                     if(ec_slave[slave].toOPFailCntr<5){
+                           printf("ERROR : slave %d is in SAFE_OP + ERROR, attempting ack.\n", slave);
+                           ec_slave[slave].state = (EC_STATE_SAFE_OP + EC_STATE_ACK);
+                           ec_slave[slave].toOPFailCntr++;
+                     }else{
+                           printf("ERROR : slave %d is still in SAFE_OP + ERROR, attempting re-init.\n", slave);
+                           ec_slave[slave].state = (EC_STATE_INIT);
+                     }
                      ec_writestate(slave);
                   }
                   else if(ec_slave[slave].state == EC_STATE_SAFE_OP)
@@ -203,12 +209,14 @@ OSAL_THREAD_FUNC ecatcheck( void *ptr )
                      if (ec_recover_slave(slave, EC_TIMEOUTMON))
                      {
                         ec_slave[slave].islost = FALSE;
+                        ec_slave[slave].toOPFailCntr = 0;
                         printf("MESSAGE : slave %d recovered\n",slave);
                      }
                   }
                   else
                   {
                      ec_slave[slave].islost = FALSE;
+                     ec_slave[slave].toOPFailCntr = 0;
                      printf("MESSAGE : slave %d found\n",slave);
                   }
                }

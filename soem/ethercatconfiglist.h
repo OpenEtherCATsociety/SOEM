@@ -5,7 +5,7 @@
 
 /** \file
  * \brief
- * DEPRICATED Configuration list of known EtherCAT slave devices.
+ * DEPRECATED Configuration list of known EtherCAT slave devices.
  *
  * If a slave is found in this list it is configured according to the parameters
  * in the list. Otherwise the configuration info is read directly from the slave

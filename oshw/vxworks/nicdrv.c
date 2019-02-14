@@ -13,14 +13,14 @@
  * There can be multiple packets "on the wire" before they return.
  * To combine the received packets with the original send packets a buffer
  * system is installed. The identifier is put in the index item of the
- * EtherCAT header. The index is stored and compared when a frame is recieved.
+ * EtherCAT header. The index is stored and compared when a frame is received.
  * If there is a match the packet can be combined with the transmit packet
  * and returned to the higher level function.
  *
  * If EtherCAT is run in parallel with normal IP traffic and EtherCAT have a 
- * dedicated NIC, instatiate an extra tNetX task and redirect the NIC workQ
+ * dedicated NIC, instantiate an extra tNetX task and redirect the NIC workQ
  * to be handle by the extra tNetX task, if needed raise the tNetX task prio. 
- * This prevents from having tNet0 becoming a bootleneck.
+ * This prevents from having tNet0 becoming a bottleneck.
  *
  * The "redundant" option will configure two Mux drivers and two NIC interfaces.
  * Slaves are connected to both interfaces, one on the IN port and one on the
@@ -76,7 +76,7 @@ enum
 {
    /** No redundancy, single NIC mode */
    ECT_RED_NONE,
-   /** Double redundant NIC connecetion */
+   /** Double redundant NIC connection */
    ECT_RED_DOUBLE
 };
 
@@ -126,7 +126,7 @@ int ecx_setupnic(ecx_portt *port, const char *ifname, int secondary)
    int unit_no = -1;   
    ETHERCAT_PKT_DEV * pPktDev;
 
-   /* Make refrerece to packet device struct, keep track if the packet
+   /* Make reference to packet device struct, keep track if the packet
     * device is the redundant or not.
     */
    if (secondary)
@@ -308,8 +308,8 @@ int ecx_closenic(ecx_portt *port)
 }
 
 /** Fill buffer with ethernet header structure.
- * Destination MAC is allways broadcast.
- * Ethertype is allways ETH_P_ECAT.
+ * Destination MAC is always broadcast.
+ * Ethertype is always ETH_P_ECAT.
  * @param[out] p = buffer
  */
 void ec_setupheader(void *p) 
@@ -529,11 +529,11 @@ int ecx_outframe_red(ecx_portt *port, int idx)
 
 /** Call back routine registered as hook with mux layer 2 driver 
 * @param[in] pCookie      = Mux cookie
-* @param[in] type         = recived type
+* @param[in] type         = received type
 * @param[in] pMblk        = the received packet reference
 * @param[in] llHdrInfo    = header info
 * @param[in] muxUserArg   = assigned reference to packet device when init called
-* @return TRUE if frame was succesfully read and passed to MsgQ
+* @return TRUE if frame was successfully read and passed to MsgQ
 */
 static int mux_rx_callback(void* pCookie, long type, M_BLK_ID pMblk, LL_HDR_INFO *llHdrInfo, void *muxUserArg)
 {
@@ -668,7 +668,7 @@ static int ecx_recvpkt(ecx_portt *port, int idx, int stacknumber, M_BLK_ID * pMb
  * task tNet0 (default), tNet0 fetch what frame index and store a reference to the 
  * received frame in matching MsgQ. The stack user tasks fetch the frame 
  * reference and copies the frame the the RX buffer, when done it free
- * the frame buffer alloctaed by the Mux.
+ * the frame buffer allocated by the Mux.
  * 
  * @param[in] port        = port context struct
  * @param[in] idx         = requested index of frame
@@ -774,10 +774,10 @@ static int ecx_waitinframe_red(ecx_portt *port, int idx, osal_timert *timer, int
    /* only do redundant functions when in redundant mode */
    if (port->redstate != ECT_RED_NONE)
    {
-      /* primrx if the reveived MAC source on primary socket */
+      /* primrx if the received MAC source on primary socket */
       primrx = 0;
       if (wkc > EC_NOFRAME) primrx = port->rxsa[idx];
-      /* secrx if the reveived MAC source on psecondary socket */
+      /* secrx if the received MAC source on psecondary socket */
       secrx = 0;
       if (wkc2 > EC_NOFRAME) secrx = port->redport->rxsa[idx];
       
@@ -841,7 +841,7 @@ int ecx_waitinframe(ecx_portt *port, int idx, int timeout)
    return wkc;
 }
 
-/** Blocking send and recieve frame function. Used for non processdata frames.
+/** Blocking send and receive frame function. Used for non processdata frames.
  * A datagram is build into a frame and transmitted via this function. It waits
  * for an answer and returns the workcounter. The function retries if time is
  * left and the result is WKC=0 or no frame received.
@@ -869,7 +869,7 @@ int ecx_srconfirm(ecx_portt *port, int idx, int timeout)
       }
       else 
       {
-         /* normally use partial timout for rx */
+         /* normally use partial timeout for rx */
          osal_timer_start (&timer2, EC_TIMEOUTRET); 
       }
       /* get frame from primary or if in redundant mode possibly from secondary */

@@ -68,7 +68,7 @@ void ecx_SoEerror(ecx_contextt *context, uint16 Slave, uint16 idn, uint16 Error)
  * @param[in]  context        = context struct
  * @param[in]  slave         = Slave number
  * @param[in]  driveNo       = Drive number in slave
- * @param[in]  elementflags  = Flags to select what properties of IDN are to be transfered.
+ * @param[in]  elementflags  = Flags to select what properties of IDN are to be transferred.
  * @param[in]  idn           = IDN.
  * @param[in,out] psize      = Size in bytes of parameter buffer, returns bytes read from SoE.
  * @param[out] p             = Pointer to parameter buffer
@@ -190,7 +190,7 @@ int ecx_SoEread(ecx_contextt *context, uint16 slave, uint8 driveNo, uint8 elemen
  * @param[in]  context        = context struct
  * @param[in]  slave         = Slave number
  * @param[in]  driveNo       = Drive number in slave
- * @param[in]  elementflags  = Flags to select what properties of IDN are to be transfered.
+ * @param[in]  elementflags  = Flags to select what properties of IDN are to be transferred.
  * @param[in]  idn           = IDN.
  * @param[in]  psize         = Size in bytes of parameter buffer.
  * @param[out] p             = Pointer to parameter buffer
@@ -307,7 +307,7 @@ int ecx_SoEwrite(ecx_contextt *context, uint16 slave, uint8 driveNo, uint8 eleme
  * @param[in]  slave   = Slave number
  * @param[out] Osize   = Size in bits of output mapping (MTD) found
  * @param[out] Isize   = Size in bits of input mapping (AT) found
- * @return >0 if mapping succesful.
+ * @return >0 if mapping successful.
  */
 int ecx_readIDNmap(ecx_contextt *context, uint16 slave, int *Osize, int *Isize)
 {

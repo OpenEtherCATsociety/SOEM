@@ -17,7 +17,7 @@ int osal_usleep (uint32 usec)
    struct timespec ts;
    ts.tv_sec = usec / USECS_PER_SEC;
    ts.tv_nsec = (usec % USECS_PER_SEC) * 1000;
-   /* usleep is depricated, use nanosleep instead */
+   /* usleep is deprecated, use nanosleep instead */
    return nanosleep(&ts, NULL);
 }
 

@@ -8,7 +8,7 @@
  * Module to convert EtherCAT errors to readable messages.
  *
  * SDO abort messages and AL status codes are used to relay slave errors to
- * the user application. This module converts the binary codes to readble text.
+ * the user application. This module converts the binary codes to readable text.
  * For the defined error codes see the EtherCAT protocol documentation.
  */
 
@@ -215,7 +215,7 @@ const ec_mbxerrorlist_t ec_mbxerrorlist[] = {
    {0x0005, "Invalid mailbox header"},
    {0x0006, "Length of received mailbox data is too short"},
    {0x0007, "No more memory in slave"},
-   {0x0008, "The lenght of data is inconsistent"},
+   {0x0008, "The length of data is inconsistent"},
    {0xffff, "Unknown"}
 };
 

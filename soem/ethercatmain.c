@@ -324,7 +324,7 @@ void ecx_close(ecx_contextt *context)
 
 /** Read one byte from slave EEPROM via cache.
  *  If the cache location is empty then a read request is made to the slave.
- *  Depending on the slave capabillities the request is 4 or 8 bytes.
+ *  Depending on the slave capabilities the request is 4 or 8 bytes.
  *  @param[in] context = context struct
  *  @param[in] slave   = slave number
  *  @param[in] address = eeprom address in bytes (slave uses words)
@@ -728,7 +728,7 @@ int ecx_readstate(ecx_contextt *context)
    boolean allslavespresent = FALSE;
    int wkc;
 
-   /* Try to establish the state of all slaves sending only one broadcast datargam.
+   /* Try to establish the state of all slaves sending only one broadcast datagram.
     * This way a number of datagrams equal to the number of slaves will be sent only if needed.*/
    rval = 0;
    wkc = ecx_BRD(context->port, 0, ECT_REG_ALSTAT, sizeof(rval), &rval, EC_TIMEOUTRET);
@@ -855,7 +855,7 @@ int ecx_writestate(ecx_contextt *context, uint16 slave)
  * @param[in] context     = context struct
  * @param[in] slave       = Slave number, 0 = all slaves (only the "slavelist[0].state" is refreshed)
  * @param[in] reqstate    = Requested state
- * @param[in] timeout     = Timout value in us
+ * @param[in] timeout     = Timeout value in us
  * @return Requested state, or found state after timeout.
  */
 uint16 ecx_statecheck(ecx_contextt *context, uint16 slave, uint16 reqstate, int timeout)
@@ -2152,7 +2152,7 @@ int ec_writestate(uint16 slave)
  * This is a blocking function.
  * @param[in] slave       = Slave number, 0 = all slaves
  * @param[in] reqstate    = Requested state
- * @param[in] timeout     = Timout value in us
+ * @param[in] timeout     = Timeout value in us
  * @return Requested state, or found state after timeout.
  * @see ecx_statecheck
  */

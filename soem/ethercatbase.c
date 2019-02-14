@@ -207,7 +207,7 @@ int ecx_BRD(ecx_portt *port, uint16 ADP, uint16 ADO, uint16 length, void *data, 
 /** APRD "auto increment address read" primitive. Blocking.
  *
  * @param[in] port        = port context struct
- * @param[in]  ADP        = Address Position, each slave ++, slave that has 0 excecutes
+ * @param[in]  ADP        = Address Position, each slave ++, slave that has 0 executes
  * @param[in]  ADO        = Address Offset, slave memory address
  * @param[in]  length     = length of databuffer
  * @param[out] data       = databuffer to put slave data in

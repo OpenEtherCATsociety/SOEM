@@ -50,7 +50,7 @@ ec_adaptert * oshw_find_adapters(void)
 
 
    /* Iterate all devices and create a local copy holding the name and
-    * decsription.
+    * description.
     */
 
    ids = if_nameindex ();
@@ -70,7 +70,7 @@ ec_adaptert * oshw_find_adapters(void)
          ret_adapter = adapter;
       }
 
-      /* fetch description and name, in linux we use the same on both */
+      /* fetch description and name, in Linux we use the same on both */
       adapter->next = NULL;
 
       if (ids[i].if_name)
@@ -106,7 +106,7 @@ ec_adaptert * oshw_find_adapters(void)
 void oshw_free_adapters(ec_adaptert * adapter)
 {
    ec_adaptert * next_adapter;
-   /* Iterate the linked list and free all elemnts holding
+   /* Iterate the linked list and free all elements holding
     * adapter information
     */
    if(adapter)

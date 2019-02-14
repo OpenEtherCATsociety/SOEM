@@ -22,14 +22,6 @@
 #include "ethercatsoe.h"
 #include "ethercatconfig.h"
 
-// define if debug printf is needed
-//#define EC_DEBUG
-
-#ifdef EC_DEBUG
-#define EC_PRINT printf
-#else
-#define EC_PRINT(...) do {} while (0)
-#endif
 
 typedef struct
 {
@@ -40,7 +32,9 @@ typedef struct
 } ecx_mapt_t;
 
 ecx_mapt_t ecx_mapt[EC_MAX_MAPT];
+#if EC_MAX_MAPT > 1
 OSAL_THREAD_HANDLE ecx_threadh[EC_MAX_MAPT];
+#endif
 
 #ifdef EC_VER1
 /** Slave configuration structure */
@@ -330,7 +324,7 @@ int ecx_config_init(ecx_contextt *context, uint8 usetable)
          ADPh = (uint16)(1 - slave);
          val16 = ecx_APRDw(context->port, ADPh, ECT_REG_PDICTL, EC_TIMEOUTRET3); /* read interface type of slave */
          context->slavelist[slave].Itype = etohs(val16);
-         /* a node offset is used to improve readibility of network frames */
+         /* a node offset is used to improve readability of network frames */
          /* this has no impact on the number of addressable slaves (auto wrap around) */
          ecx_APWRw(context->port, ADPh, ECT_REG_STADR, htoes(slave + EC_NODEOFFSET) , EC_TIMEOUTRET3); /* set node address of slave */
          if (slave == 1)
@@ -793,6 +787,7 @@ static int ecx_map_sm(ecx_contextt *context, uint16 slave)
    return 1;
 }
 
+#if EC_MAX_MAPT > 1
 OSAL_THREAD_FUNC ecx_mapper_thread(void *param)
 {
    ecx_mapt_t *maptp;
@@ -818,6 +813,7 @@ static int ecx_find_mapt(void)
       return -1;
    }
 }
+#endif
 
 static int ecx_get_threadcount(void)
 {
@@ -844,13 +840,7 @@ static void ecx_config_find_mappings(ecx_contextt *context, uint8 group)
    {
       if (!group || (group == context->slavelist[slave].group))
       {
-         if (EC_MAX_MAPT <= 1)
-         {
-            /* serialised version */
-            ecx_map_coe_soe(context, slave, 0);
-         }
-         else
-         {
+#if EC_MAX_MAPT > 1
             /* multi-threaded version */
             while ((thrn = ecx_find_mapt()) < 0)
             {
@@ -862,7 +852,10 @@ static void ecx_config_find_mappings(ecx_contextt *context, uint8 group)
             ecx_mapt[thrn].running = 1;
             osal_thread_create(&(ecx_threadh[thrn]), 128000,
                &ecx_mapper_thread, &(ecx_mapt[thrn]));
-         }
+#else
+            /* serialised version */
+            ecx_map_coe_soe(context, slave, 0);
+#endif
       }
    }
    /* wait for all threads to finish */
@@ -931,7 +924,7 @@ static void ecx_config_create_input_mappings(ecx_contextt *context, void *pIOmap
          {
             SMc++;
          }
-         /* if addresses from more SM connect use one FMMU otherwise break up in mutiple FMMU */
+         /* if addresses from more SM connect use one FMMU otherwise break up in multiple FMMU */
          if (etohs(context->slavelist[slave].SM[SMc].StartAddr) > EndAddr)
          {
             break;
@@ -1052,7 +1045,7 @@ static void ecx_config_create_output_mappings(ecx_contextt *context, void *pIOma
          {
             SMc++;
          }
-         /* if addresses from more SM connect use one FMMU otherwise break up in mutiple FMMU */
+         /* if addresses from more SM connect use one FMMU otherwise break up in multiple FMMU */
          if (etohs(context->slavelist[slave].SM[SMc].StartAddr) > EndAddr)
          {
             break;

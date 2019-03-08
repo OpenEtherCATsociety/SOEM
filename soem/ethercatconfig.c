@@ -111,7 +111,8 @@ void ecx_init_context(ecx_contextt *context)
    ecx_siigetbyte(context, 0, EC_MAXEEPBUF);
    for(lp = 0; lp < context->maxgroup; lp++)
    {
-      context->grouplist[lp].logstartaddr = lp << 16; /* default start address per group entry */
+      /* default start address per group entry */
+      context->grouplist[lp].logstartaddr = lp << EC_LOGGROUPOFFSET;
    }
 }
 
@@ -992,8 +993,19 @@ static void ecx_config_create_input_mappings(ecx_contextt *context, void *pIOmap
       }
       if (!context->slavelist[slave].inputs)
       {
-         context->slavelist[slave].inputs =
-            (uint8 *)(pIOmap)+etohl(context->slavelist[slave].FMMU[FMMUc].LogStart);
+         if (group)
+         {
+            context->slavelist[slave].inputs =
+               (uint8 *)(pIOmap) + 
+               etohl(context->slavelist[slave].FMMU[FMMUc].LogStart) - 
+               context->grouplist[group].logstartaddr;
+         }
+         else
+         {
+            context->slavelist[slave].inputs =
+               (uint8 *)(pIOmap) +
+               etohl(context->slavelist[slave].FMMU[FMMUc].LogStart);
+         }
          context->slavelist[slave].Istartbit =
             context->slavelist[slave].FMMU[FMMUc].LogStartbit;
          EC_PRINT("    Inputs %p startbit %d\n",
@@ -1109,8 +1121,19 @@ static void ecx_config_create_output_mappings(ecx_contextt *context, void *pIOma
       context->grouplist[group].outputsWKC++;
       if (!context->slavelist[slave].outputs)
       {
-         context->slavelist[slave].outputs =
-            (uint8 *)(pIOmap)+etohl(context->slavelist[slave].FMMU[FMMUc].LogStart);
+         if (group)
+         {
+            context->slavelist[slave].outputs =
+               (uint8 *)(pIOmap) + 
+               etohl(context->slavelist[slave].FMMU[FMMUc].LogStart) - 
+               context->grouplist[group].logstartaddr;
+         }
+         else
+         {
+            context->slavelist[slave].outputs =
+               (uint8 *)(pIOmap) + 
+               etohl(context->slavelist[slave].FMMU[FMMUc].LogStart);
+         }
          context->slavelist[slave].Ostartbit =
             context->slavelist[slave].FMMU[FMMUc].LogStartbit;
          EC_PRINT("    slave %d Outputs %p startbit %d\n",
@@ -1204,14 +1227,15 @@ int ecx_config_map_group(ecx_contextt *context, void *pIOmap, uint8 group)
          }
       }
       context->grouplist[group].outputs = pIOmap;
-      context->grouplist[group].Obytes = LogAddr;
+      context->grouplist[group].Obytes = LogAddr - context->grouplist[group].logstartaddr;
       context->grouplist[group].nsegments = currentsegment + 1;
       context->grouplist[group].Isegment = currentsegment;
       context->grouplist[group].Ioffset = segmentsize;
       if (!group)
       {
          context->slavelist[0].outputs = pIOmap;
-         context->slavelist[0].Obytes = LogAddr; /* store output bytes in master record */
+         context->slavelist[0].Obytes = LogAddr - 
+            context->grouplist[group].logstartaddr; /* store output bytes in master record */
       }
 
       /* do input mapping of slave and program FMMUs */
@@ -1274,11 +1298,15 @@ int ecx_config_map_group(ecx_contextt *context, void *pIOmap, uint8 group)
       context->grouplist[group].IOsegment[currentsegment] = segmentsize;
       context->grouplist[group].nsegments = currentsegment + 1;
       context->grouplist[group].inputs = (uint8 *)(pIOmap) + context->grouplist[group].Obytes;
-      context->grouplist[group].Ibytes = LogAddr - context->grouplist[group].Obytes;
+      context->grouplist[group].Ibytes = LogAddr - 
+         context->grouplist[group].logstartaddr - 
+         context->grouplist[group].Obytes;
       if (!group)
       {
          context->slavelist[0].inputs = (uint8 *)(pIOmap) + context->slavelist[0].Obytes;
-         context->slavelist[0].Ibytes = LogAddr - context->slavelist[0].Obytes; /* store input bytes in master record */
+         context->slavelist[0].Ibytes = LogAddr - 
+            context->grouplist[group].logstartaddr - 
+            context->slavelist[0].Obytes; /* store input bytes in master record */
       }
 
       EC_PRINT("IOmapSize %d\n", LogAddr - context->grouplist[group].logstartaddr);
@@ -1391,8 +1419,8 @@ int ecx_config_overlap_map_group(ecx_contextt *context, void *pIOmap, uint8 grou
       context->grouplist[group].Isegment = 0;
       context->grouplist[group].Ioffset = 0;
 
-      context->grouplist[group].Obytes = soLogAddr;
-      context->grouplist[group].Ibytes = siLogAddr;
+      context->grouplist[group].Obytes = soLogAddr - context->grouplist[group].logstartaddr;
+      context->grouplist[group].Ibytes = siLogAddr - context->grouplist[group].logstartaddr;
       context->grouplist[group].outputs = pIOmap;
       context->grouplist[group].inputs = (uint8 *)pIOmap + context->grouplist[group].Obytes;
 
@@ -1404,10 +1432,11 @@ int ecx_config_overlap_map_group(ecx_contextt *context, void *pIOmap, uint8 grou
 
       if (!group)
       {
+         /* store output bytes in master record */
          context->slavelist[0].outputs = pIOmap;
-         context->slavelist[0].Obytes = soLogAddr; /* store output bytes in master record */
+         context->slavelist[0].Obytes = soLogAddr - context->grouplist[group].logstartaddr; 
          context->slavelist[0].inputs = (uint8 *)pIOmap + context->slavelist[0].Obytes;
-         context->slavelist[0].Ibytes = siLogAddr;
+         context->slavelist[0].Ibytes = siLogAddr - context->grouplist[group].logstartaddr;
       }
 
       EC_PRINT("IOmapSize %d\n", context->grouplist[group].Obytes + context->grouplist[group].Ibytes);

@@ -281,8 +281,8 @@ boolean ecx_configdc(ecx_contextt *context)
             context->slavelist[0].hasdc = TRUE;
             context->slavelist[0].DCnext = i;
             context->slavelist[i].DCprevious = 0;
-            context->grouplist[0].hasdc = TRUE;
-            context->grouplist[0].DCnext = i;
+            context->grouplist[context->slavelist[i].group].hasdc = TRUE;
+            context->grouplist[context->slavelist[i].group].DCnext = i;
          }
          else
          {

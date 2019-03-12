@@ -71,6 +71,8 @@ extern "C"
 #define EC_MAXEEPBUF       EC_MAXEEPBITMAP << 5
 /** default number of retries if wkc <= 0 */
 #define EC_DEFAULTRETRIES  3
+/** default group size in 2^x */
+#define EC_LOGGROUPOFFSET 16
 
 /** definition for frame buffers */
 typedef uint8 ec_bufT[EC_BUFSIZE];

@@ -605,11 +605,6 @@ int ecx_waitinframe(ecx_portt *port, int idx, int timeout)
 
    osal_timer_start (&timer, timeout);
    wkc = ecx_waitinframe_red(port, idx, &timer);
-   /* if nothing received, clear buffer index status so it can be used again */
-   if (wkc <= EC_NOFRAME)
-   {
-      ecx_setbufstat(port, idx, EC_BUF_EMPTY);
-   }
 
    return wkc;
 }
@@ -649,11 +644,6 @@ int ecx_srconfirm(ecx_portt *port, int idx, int timeout)
       wkc = ecx_waitinframe_red(port, idx, &timer2);
    /* wait for answer with WKC>=0 or otherwise retry until timeout */
    } while ((wkc <= EC_NOFRAME) && !osal_timer_is_expired (&timer1));
-   /* if nothing received, clear buffer index status so it can be used again */
-   if (wkc <= EC_NOFRAME)
-   {
-      ecx_setbufstat(port, idx, EC_BUF_EMPTY);
-   }
 
    return wkc;
 }

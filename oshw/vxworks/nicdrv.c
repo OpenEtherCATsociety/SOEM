@@ -519,7 +519,7 @@ int ecx_outframe_red(ecx_portt *port, int idx)
       rval = ec_outfram_send(&(port->redport->pktDev), &(port->txbuf2), port->txbuflength2);
       if (rval <= 0)
       {
-         (*stack->rxbufstat)[idx] = EC_BUF_EMPTY;
+         port->redport->rxbufstat[idx] = EC_BUF_EMPTY;
       }
    }   
    

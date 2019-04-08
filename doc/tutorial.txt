@@ -152,7 +152,10 @@ handling is split into ec_send_processdata and ec_receive_processdata.
 
 \section application Application
 
-IO data is accessed through the IOmap, the ec_slave struct keep pointers
+\subsection iomap Accessing data through IOmap
+
+IOmap is the fastest mechanism for accessing slaves' IO data.
+Using this mechanism, the ec_slave struct keeps pointers
 to the start byte in the IO map on slave level together with start bit within
 the start byte. This way we can bit mask IO on bit level even though SOEM
 has combined slave data to minimize the frame size to be sent. We'll use
@@ -300,7 +303,27 @@ if( inOP && ((wkc < expectedWKC) || ec_group[currentgroup].docheckstate))
        printf("OK : all slaves resumed OPERATIONAL.\n");
 }   
 \endcode
+
+
+\subsection sdo Accessing SDOs and PDOs
+
+There are multiple ways a slave can communicate with the master. CANopen over
+EtherCAT (CoE) is a (slow but flexible) asynchronous mechanism for transferring
+data via mailboxes.  
+
+SOEM provides the ecx_SDOread() and ecx_SDOwrite() functions for reading and
+writing a CoE SDO (Service Data Object) given the corresponding index and
+subindex.
+
+SOEM does not provide specific functions for accessing CoE PDOs (Process Data
+Objects). On most slaves, however, it is possible to use the same functions
+available for SDOs. In the seldom case in which the PDO object has been marked
+in the CoE dictionary as "PDO only", only IOmap access is allowed.
+Note that a list of the PDO mappings can be retrieved through the "slaveinfo
+<interface> -map" command.
  
+---------------------
+
  This tutorial is just one way of doing it.
  Enjoy and happy coding!
  

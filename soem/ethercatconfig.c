@@ -246,6 +246,8 @@ static int ecx_config_from_table(ecx_contextt *context, uint16 slave)
 #else
 static int ecx_config_from_table(ecx_contextt *context, uint16 slave)
 {
+   (void)context;
+   (void)slave;
    return 0;
 }
 #endif

@@ -741,8 +741,8 @@ static int ecx_map_sm(ecx_contextt *context, uint16 slave)
          sizeof(ec_smt), &(context->slavelist[slave].SM[0]), EC_TIMEOUTRET3);
       EC_PRINT("    SM0 Type:%d StartAddr:%4.4x Flags:%8.8x\n",
           context->slavelist[slave].SMtype[0],
-          context->slavelist[slave].SM[0].StartAddr,
-          context->slavelist[slave].SM[0].SMflags);
+          etohs(context->slavelist[slave].SM[0].StartAddr),
+          etohl(context->slavelist[slave].SM[0].SMflags));
    }
    if (!context->slavelist[slave].mbx_l && context->slavelist[slave].SM[1].StartAddr)
    {
@@ -750,8 +750,8 @@ static int ecx_map_sm(ecx_contextt *context, uint16 slave)
          sizeof(ec_smt), &context->slavelist[slave].SM[1], EC_TIMEOUTRET3);
       EC_PRINT("    SM1 Type:%d StartAddr:%4.4x Flags:%8.8x\n",
           context->slavelist[slave].SMtype[1],
-          context->slavelist[slave].SM[1].StartAddr,
-          context->slavelist[slave].SM[1].SMflags);
+          etohs(context->slavelist[slave].SM[1].StartAddr),
+          etohl(context->slavelist[slave].SM[1].SMflags));
    }
    /* program SM2 to SMx */
    for( nSM = 2 ; nSM < EC_MAXSM ; nSM++ )
@@ -774,8 +774,8 @@ static int ecx_map_sm(ecx_contextt *context, uint16 slave)
             sizeof(ec_smt), &context->slavelist[slave].SM[nSM], EC_TIMEOUTRET3);
          EC_PRINT("    SM%d Type:%d StartAddr:%4.4x Flags:%8.8x\n", nSM,
              context->slavelist[slave].SMtype[nSM],
-             context->slavelist[slave].SM[nSM].StartAddr,
-             context->slavelist[slave].SM[nSM].SMflags);
+             etohs(context->slavelist[slave].SM[nSM].StartAddr),
+             etohl(context->slavelist[slave].SM[nSM].SMflags));
       }
    }
    if (context->slavelist[slave].Ibits > 7)

@@ -233,7 +233,7 @@ int si_PDOassign(uint16 slave, uint16 PDOassign, int mapoffset, int bitoffset)
             /* read PDO assign */
             wkc = ec_SDOread(slave, PDOassign, (uint8)idxloop, FALSE, &rdl, &rdat, EC_TIMEOUTRXM);
             /* result is index of PDO */
-            idx = etohl(rdat);
+            idx = etohs(rdat);
             if (idx > 0)
             {
                 rdl = sizeof(subcnt); subcnt = 0;
@@ -558,14 +558,14 @@ void slaveinfo(char *ifname)
             for(nSM = 0 ; nSM < EC_MAXSM ; nSM++)
             {
                if(ec_slave[cnt].SM[nSM].StartAddr > 0)
-                  printf(" SM%1d A:%4.4x L:%4d F:%8.8x Type:%d\n",nSM, ec_slave[cnt].SM[nSM].StartAddr, ec_slave[cnt].SM[nSM].SMlength,
-                         (int)ec_slave[cnt].SM[nSM].SMflags, ec_slave[cnt].SMtype[nSM]);
+                  printf(" SM%1d A:%4.4x L:%4d F:%8.8x Type:%d\n",nSM, etohs(ec_slave[cnt].SM[nSM].StartAddr), etohs(ec_slave[cnt].SM[nSM].SMlength),
+                         etohl(ec_slave[cnt].SM[nSM].SMflags), ec_slave[cnt].SMtype[nSM]);
             }
             for(j = 0 ; j < ec_slave[cnt].FMMUunused ; j++)
             {
                printf(" FMMU%1d Ls:%8.8x Ll:%4d Lsb:%d Leb:%d Ps:%4.4x Psb:%d Ty:%2.2x Act:%2.2x\n", j,
-                       (int)ec_slave[cnt].FMMU[j].LogStart, ec_slave[cnt].FMMU[j].LogLength, ec_slave[cnt].FMMU[j].LogStartbit,
-                       ec_slave[cnt].FMMU[j].LogEndbit, ec_slave[cnt].FMMU[j].PhysStart, ec_slave[cnt].FMMU[j].PhysStartBit,
+                       etohl(ec_slave[cnt].FMMU[j].LogStart), etohs(ec_slave[cnt].FMMU[j].LogLength), ec_slave[cnt].FMMU[j].LogStartbit,
+                       ec_slave[cnt].FMMU[j].LogEndbit, etohs(ec_slave[cnt].FMMU[j].PhysStart), ec_slave[cnt].FMMU[j].PhysStartBit,
                        ec_slave[cnt].FMMU[j].FMMUtype, ec_slave[cnt].FMMU[j].FMMUactive);
             }
             printf(" FMMUfunc 0:%d 1:%d 2:%d 3:%d\n",

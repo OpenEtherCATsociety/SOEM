@@ -1,0 +1,5 @@
+kernel=kernel8-32.img
+kernel_address=0x00000000
+enable_uart=1
+init_uart_baud=115200
+init_uart_clock=3000000

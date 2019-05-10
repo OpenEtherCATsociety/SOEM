@@ -12,7 +12,7 @@ static double qpc2usec;
 
 #define USECS_PER_SEC     1000000
 
-int osal_gettimeofday (struct timeval *tv, struct timezone *tz)
+int osal_getrelativetime(struct timeval *tv, struct timezone *tz)
 {
    int64_t wintime, usecs;
    if(!sysfrequency)
@@ -23,6 +23,33 @@ int osal_gettimeofday (struct timeval *tv, struct timezone *tz)
    }
    QueryPerformanceCounter((LARGE_INTEGER *)&wintime);
    usecs = (int64_t)((double)wintime * qpc2usec);
+   tv->tv_sec = (long)(usecs / 1000000);
+   tv->tv_usec = (long)(usecs - (tv->tv_sec * 1000000));
+
+   return 1;
+}
+
+int osal_gettimeofday(struct timeval *tv, struct timezone *tz)
+{
+   FILETIME system_time;
+   int64 system_time64, usecs;
+
+   /* The offset variable is required to switch from Windows epoch (January 1, 1601) to
+    * Unix epoch (January 1, 1970). Number of days between both epochs: 134.774
+    *
+    * The time returned by GetSystemTimeAsFileTime() changes in 100 ns steps, so the
+    * following factors are required for the conversion from days to 100 ns steps:
+    *
+    * 86.400 seconds per day; 1.000.000 microseconds per second; 10 * 100 ns per microsecond
+   */
+   int64 offset = -134774LL * 86400LL * 1000000LL * 10LL;
+
+   GetSystemTimeAsFileTime(&system_time);
+
+   system_time64 = ((int64)(system_time.dwHighDateTime) << 32) + (int64)system_time.dwLowDateTime;
+   system_time64 += offset;
+   usecs = system_time64 / 10;
+
    tv->tv_sec = (long)(usecs / 1000000);
    tv->tv_usec = (long)(usecs - (tv->tv_sec * 1000000));
 
@@ -58,7 +85,7 @@ void osal_timer_start (osal_timert *self, uint32 timeout_usec)
    struct timeval timeout;
    struct timeval stop_time;
 
-   osal_gettimeofday (&start_time, 0);
+   osal_getrelativetime (&start_time, 0);
    timeout.tv_sec = timeout_usec / USECS_PER_SEC;
    timeout.tv_usec = timeout_usec % USECS_PER_SEC;
    timeradd (&start_time, &timeout, &stop_time);
@@ -73,7 +100,7 @@ boolean osal_timer_is_expired (osal_timert *self)
    struct timeval stop_time;
    int is_not_yet_expired;
 
-   osal_gettimeofday (&current_time, 0);
+   osal_getrelativetime (&current_time, 0);
    stop_time.tv_sec = self->stop_time.sec;
    stop_time.tv_usec = self->stop_time.usec;
    is_not_yet_expired = timercmp (&current_time, &stop_time, <);

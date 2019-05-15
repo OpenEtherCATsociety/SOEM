@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 2.8.4)
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/Modules")
-project(SOEM C)
+project(SOEM C CXX)
 
 if (CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
   # Default to installing in SOEM source directory
@@ -48,13 +48,23 @@ elseif(${CMAKE_SYSTEM_NAME} MATCHES "rtems")
   set(OS "rtems")
   set(SOEM_LIB_INSTALL_DIR ${LIB_DIR})
   set(BUILD_TESTS FALSE)
+elseif(${CMAKE_SYSTEM_NAME} MATCHES "circle")
+  set(OS "circle")
+  set(CMAKE_C_COMPILER   arm-none-eabi-gcc)
+  set(CMAKE_CXX_COMPILER arm-none-eabi-g++)
+  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DAARCH=32 -march=armv8-a -mtune=cortex-a53 -marm -mfpu=neon-fp-armv8 -mfloat-abi=hard")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DAARCH=32 -march=armv8-a -mtune=cortex-a53 -marm -mfpu=neon-fp-armv8 -mfloat-abi=hard")
+  include_directories(./libs/circle-stdlib/libs/circle/include)
+  include_directories(./libs/circle-stdlib/libs/circle-newlib/include)
+  include_directories(./libs/circle-stdlib/libs/circle-newlib/newlib/libc/include)
+  include_directories(./libs/circle-stdlib/libs/circle-newlib/newlib/libm/include)
 endif()
 
 message("OS is ${OS}")
 
 file(GLOB SOEM_SOURCES soem/*.c)
-file(GLOB OSAL_SOURCES osal/${OS}/*.c)
-file(GLOB OSHW_SOURCES oshw/${OS}/*.c)
+file(GLOB OSAL_SOURCES osal/${OS}/*.c osal/${OS}/*.cpp)
+file(GLOB OSHW_SOURCES oshw/${OS}/*.c oshw/${OS}/*.cpp)
 
 file(GLOB SOEM_HEADERS soem/*.h)
 file(GLOB OSAL_HEADERS osal/osal.h osal/${OS}/*.h)
@@ -81,7 +91,9 @@ install(FILES
   ${OSHW_HEADERS}
   DESTINATION ${SOEM_INCLUDE_INSTALL_DIR})
 
-if(BUILD_TESTS) 
+if(${OS} MATCHES "circle")
+
+elseif(BUILD_TESTS) 
   add_subdirectory(test/linux/slaveinfo)
   add_subdirectory(test/linux/eepromtool)
   add_subdirectory(test/linux/simple_test)

@@ -15,9 +15,12 @@ extern "C"
 #include <stdint.h>
 
 /* General types */
+#ifndef _osal_defs_circle_
 typedef uint8_t             boolean;
 #define TRUE                1
 #define FALSE               0
+#endif // _osal_defs_circle_
+
 typedef int8_t              int8;
 typedef int16_t             int16;
 typedef int32_t             int32;

@@ -21,8 +21,8 @@ Windows (Visual Studio)
    * `cmake .. -G "NMake Makefiles"`
    * `nmake`
 
-Linux
------
+Linux & macOS
+--------------
 
    * `mkdir build`
    * `cd build`

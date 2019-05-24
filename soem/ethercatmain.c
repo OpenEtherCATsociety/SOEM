@@ -1097,7 +1097,8 @@ int ecx_mbxreceive(ecx_contextt *context, uint16 slave, ec_mbxbuft *mbx, int tim
       }
       else /* no read mailbox available */
       {
-          wkc = 0;
+         if (wkc > 0)
+            wkc = EC_TIMEOUT;
       }
    }
 

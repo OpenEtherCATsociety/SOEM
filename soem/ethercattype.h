@@ -45,6 +45,8 @@ extern "C"
 #define EC_ERROR              -3
 /** return value too many slaves */
 #define EC_SLAVECOUNTEXCEEDED -4
+/** return value request timeout */
+#define EC_TIMEOUT            -5
 /** maximum EtherCAT frame length in bytes */
 #define EC_MAXECATFRAME    1518
 /** maximum EtherCAT LRW frame length in bytes */

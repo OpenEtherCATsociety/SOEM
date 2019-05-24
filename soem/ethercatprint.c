@@ -291,6 +291,63 @@ char* ec_mbxerror2string( uint16 errorcode)
    return (char *) ec_mbxerrorlist[i].errordescription;
 }
 
+/** Convert an error to text string.
+ *
+ * @param[in] Ec = Struct describing the error.
+ * @return readable string
+ */
+char* ecx_err2string(const ec_errort Ec)
+{
+   char timestr[20];
+   sprintf(timestr, "Time:%12.3f", Ec.Time.sec + (Ec.Time.usec / 1000000.0) );
+   switch (Ec.Etype)
+   {
+      case EC_ERR_TYPE_SDO_ERROR:
+      {
+         sprintf(estring, "%s SDO slave:%d index:%4.4x.%2.2x error:%8.8x %s\n",
+                 timestr, Ec.Slave, Ec.Index, Ec.SubIdx, (unsigned)Ec.AbortCode, ec_sdoerror2string(Ec.AbortCode));
+         break;
+      }
+      case EC_ERR_TYPE_EMERGENCY:
+      {
+         sprintf(estring, "%s EMERGENCY slave:%d error:%4.4x\n",
+                 timestr, Ec.Slave, Ec.ErrorCode);
+         break;
+      }
+      case EC_ERR_TYPE_PACKET_ERROR:
+      {
+         sprintf(estring, "%s PACKET slave:%d index:%4.4x.%2.2x error:%d\n",
+                 timestr, Ec.Slave, Ec.Index, Ec.SubIdx, Ec.ErrorCode);
+         break;
+      }
+      case EC_ERR_TYPE_SDOINFO_ERROR:
+      {
+         sprintf(estring, "%s SDO slave:%d index:%4.4x.%2.2x error:%8.8x %s\n",
+                 timestr, Ec.Slave, Ec.Index, Ec.SubIdx, (unsigned)Ec.AbortCode, ec_sdoerror2string(Ec.AbortCode));
+         break;
+      }
+      case EC_ERR_TYPE_SOE_ERROR:
+      {
+         sprintf(estring, "%s SoE slave:%d IDN:%4.4x error:%4.4x %s\n",
+                 timestr, Ec.Slave, Ec.Index, (unsigned)Ec.AbortCode, ec_soeerror2string(Ec.ErrorCode));
+         break;
+      }
+      case EC_ERR_TYPE_MBX_ERROR:
+      {
+         sprintf(estring, "%s MBX slave:%d error:%4.4x %s\n",
+                 timestr, Ec.Slave, Ec.ErrorCode, ec_mbxerror2string(Ec.ErrorCode));
+         break;
+      }
+      default:
+      {
+         sprintf(estring, "%s error:%8.8x\n",
+                 timestr, (unsigned)Ec.AbortCode);
+         break;
+      }
+   }
+   return (char*) estring;
+}
+
 /** Look up error in ec_errorlist and convert to text string.
  *
  * @param[in]  context        = context struct
@@ -299,57 +356,10 @@ char* ec_mbxerror2string( uint16 errorcode)
 char* ecx_elist2string(ecx_contextt *context)
 {
    ec_errort Ec;
-   char timestr[20];
 
    if (ecx_poperror(context, &Ec))
    {
-      sprintf(timestr, "Time:%12.3f", Ec.Time.sec + (Ec.Time.usec / 1000000.0) );
-      switch (Ec.Etype)
-      {
-         case EC_ERR_TYPE_SDO_ERROR:
-         {
-            sprintf(estring, "%s SDO slave:%d index:%4.4x.%2.2x error:%8.8x %s\n",
-                    timestr, Ec.Slave, Ec.Index, Ec.SubIdx, (unsigned)Ec.AbortCode, ec_sdoerror2string(Ec.AbortCode));
-            break;
-         }
-         case EC_ERR_TYPE_EMERGENCY:
-         {
-            sprintf(estring, "%s EMERGENCY slave:%d error:%4.4x\n",
-                    timestr, Ec.Slave, Ec.ErrorCode);
-            break;
-         }
-         case EC_ERR_TYPE_PACKET_ERROR:
-         {
-            sprintf(estring, "%s PACKET slave:%d index:%4.4x.%2.2x error:%d\n",
-                    timestr, Ec.Slave, Ec.Index, Ec.SubIdx, Ec.ErrorCode);
-            break;
-         }
-         case EC_ERR_TYPE_SDOINFO_ERROR:
-         {
-            sprintf(estring, "%s SDO slave:%d index:%4.4x.%2.2x error:%8.8x %s\n",
-                    timestr, Ec.Slave, Ec.Index, Ec.SubIdx, (unsigned)Ec.AbortCode, ec_sdoerror2string(Ec.AbortCode));
-            break;
-         }
-         case EC_ERR_TYPE_SOE_ERROR:
-         {
-            sprintf(estring, "%s SoE slave:%d IDN:%4.4x error:%4.4x %s\n",
-                    timestr, Ec.Slave, Ec.Index, (unsigned)Ec.AbortCode, ec_soeerror2string(Ec.ErrorCode));
-            break;
-         }
-         case EC_ERR_TYPE_MBX_ERROR:
-         {
-            sprintf(estring, "%s MBX slave:%d error:%4.4x %s\n",
-                    timestr, Ec.Slave, Ec.ErrorCode, ec_mbxerror2string(Ec.ErrorCode));
-            break;
-         }
-         default:
-         {
-            sprintf(estring, "%s error:%8.8x\n",
-                    timestr, (unsigned)Ec.AbortCode);
-            break;
-         }
-      }
-      return (char*) estring;
+      return ecx_err2string(Ec);
    }
    else
    {

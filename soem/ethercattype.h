@@ -37,12 +37,14 @@ extern "C"
 #   define EC_LITTLE_ENDIAN
 #endif
 
-/** return value general error */
-#define EC_ERROR           -3
 /** return value no frame returned */
-#define EC_NOFRAME         -1
+#define EC_NOFRAME            -1
 /** return value unknown frame received */
-#define EC_OTHERFRAME      -2
+#define EC_OTHERFRAME         -2
+/** return value general error */
+#define EC_ERROR              -3
+/** return value too many slaves */
+#define EC_SLAVECOUNTEXCEEDED -4
 /** maximum EtherCAT frame length in bytes */
 #define EC_MAXECATFRAME    1518
 /** maximum EtherCAT LRW frame length in bytes */

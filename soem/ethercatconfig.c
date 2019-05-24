@@ -142,7 +142,7 @@ int ecx_detect_slaves(ecx_contextt *context)
       {
          EC_PRINT("Error: too many slaves on network: num_slaves=%d, EC_MAXSLAVE=%d\n",
                wkc, EC_MAXSLAVE);
-         return -2;
+         return EC_SLAVECOUNTEXCEEDED;
       }
    }
    return wkc;

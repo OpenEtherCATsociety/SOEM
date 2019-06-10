@@ -119,7 +119,8 @@ ecx_contextt  ecx_context = {
     &ec_SM,             // .eepSM         =
     &ec_FMMU,           // .eepFMMU       =
     NULL,               // .FOEhook()
-    NULL                // .EOEhook()
+    NULL,               // .EOEhook()
+    0                   // .manualstatechange
 };
 #endif
 

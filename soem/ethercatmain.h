@@ -427,6 +427,8 @@ struct ecx_context
    int            (*FOEhook)(uint16 slave, int packetnumber, int datasize);
    /** registered EoE hook */
    int            (*EOEhook)(ecx_contextt * context, uint16 slave, void * eoembx);
+   /** flag to control legacy automatic state change or manual state change */
+   int            manualstatechange;
 };
 
 #ifdef EC_VER1

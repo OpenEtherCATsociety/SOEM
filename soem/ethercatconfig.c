@@ -645,6 +645,10 @@ static int ecx_map_coe_soe(ecx_contextt *context, uint16 slave, int thread_n)
    {
       context->slavelist[slave].PO2SOconfig(slave);
    }
+   if (context->slavelist[slave].PO2SOconfigx) /* only if registered */
+   {
+      context->slavelist[slave].PO2SOconfigx(context, slave);
+   }
    /* if slave not found in configlist find IO mapping in slave self */
    if (!context->slavelist[slave].configindex)
    {

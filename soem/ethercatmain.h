@@ -100,6 +100,8 @@ PACKED_END
 
 #define EC_SMENABLEMASK      0xfffeffff
 
+typedef struct ecx_context ecx_contextt;
+
 /** for list of ethercat slaves detected */
 typedef struct ec_slave
 {
@@ -225,8 +227,10 @@ typedef struct ec_slave
    uint8            FMMUunused;
    /** Boolean for tracking whether the slave is (not) responding, not used/set by the SOEM library */
    boolean          islost;
-   /** registered configuration function PO->SO */
+   /** registered configuration function PO->SO, (DEPRECATED)*/
    int              (*PO2SOconfig)(uint16 slave);
+   /** registered configuration function PO->SO */
+   int              (*PO2SOconfigx)(ecx_contextt * context, uint16 slave);
    /** readable name */
    char             name[EC_MAXNAME + 1];
 } ec_slavet;
@@ -377,7 +381,6 @@ typedef struct PACKED ec_PDOdesc
 PACKED_END
 
 /** Context structure , referenced by all ecx functions*/
-typedef struct ecx_context ecx_contextt;
 struct ecx_context
 {
    /** port reference, may include red_port */

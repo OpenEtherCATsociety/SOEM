@@ -81,7 +81,7 @@ void redtest(char *ifname, char *ifname2)
          /* request OP state for all slaves */
          ec_writestate(0);
          /* wait for all slaves to reach OP state */
-         ec_statecheck(0, EC_STATE_OPERATIONAL,  EC_TIMEOUTSTATE);
+         ec_statecheck(0, EC_STATE_OPERATIONAL, 5 * EC_TIMEOUTSTATE);
          oloop = ec_slave[0].Obytes;
          if ((oloop == 0) && (ec_slave[0].Obits > 0)) oloop = 1;
          if (oloop > 8) oloop = 8;

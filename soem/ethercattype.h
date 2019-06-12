@@ -23,23 +23,30 @@ extern "C"
 {
 #endif
 
-/** define EC_VER1 if version 1 default context and functions are needed
- * comment if application uses only ecx_ functions and own context */
-#define EC_VER1
-
 #include "osal.h"
+
+/** define EC_VER1 if version 1 default context and functions are needed
+ * define EC_VER2 if application uses only ecx_ functions and own context */
+#if !defined(EC_VER1) && !defined(EC_VER2)
+#   define EC_VER1
+#endif
+
 
 /** Define little endian target by default if no endian is set */
 #if !defined(EC_LITTLE_ENDIAN) && !defined(EC_BIG_ENDIAN)
 #   define EC_LITTLE_ENDIAN
 #endif
 
-/** return value general error */
-#define EC_ERROR           -3
 /** return value no frame returned */
-#define EC_NOFRAME         -1
+#define EC_NOFRAME            -1
 /** return value unknown frame received */
-#define EC_OTHERFRAME      -2
+#define EC_OTHERFRAME         -2
+/** return value general error */
+#define EC_ERROR              -3
+/** return value too many slaves */
+#define EC_SLAVECOUNTEXCEEDED -4
+/** return value request timeout */
+#define EC_TIMEOUT            -5
 /** maximum EtherCAT frame length in bytes */
 #define EC_MAXECATFRAME    1518
 /** maximum EtherCAT LRW frame length in bytes */

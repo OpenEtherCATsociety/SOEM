@@ -17,18 +17,18 @@ extern "C"
 #endif
 
 #include <vxWorks.h>
-#include <muxLib.h>
 
 /** structure to connect EtherCAT stack and VxWorks device */
 typedef struct ETHERCAT_PKT_DEV
 {
    struct ecx_port  *port;
    void             *pCookie;
-   END_OBJ          *endObj; 
+   void             *endObj; 
    UINT32           redundant;
    UINT32           tx_count;
    UINT32           rx_count;
    UINT32           overrun_count;
+   UINT32           abandoned_count;
 }ETHERCAT_PKT_DEV;
 
 /** pointer structure to Tx and Rx stacks */

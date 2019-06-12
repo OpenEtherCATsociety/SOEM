@@ -19,6 +19,8 @@ extern "C"
 char* ec_sdoerror2string( uint32 sdoerrorcode);
 char* ec_ALstatuscode2string( uint16 ALstatuscode);
 char* ec_soeerror2string( uint16 errorcode);
+char* ec_mbxerror2string( uint16 errorcode);
+char* ecx_err2string(const ec_errort Ec);
 char* ecx_elist2string(ecx_contextt *context);
 
 #ifdef EC_VER1

@@ -72,10 +72,14 @@ int osal_usleep (uint32 usec)
 
 int osal_gettimeofday(struct timeval *tv, struct timezone *tz)
 {
+   struct timespec ts;
    int return_value;
+   (void)tz;       /* Not used */
 
-   return_value = gettimeofday(tv, tz);
-
+   /* Use clock_gettime CLOCK_MONOTONIC to a avoid NTP time adjustments */
+   return_value = clock_gettime(CLOCK_MONOTONIC, &ts);
+   tv->tv_sec = ts.tv_sec;
+   tv->tv_usec = ts.tv_nsec / 1000;
    return return_value;
 }
 

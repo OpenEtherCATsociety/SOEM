@@ -238,7 +238,7 @@ void teststarter(char *ifname)
    
          /* request OP state for all slaves */
          ec_writestate(0);
-         chk = 40;
+         chk = 200;
          /* wait for all slaves to reach OP state */
          do
          {

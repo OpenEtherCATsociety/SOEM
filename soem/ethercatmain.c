@@ -119,7 +119,8 @@ ecx_contextt  ecx_context = {
     &ec_SM,             // .eepSM         =
     &ec_FMMU,           // .eepFMMU       =
     NULL,               // .FOEhook()
-    NULL                // .EOEhook()
+    NULL,               // .EOEhook()
+    0                   // .manualstatechange
 };
 #endif
 
@@ -1097,7 +1098,8 @@ int ecx_mbxreceive(ecx_contextt *context, uint16 slave, ec_mbxbuft *mbx, int tim
       }
       else /* no read mailbox available */
       {
-          wkc = 0;
+         if (wkc > 0)
+            wkc = EC_TIMEOUT;
       }
    }
 

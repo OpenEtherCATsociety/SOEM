@@ -35,9 +35,10 @@
 #include <ctype.h>
 #include <string.h>
 #include <stdio.h>
-#include <muxLib.h> 
-#include <ipProto.h> 
-#include <wvLib.h> 
+#include <muxLib.h>
+#include <ipProto.h>
+#include <wvLib.h>
+#include <sysLib.h>
 
 #include "oshw.h"
 #include "osal.h"
@@ -98,6 +99,10 @@ const uint16 secMAC[3] = { 0x0404, 0x0404, 0x0404 };
 /** second MAC word is used for identification */
 #define RX_SEC secMAC[1]
 
+/* usec per tick for timeconversion, default to 1kHz */
+#define USECS_PER_SEC 1000000
+static unsigned int usec_per_tick = 1000;
+
 /** Receive hook called by Mux driver. */
 static int mux_rx_callback(void* pCookie, long type, M_BLK_ID pMblk, LL_HDR_INFO *llHdrInfo, void *muxUserArg);
 
@@ -128,6 +133,11 @@ int ecx_setupnic(ecx_portt *port, const char *ifname, int secondary)
    int unit_no = -1;   
    ETHERCAT_PKT_DEV * pPktDev;
 
+   /* Get systick info, sysClkRateGet return ticks per second */
+   usec_per_tick =  USECS_PER_SEC / sysClkRateGet();
+   /* Don't allow 0 since it is used in DIV */
+   if(usec_per_tick == 0)
+      usec_per_tick = 1;
    /* Make reference to packet device struct, keep track if the packet
     * device is the redundant or not.
     */
@@ -141,7 +151,7 @@ int ecx_setupnic(ecx_portt *port, const char *ifname, int secondary)
        pPktDev = &(port->pktDev);
        pPktDev->redundant = 0;
    }
-   
+
    /* Clear frame counters*/
    pPktDev->tx_count = 0;
    pPktDev->rx_count = 0;
@@ -164,12 +174,12 @@ int ecx_setupnic(ecx_portt *port, const char *ifname, int secondary)
           break;
        }
    }
-   
+
    /* Detach IP stack */
    //ipDetach(pktDev.unit,pktDev.name);
-   
+
    pPktDev->port = port;
-               
+
    /* Bind to mux driver for given interface, include ethercat driver pointer 
      * as user reference 
      */
@@ -256,8 +266,8 @@ int ecx_setupnic(ecx_portt *port, const char *ifname, int secondary)
          }
       }
       ecx_clear_rxbufstat(&(port->rxbufstat[0]));
-   }   
-    
+   }
+
    /* setup ethernet headers in tx buffers so we don't have to repeat it */
    for (i = 0; i < EC_MAXBUF; i++) 
    {
@@ -265,9 +275,9 @@ int ecx_setupnic(ecx_portt *port, const char *ifname, int secondary)
       port->rxbufstat[i] = EC_BUF_EMPTY;
    }
    ec_setupheader(&(port->txbuf2));
-   
+
    return 1;
-   
+
 exit:
 
    return 0;
@@ -672,7 +682,7 @@ static int ecx_recvpkt(ecx_portt *port, int idx, int stacknumber, M_BLK_ID * pMb
 {
    int bytesrx = 0;
    MSG_Q_ID  msgQId;
-   int tick_timeout = max((timeout / 1000), 1);
+   int tick_timeout = max((timeout / usec_per_tick), 1);
    
    if (stacknumber == 1)
    {

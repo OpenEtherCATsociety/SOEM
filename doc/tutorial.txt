@@ -231,11 +231,11 @@ Below is an example on how to assign a slave to a group. <b>OBS!</b> A slave can
    {
       if ( <some condition> )
       {
-         ec_slave[cnt].group = <X>;
+         ec_slave[cnt].group = X;
       }
       else
       {
-         ec_slave[cnt].group = <Y>;
+         ec_slave[cnt].group = Y;
       }      
    }
 \endcode
@@ -247,12 +247,12 @@ This option will share IOmap and store the group IOmap data at offset EC_LOGGROU
    ec_config_map_group(&IOmap, 0);
 \endcode
 
-Alternative 2, configure the slave groups one by one, call ec_config_map or ec_config_map_group with arg <X>, <Y>. 
+Alternative 2, configure the slave groups one by one, call ec_config_map or ec_config_map_group with arg X, Y.
 This option will use different, supplied by the user, IOmaps.
 
 \code
-   ec_config_map_group(&IOmap1, <X>);
-   ec_config_map_group(&IOmap2, <Y>);
+   ec_config_map_group(&IOmap1, X);
+   ec_config_map_group(&IOmap2, Y);
 \endcode
 
 To exchange process data for given group(s) the user must call send/recv process data per group.
@@ -260,10 +260,10 @@ The send and receive stack of process data don't consider groups, so the applica
 and receive the process data for one group before sending/receiving process data for another group.
 
 \code
-         ec_send_processdata_group(<X>);
-         ec_receive_processdata_group(<X>, EC_TIMEOUTRET);
-         ec_send_processdata_group(<Y>);
-         ec_receive_processdata_group(<Y>, EC_TIMEOUTRET);
+         ec_send_processdata_group(X);
+         ec_receive_processdata_group(X, EC_TIMEOUTRET);
+         ec_send_processdata_group(Y);
+         ec_receive_processdata_group(Y, EC_TIMEOUTRET);
 \endcode
 
 \section application Application

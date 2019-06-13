@@ -61,7 +61,7 @@ int ecx_EOEdefinehook(ecx_contextt *context, void *hook)
 * @param[in]  slave      = Slave number
 * @param[in]  port       = Port number on slave if applicable
 * @param[in]  ipparam    = IP parameter data to be sent
-* @param[in]  Timeout    = Timeout in us, standard is EC_TIMEOUTRXM
+* @param[in]  timeout    = Timeout in us, standard is EC_TIMEOUTRXM
 * @return Workcounter from last slave response or returned result code 
 */
 int ecx_EOEsetIp(ecx_contextt *context, uint16 slave, uint8 port, eoe_param_t * ipparam, int timeout)
@@ -175,7 +175,7 @@ int ecx_EOEsetIp(ecx_contextt *context, uint16 slave, uint8 port, eoe_param_t * 
 * @param[in]  slave      = Slave number
 * @param[in]  port       = Port number on slave if applicable
 * @param[out] ipparam    = IP parameter data retrived from slave
-* @param[in]  Timeout    = Timeout in us, standard is EC_TIMEOUTRXM
+* @param[in]  timeout    = Timeout in us, standard is EC_TIMEOUTRXM
 * @return Workcounter from last slave response or returned result code
 */
 int ecx_EOEgetIp(ecx_contextt *context, uint16 slave, uint8 port, eoe_param_t * ipparam, int timeout)
@@ -316,7 +316,7 @@ int ecx_EOEgetIp(ecx_contextt *context, uint16 slave, uint8 port, eoe_param_t * 
 * @param[in]  port       = Port number on slave if applicable
 * @param[in]  psize      = Size in bytes of parameter buffer.
 * @param[in]  p          = Pointer to parameter buffer
-* @param[in]  Timeout    = Timeout in us, standard is EC_TIMEOUTRXM
+* @param[in]  timeout    = Timeout in us, standard is EC_TIMEOUTRXM
 * @return Workcounter from last slave transmission
 */
 int ecx_EOEsend(ecx_contextt *context, uint16 slave, uint8 port, int psize, void *p, int timeout)
@@ -407,7 +407,7 @@ int ecx_EOEsend(ecx_contextt *context, uint16 slave, uint8 port, int psize, void
 * @param[in]     context = context struct
 * @param[in]     slave   = Slave number
 * @param[in]     port    = Port number on slave if applicable
-* @param[in/out] psize   = Size in bytes of parameter buffer.
+* @param[in,out] psize   = Size in bytes of parameter buffer.
 * @param[in]     p       = Pointer to parameter buffer
 * @param[in]     timeout = Timeout in us, standard is EC_TIMEOUTRXM
 * @return Workcounter from last slave response or error code
@@ -523,11 +523,11 @@ int ecx_EOErecv(ecx_contextt *context, uint16 slave, uint8 port, int * psize, vo
 * Ethernet frame buffer at given offset and update current fragment variables
 *
 * @param[in] MbxIn             = Received mailbox containing fragment data
-* @param[in/out] rxfragmentno  = Fragment number
-* @param[in/out] rxframesize   = Frame size
-* @param[in/out] rxframeoffset = Frame offset
-* @param[in/out] rxframeno     = Frame number
-* @param[in/out] psize         = Size in bytes of frame buffer.
+* @param[in,out] rxfragmentno  = Fragment number
+* @param[in,out] rxframesize   = Frame size
+* @param[in,out] rxframeoffset = Frame offset
+* @param[in,out] rxframeno     = Frame number
+* @param[in,out] psize         = Size in bytes of frame buffer.
 * @param[out] p                = Pointer to frame buffer
 * @return 0= if fragment OK, >0 if last fragment, <0 on error
 */

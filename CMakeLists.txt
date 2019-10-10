@@ -11,8 +11,8 @@ if (CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
     CACHE PATH "Default install path" FORCE)
 endif()
 
-# Let platforms disable test programs
-set(BUILD_TESTS TRUE)
+# Let platforms disable building of executables
+set(BUILD_EXECUTABLES TRUE)
 
 # Always use standard .o suffix
 set(CMAKE_C_OUTPUT_EXTENSION_REPLACE 1)
@@ -40,10 +40,20 @@ add_library(soem
   soem/ethercatsoe.c
   soem/ethercatsoe.h
   soem/ethercattype.h
+  util/slaveinfo/slaveinfo.c
+  util/slaveinfo/slaveinfo.h
+  util/simple_test/simple_test.c
+  util/simple_test/simple_test.h
+  util/eepromtool/eepromtool.c
+  util/eepromtool/eepromtool.h
   )
 
 target_include_directories(soem PUBLIC
   $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/soem>
+  $<INSTALL_INTERFACE:include/soem>
+  )
+target_include_directories(soem PUBLIC
+  $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/util>
   $<INSTALL_INTERFACE:include/soem>
   )
 target_include_directories(soem PUBLIC
@@ -77,12 +87,15 @@ install(FILES
   soem/ethercatprint.h
   soem/ethercatsoe.h
   soem/ethercattype.h
+  util/slaveinfo/slaveinfo.h
+  util/simple_test/simple_test.h
+  util/eepromtool/eepromtool.h
   osal/osal.h
   DESTINATION include/soem
   )
 
-if(BUILD_TESTS) 
-  add_subdirectory(test/linux/slaveinfo)
-  add_subdirectory(test/linux/eepromtool)
-  add_subdirectory(test/linux/simple_test)
+if(BUILD_EXECUTABLES)
+  add_subdirectory(util/slaveinfo)
+  add_subdirectory(util/eepromtool)
+  add_subdirectory(util/simple_test)
 endif()

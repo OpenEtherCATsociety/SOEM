@@ -1,3 +1,8 @@
+/*
+ * Licensed under the GNU General Public License version 2 with exceptions. See
+ * LICENSE file in the project root for full license information
+ */
+
 /** \file
  * \brief Example code for Simple Open EtherCAT master
  *
@@ -7,9 +12,9 @@
  * Optional -map to display slave PDO mapping
  *
  * This shows the configured slave data.
- *
- * (c)Arthur Ketels 2010 - 2011
  */
+
+#include "slaveinfo.h"
 
 #include <stdio.h>
 #include <string.h>
@@ -505,7 +510,7 @@ void si_sdo(int cnt)
     }
 }
 
-void slaveinfo(char *ifname)
+void do_slaveinfo(char *ifname)
 {
    int cnt, i, j, nSM;
     uint16 ssigen;
@@ -617,9 +622,7 @@ void slaveinfo(char *ifname)
    }
 }
 
-char ifbuf[1024];
-
-int main(int argc, char *argv[])
+int slaveinfo(int argc, char *argv[])
 {
    ec_adaptert * adapter = NULL;
    printf("SOEM (Simple Open EtherCAT Master)\nSlaveinfo\n");
@@ -629,8 +632,7 @@ int main(int argc, char *argv[])
       if ((argc > 2) && (strncmp(argv[2], "-sdo", sizeof("-sdo")) == 0)) printSDO = TRUE;
       if ((argc > 2) && (strncmp(argv[2], "-map", sizeof("-map")) == 0)) printMAP = TRUE;
       /* start slaveinfo */
-      strcpy(ifbuf, argv[1]);
-      slaveinfo(ifbuf);
+      do_slaveinfo(argv[1]);
    }
    else
    {

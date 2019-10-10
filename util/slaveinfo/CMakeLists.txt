@@ -1,5 +1,4 @@
 
-set(SOURCES slaveinfo.c)
-add_executable(slaveinfo ${SOURCES})
+add_executable(slaveinfo main.c)
 target_link_libraries(slaveinfo soem)
 install(TARGETS slaveinfo DESTINATION bin)

@@ -52,6 +52,10 @@ void osal_time_diff(ec_timet *start, ec_timet *end, ec_timet *diff);
 int osal_thread_create(void *thandle, int stacksize, void *func, void *param);
 int osal_thread_create_rt(void *thandle, int stacksize, void *func, void *param);
 
+#ifndef OSAL_MAIN
+#define OSAL_MAIN main
+#endif  /* OSAL_MAIN */
+
 #ifdef __cplusplus
 }
 #endif

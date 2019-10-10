@@ -4,6 +4,7 @@
 target_sources(soem PRIVATE
   osal/rtk/osal.c
   osal/rtk/osal_defs.h
+  osal/rtk/soem_cmds.c
   oshw/rtk/oshw.c
   oshw/rtk/oshw.h
   oshw/rtk/nicdrv.c
@@ -35,5 +36,6 @@ add_definitions(
 
 install(FILES
   osal/rtk/osal_defs.h
+  osal/rtk/soem_cmds.h
   DESTINATION include/soem
   )

@@ -9,7 +9,6 @@ target_sources(soem PRIVATE
   oshw/rtk/nicdrv.c
   oshw/rtk/nicdrv.h
   oshw/rtk/lw_mac/lw_emac.c
-  oshw/rtk/lw_mac/lw_emac.h
   oshw/rtk/fec/fec_ecat.c
   oshw/rtk/fec/fec_ecat.h
   )

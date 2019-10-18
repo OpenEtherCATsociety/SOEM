@@ -42,7 +42,6 @@ uint16 oshw_ntohs(uint16 network)
 ec_adaptert * oshw_find_adapters(void)
 {
    int i;
-   int string_len;
    struct if_nameindex *ids;
    ec_adaptert * adapter;
    ec_adaptert * prev_adapter;
@@ -70,20 +69,15 @@ ec_adaptert * oshw_find_adapters(void)
          ret_adapter = adapter;
       }
 
-      /* fetch description and name, in Linux we use the same on both */
+      /* fetch description and name, in macosx we use the same on both */
       adapter->next = NULL;
 
       if (ids[i].if_name)
       {
-          string_len = strlen(ids[i].if_name);
-          if (string_len > (EC_MAXLEN_ADAPTERNAME - 1))
-          {
-             string_len = EC_MAXLEN_ADAPTERNAME - 1;
-          }
-          strncpy(adapter->name, ids[i].if_name,string_len);
-          adapter->name[string_len] = '\0';
-          strncpy(adapter->desc, ids[i].if_name,string_len);
-          adapter->desc[string_len] = '\0';
+          strncpy(adapter->name, ids[i].if_name, EC_MAXLEN_ADAPTERNAME);
+          adapter->name[EC_MAXLEN_ADAPTERNAME-1] = '\0';
+          strncpy(adapter->desc, ids[i].if_name, EC_MAXLEN_ADAPTERNAME);
+          adapter->desc[EC_MAXLEN_ADAPTERNAME-1] = '\0';
       }
       else
       {

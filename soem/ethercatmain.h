@@ -340,6 +340,7 @@ typedef struct ec_idxstack
    uint8   idx[EC_MAXBUF];
    void    *data[EC_MAXBUF];
    uint16  length[EC_MAXBUF];
+   uint16  dcoffset[EC_MAXBUF];
 } ec_idxstackT;
 
 /** ringbuf for error storage */

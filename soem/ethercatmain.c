@@ -110,8 +110,6 @@ ecx_contextt  ecx_context = {
     &ec_elist,          // .elist         =
     &ec_idxstack,       // .idxstack      =
     &EcatError,         // .ecaterror     =
-    0,                  // .DCtO          =
-    0,                  // .DCl           =
     &ec_DCtime,         // .DCtime        =
     &ec_SMcommtype[0],  // .SMcommtype    =
     &ec_PDOassign[0],   // .PDOassign     =
@@ -1641,7 +1639,7 @@ uint32 ecx_readeeprom2(ecx_contextt *context, uint16 slave, int timeout)
  * @param[in] idx         = Used datagram index.
  * @param[in] data        = Pointer to process data segment.
  * @param[in] length      = Length of data segment in bytes.
- * @param[in] dcoffset    = Offset position of DC frame.
+ * @param[in] DCO         = Offset position of DC frame.
  */
 static void ecx_pushindex(ecx_contextt *context, uint8 idx, void *data, uint16 length, uint16 DCO)
 {
@@ -1650,7 +1648,7 @@ static void ecx_pushindex(ecx_contextt *context, uint8 idx, void *data, uint16 l
       context->idxstack->idx[context->idxstack->pushed] = idx;
       context->idxstack->data[context->idxstack->pushed] = data;
       context->idxstack->length[context->idxstack->pushed] = length;
-      context->idxstack->dcoffset[context->idxstack->pulled] = DCO;
+      context->idxstack->dcoffset[context->idxstack->pushed] = DCO;
       context->idxstack->pushed++;
    }
 }

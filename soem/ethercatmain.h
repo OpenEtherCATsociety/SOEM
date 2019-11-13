@@ -408,10 +408,6 @@ struct ecx_context
    ec_idxstackT   *idxstack;
    /** reference to ecaterror state */
    boolean        *ecaterror;
-   /** internal, position of DC datagram in process data packet */
-   uint16         DCtO;
-   /** internal, length of DC datagram */
-   uint16         DCl;
    /** reference to last DC time from slaves */
    int64          *DCtime;
    /** internal, SM buffer */

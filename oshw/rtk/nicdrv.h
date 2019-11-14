@@ -11,6 +11,8 @@
 #ifndef _nicdrvh_
 #define _nicdrvh_
 
+#include <kern.h>
+
 /** pointer structure to Tx and Rx stacks */
 typedef struct
 {

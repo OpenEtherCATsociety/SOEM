@@ -25,7 +25,7 @@ volatile int wkc;
 boolean inOP;
 uint8 currentgroup = 0;
 
-void simpletest(char *ifname)
+void do_simpletest(char *ifname)
 {
     int i, j, oloop, iloop, chk;
     needlf = FALSE;
@@ -220,21 +220,29 @@ OSAL_THREAD_FUNC ecatcheck( void *ptr )
     }
 }
 
-int main(int argc, char *argv[])
+int simple_test(int argc, char *argv[])
 {
+   ec_adaptert * adapter = NULL;
    printf("SOEM (Simple Open EtherCAT Master)\nSimple test\n");
 
    if (argc > 1)
    {
       /* create thread to handle slave error handling in OP */
-//      pthread_create( &thread1, NULL, (void *) &ecatcheck, (void*) &ctime);
-      osal_thread_create(&thread1, 128000, &ecatcheck, (void*) &ctime);
+      osal_thread_create(&thread1, 128000, &ecatcheck, NULL);
       /* start cyclic part */
-      simpletest(argv[1]);
+      do_simpletest(argv[1]);
    }
    else
    {
       printf("Usage: simple_test ifname1\nifname = eth0 for example\n");
+
+      printf ("Available adapters\n");
+      adapter = ec_find_adapters ();
+      while (adapter != NULL)
+      {
+         printf ("Description : %s, Device to use for wpcap: %s\n", adapter->desc,adapter->name);
+         adapter = adapter->next;
+      }
    }
 
    printf("End program\n");

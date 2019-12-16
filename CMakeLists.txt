@@ -1,10 +1,10 @@
 cmake_minimum_required(VERSION 2.8.12)
-set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/Modules")
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_LIST_DIR}/cmake/Modules")
 project(SOEM C)
 
 if (CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
   # Default to installing in SOEM source directory
-  set(CMAKE_INSTALL_PREFIX ${CMAKE_SOURCE_DIR}/install)
+  set(CMAKE_INSTALL_PREFIX ${CMAKE_CURRENT_LIST_DIR}/install)
 endif()
 
 set(SOEM_INCLUDE_INSTALL_DIR include/soem)
@@ -15,9 +15,9 @@ if(WIN32)
   set(OS "win32")
   include_directories(oshw/win32/wpcap/Include)
   if(CMAKE_SIZEOF_VOID_P EQUAL 8)
-    link_directories(${CMAKE_SOURCE_DIR}/oshw/win32/wpcap/Lib/x64)
+    link_directories(${CMAKE_CURRENT_LIST_DIR}/oshw/win32/wpcap/Lib/x64)
   elseif(CMAKE_SIZEOF_VOID_P EQUAL 4)
-    link_directories(${CMAKE_SOURCE_DIR}/oshw/win32/wpcap/Lib)
+    link_directories(${CMAKE_CURRENT_LIST_DIR}/oshw/win32/wpcap/Lib)
   endif()
   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /D _CRT_SECURE_NO_WARNINGS")
   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS}  /WX")
@@ -88,7 +88,7 @@ message("LIB_DIR: ${SOEM_LIB_INSTALL_DIR}")
 
 install(TARGETS soem EXPORT soemConfig DESTINATION ${SOEM_LIB_INSTALL_DIR})
 
-install(EXPORT soemConfig DESTINATION ${SOEM_LIB_INSTALL_DIR}/cmake)
+install(EXPORT soemConfig DESTINATION share/soem/cmake)
 
 install(FILES
   ${SOEM_HEADERS}

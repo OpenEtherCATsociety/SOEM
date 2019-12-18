@@ -11,6 +11,8 @@ set(SOEM_INCLUDE_INSTALL_DIR include/soem)
 set(SOEM_LIB_INSTALL_DIR lib)
 set(BUILD_TESTS TRUE)
 
+option(SOEM_PIC "Compile library as PIC, suitable for linking into a dynamic library." FALSE)
+
 if(WIN32)
   set(OS "win32")
   include_directories(oshw/win32/wpcap/Include)
@@ -66,6 +68,9 @@ add_library(soem STATIC
   ${OSHW_SOURCES}
   ${OSHW_EXTRA_SOURCES})
 target_link_libraries(soem ${OS_LIBS})
+if (SOEM_PIC)
+  set_property(TARGET soem PROPERTY POSITION_INDEPENDENT_CODE ON)
+endif (SOEM_PIC)
 
 target_include_directories(soem PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/soem>

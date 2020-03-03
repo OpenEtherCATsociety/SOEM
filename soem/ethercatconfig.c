@@ -886,6 +886,7 @@ static void ecx_config_create_input_mappings(ecx_contextt *context, void *pIOmap
    int ByteCount = 0;
    int FMMUsize = 0;
    int FMMUdone = 0;
+   int AddToInputsWKC = 0;
    uint8 SMc = 0;
    uint16 EndAddr;
    uint16 SMlength;
@@ -988,8 +989,9 @@ static void ecx_config_create_input_mappings(ecx_contextt *context, void *pIOmap
          /* program FMMU for input */
          ecx_FPWR(context->port, configadr, ECT_REG_FMMU0 + (sizeof(ec_fmmut) * FMMUc),
             sizeof(ec_fmmut), &(context->slavelist[slave].FMMU[FMMUc]), EC_TIMEOUTRET3);
-         /* add one for an input FMMU */
-         context->grouplist[group].inputsWKC++;
+         /* Set flag to add one for an input FMMU,
+            a single ESC can only contribute once */
+         AddToInputsWKC = 1;
       }
       if (!context->slavelist[slave].inputs)
       {
@@ -1015,6 +1017,10 @@ static void ecx_config_create_input_mappings(ecx_contextt *context, void *pIOmap
       FMMUc++;
    }
    context->slavelist[slave].FMMUunused = FMMUc;
+
+   /* Add one WKC for an input if flag is true */
+   if (AddToInputsWKC)
+      context->grouplist[group].inputsWKC++;
 }
 
 static void ecx_config_create_output_mappings(ecx_contextt *context, void *pIOmap, 
@@ -1024,6 +1030,7 @@ static void ecx_config_create_output_mappings(ecx_contextt *context, void *pIOma
    int ByteCount = 0;
    int FMMUsize = 0;
    int FMMUdone = 0;
+   int AddToOutputsWKC = 0;
    uint8 SMc = 0;
    uint16 EndAddr;
    uint16 SMlength;
@@ -1112,13 +1119,18 @@ static void ecx_config_create_output_mappings(ecx_contextt *context, void *pIOma
          *BitPos = 0;
       }
       FMMUdone += FMMUsize;
-      context->slavelist[slave].FMMU[FMMUc].PhysStartBit = 0;
-      context->slavelist[slave].FMMU[FMMUc].FMMUtype = 2;
-      context->slavelist[slave].FMMU[FMMUc].FMMUactive = 1;
-      /* program FMMU for output */
-      ecx_FPWR(context->port, configadr, ECT_REG_FMMU0 + (sizeof(ec_fmmut) * FMMUc),
-         sizeof(ec_fmmut), &(context->slavelist[slave].FMMU[FMMUc]), EC_TIMEOUTRET3);
-      context->grouplist[group].outputsWKC++;
+      if (context->slavelist[slave].FMMU[FMMUc].LogLength)
+      {
+         context->slavelist[slave].FMMU[FMMUc].PhysStartBit = 0;
+         context->slavelist[slave].FMMU[FMMUc].FMMUtype = 2;
+         context->slavelist[slave].FMMU[FMMUc].FMMUactive = 1;
+         /* program FMMU for output */
+         ecx_FPWR(context->port, configadr, ECT_REG_FMMU0 + (sizeof(ec_fmmut) * FMMUc),
+            sizeof(ec_fmmut), &(context->slavelist[slave].FMMU[FMMUc]), EC_TIMEOUTRET3);
+         /* Set flag to add one for an output FMMU,
+            a single ESC can only contribute once */
+         AddToOutputsWKC = 1;
+      }
       if (!context->slavelist[slave].outputs)
       {
          if (group)
@@ -1144,6 +1156,9 @@ static void ecx_config_create_output_mappings(ecx_contextt *context, void *pIOma
       FMMUc++;
    }
    context->slavelist[slave].FMMUunused = FMMUc;
+   /* Add one WKC for an output if flag is true */
+   if (AddToOutputsWKC)
+      context->grouplist[group].outputsWKC++;
 }
 
 /** Map all PDOs in one group of slaves to IOmap with Outputs/Inputs

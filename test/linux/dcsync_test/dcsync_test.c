@@ -45,16 +45,15 @@ boolean inOP;
 uint8 currentgroup = 0;
 
 // Slave Distributed Clock Configuration
-
 boolean dcsync_enable = TRUE;
 
 static int slave_dc_config(uint16 slave)
 {
 //  ec_dcsync0(slave,   active,           cycletime,  calc and copy time)
     ec_dcsync0(slave,   dcsync_enable,    1000000U,   1000U);
-printf("ec_dcsync0 called on slave %u\n",slave);
-//ec_dcsync01(slave, TRUE, 2000000U, 0U, 0U);
-return 0;
+    printf("ec_dcsync0 called on slave %u\n",slave);
+    //ec_dcsync01(slave, TRUE, 2000000U, 0U, 0U);
+    return 0;
 }
 
 

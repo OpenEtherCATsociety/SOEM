@@ -1,13 +1,15 @@
 /** \file
- * \brief Example code for Simple Open EtherCAT master
- *
- * Usage : red_test [ifname1] [ifname2] [cycletime]
+ * \brief Example code for Simple Open EtherCAT master with Distributed Clock Sync
+ * 
+ * Usage : dcsync_test [ifname1] [cycletime]
  * ifname is NIC interface, f.e. eth0
- * cycletime in us, f.e. 500
+ * cycletime in us, f.e. 1000
  *
- * This is a redundancy test.
+ * This is a script based on redundancy test to run EtherCAT master with DC Sync.
  *
  * (c)Arthur Ketels 2008
+ *
+ * modified by Stefano Dalla Gasperina 2020
  */
 
 #include <stdio.h>
@@ -44,7 +46,7 @@ volatile int wkc;
 boolean inOP;
 uint8 currentgroup = 0;
 
-// Slave Distributed Clock Configuration
+/* Slave Distributed Clock Configuration */
 boolean dcsync_enable = TRUE;
 
 static int slave_dc_config(uint16 slave)
@@ -52,7 +54,6 @@ static int slave_dc_config(uint16 slave)
 //  ec_dcsync0(slave,   active,           cycletime,  calc and copy time)
     ec_dcsync0(slave,   dcsync_enable,    1000000U,   1000U);
     printf("ec_dcsync0 called on slave %u\n",slave);
-    //ec_dcsync01(slave, TRUE, 2000000U, 0U, 0U);
     return 0;
 }
 
@@ -62,16 +63,14 @@ void redtest(char *ifname)
    int cnt, i, oloop, iloop;
    int j;
 
-   printf("Starting Redundant test\n");
+   printf("Starting DC-sync test\n");
 
    /* initialise SOEM, bind socket to ifname */
-//   if (ec_init_redundant(ifname, ifname2))
    if (ec_init(ifname))
    {
       printf("ec_init on %s succeeded.\n",ifname);
       /* find and auto-config slaves */
       if (ec_config_init(FALSE) > 0)   // == ec_config_init + ec_config_map
-//      if ( ec_config(FALSE, &IOmap) > 0 )
       {
          printf("%d slaves found and configured.\n",ec_slavecount);
 
@@ -79,14 +78,12 @@ void redtest(char *ifname)
          // between Pre-OP and Safe-OP.
          if ((ec_slavecount >= 1)) {
              for (cnt = 1; cnt <= ec_slavecount; cnt++) {
-//                 if (ec_slave[cnt].eep_id == 0x1c2B3052) { // eep_id == ProductCode on ESI
-//                     el7211_pos = cnt;
                      printf("Found %s at position %d\n", ec_slave[cnt].name, cnt);
                      ec_slave[cnt].PO2SOconfig = &slave_dc_config;
-
              }
          }
 
+         /* Locate DC slaves, measure propagation delays. */
          ec_configdc();
 
          ec_config_map(&IOmap);
@@ -98,16 +95,13 @@ void redtest(char *ifname)
          ec_readstate();
          for(cnt = 1; cnt <= ec_slavecount ; cnt++)
          {
+            /* BEGIN USER CODE */
+
             printf("Slave:%d Name:%s Output size:%3dbits Input size:%3dbits State:%2d delay:%d.%d\n",
                   cnt, ec_slave[cnt].name, ec_slave[cnt].Obits, ec_slave[cnt].Ibits,
                   ec_slave[cnt].state, (int)ec_slave[cnt].pdelay, ec_slave[cnt].hasdc);
-//            printf("         Out:%8.8x,%4d In:%8.8x,%4d\n",
-//                  (int)ec_slave[cnt].outputs, ec_slave[cnt].Obytes, (int)ec_slave[cnt].inputs, ec_slave[cnt].Ibytes);
-            /* check for EL2004 or EL2008 */
-//            if( !digout && ((ec_slave[cnt].eep_id == 0x0af83052) || (ec_slave[cnt].eep_id == 0x07d83052)))
-//            {
-//               digout = ec_slave[cnt].outputs;
-//            }
+
+            /* END USER CODE */
          }
          expectedWKC = (ec_group[0].outputsWKC * 2) + ec_group[0].inputsWKC;
          printf("Calculated workcounter %d\n", expectedWKC);
@@ -133,6 +127,8 @@ void redtest(char *ifname)
             /* acyclic loop 5000 x 20ms = 10s */
             for(i = 1; i <= 5000; i++)
             {
+                /* BEGIN USER CODE */
+
                printf("Processdata cycle %5d , Wck %3d, DCtime %12ld, dt %12ld, O:",
                   dorun, wkc , ec_DCtime, gl_delta);
                for(j = 0 ; j < oloop; j++)
@@ -147,6 +143,9 @@ void redtest(char *ifname)
                printf("\r");
                fflush(stdout);
                osal_usleep(20000);
+
+               /* END USER CODE */
+
             }
             dorun = 0;
             inOP = FALSE;
@@ -173,7 +172,7 @@ void redtest(char *ifname)
       {
          printf("No slaves found!\n");
       }
-      printf("End redundant test, close socket\n");
+      printf("End DC-sync test, close socket\n");
       /* stop SOEM, close socket */
       ec_close();
    }
@@ -236,6 +235,7 @@ OSAL_THREAD_FUNC_RT ecatthread(void *ptr)
       clock_nanosleep(CLOCK_MONOTONIC, TIMER_ABSTIME, &ts, &tleft);
       if (dorun>0)
       {
+         /* BEGIN USER CODE */
          wkc = ec_receive_processdata(EC_TIMEOUTRET);
 
          dorun++;
@@ -248,11 +248,12 @@ OSAL_THREAD_FUNC_RT ecatthread(void *ptr)
             ec_sync(ec_DCtime, cycletime, &toff);
          }
          ec_send_processdata();
+         /* END USER CODE */
       }
    }
 }
 
-OSAL_THREAD_FUNC ecatcheck() //void *ptr )
+OSAL_THREAD_FUNC ecatcheck()
 {
     int slave;
 
@@ -334,7 +335,7 @@ int main(int argc, char *argv[])
 {
    int ctime;
 
-   printf("SOEM (Simple Open EtherCAT Master)\nRedundancy test\n");
+   printf("SOEM (Simple Open EtherCAT Master)\nDC-sync test\n");
 
    if (argc > 2)
    {
@@ -352,7 +353,7 @@ int main(int argc, char *argv[])
    }
    else
    {
-      printf("Usage: red_test ifname1 ifname2 cycletime\nifname = eth0 for example\ncycletime in us\n");
+      printf("Usage: dcsync_test ifname cycletime\nifname = eth0 for example\ncycletime in us\n");
    }
 
    printf("End program\n");

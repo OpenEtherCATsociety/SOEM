@@ -139,7 +139,7 @@ void simpletest(char *ifname)
     }
     else
     {
-        printf("No socket connection on %s\nExcecute as root\n",ifname);
+        printf("No socket connection on %s\nExecute as root\n",ifname);
     }
 }
 

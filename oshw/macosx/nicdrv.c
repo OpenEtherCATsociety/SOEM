@@ -440,7 +440,6 @@ int ecx_inframe(ecx_portt *port, int idx, int stacknumber)
                }
                else
                {
-		          assert(0);
                   /* strange things happened */
                }
             }

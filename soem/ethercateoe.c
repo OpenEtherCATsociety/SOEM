@@ -94,43 +94,45 @@ int ecx_EOEsetIp(ecx_contextt *context, uint16 slave, uint8 port, eoe_param_t * 
       EOE_HDR_LAST_FRAGMENT);
    EOEp->frameinfo2 = 0;
   
+   /* The EoE frame will include "empty" IP/DNS entries, makes wireshark happy.
+    * Specification say they are optional, TwinCAT include empty entries.
+    */
    if (ipparam->mac_set)
    {
       flags |= EOE_PARAM_MAC_INCLUDE;
       memcpy(&EOEp->data[data_offset], ipparam->mac.addr, EOE_ETHADDR_LENGTH);
-      data_offset += EOE_ETHADDR_LENGTH;
    }
+   data_offset += EOE_ETHADDR_LENGTH;
    if (ipparam->ip_set)
    {
       flags |= EOE_PARAM_IP_INCLUDE;
       EOE_ip_uint32_to_byte(&ipparam->ip, &EOEp->data[data_offset]);
-      data_offset += EOE_IP4_LENGTH;
    }
+   data_offset += 4;
    if (ipparam->subnet_set)
    {
       flags |= EOE_PARAM_SUBNET_IP_INCLUDE;
       EOE_ip_uint32_to_byte(&ipparam->subnet, &EOEp->data[data_offset]);
-      data_offset += EOE_IP4_LENGTH;
    }
+   data_offset += 4;
    if (ipparam->default_gateway_set)
    {
       flags |= EOE_PARAM_DEFAULT_GATEWAY_INCLUDE;
       EOE_ip_uint32_to_byte(&ipparam->default_gateway, &EOEp->data[data_offset]);
-      data_offset += EOE_IP4_LENGTH;
    }
+   data_offset += 4;
    if (ipparam->dns_ip_set)
    {
       flags |= EOE_PARAM_DNS_IP_INCLUDE;
       EOE_ip_uint32_to_byte(&ipparam->dns_ip, &EOEp->data[data_offset]);
-      data_offset += EOE_IP4_LENGTH;
    }
+   data_offset += 4;
    if (ipparam->dns_name_set)
    {
-      /* TwinCAT include EOE_DNS_NAME_LENGTH chars even if name is shorter */
       flags |= EOE_PARAM_DNS_NAME_INCLUDE;
       memcpy(&EOEp->data[data_offset], (void *)ipparam->dns_name, EOE_DNS_NAME_LENGTH);
-      data_offset += EOE_DNS_NAME_LENGTH;
    }
+   data_offset += EOE_DNS_NAME_LENGTH;
 
    EOEp->mbxheader.length = htoes(EOE_PARAM_OFFSET + data_offset);
    EOEp->data[0] = flags;
@@ -229,6 +231,10 @@ int ecx_EOEgetIp(ecx_contextt *context, uint16 slave, uint8 port, eoe_param_t * 
             }
             else
             {
+               /* The EoE frame will include "empty" IP/DNS entries,  makes 
+                * wireshark happy. Specification say they are optional, TwinCAT 
+                * include empty entries.
+                */
                flags = aEOEp->data[0];
                if (flags & EOE_PARAM_MAC_INCLUDE)
                {
@@ -236,36 +242,36 @@ int ecx_EOEgetIp(ecx_contextt *context, uint16 slave, uint8 port, eoe_param_t * 
                      &aEOEp->data[data_offset], 
                      EOE_ETHADDR_LENGTH);
                   ipparam->mac_set = 1;
-                  data_offset += EOE_ETHADDR_LENGTH;
                }
+               data_offset += EOE_ETHADDR_LENGTH;
                if (flags & EOE_PARAM_IP_INCLUDE)
                {
                   EOE_ip_byte_to_uint32(&aEOEp->data[data_offset],
                      &ipparam->ip);
                   ipparam->ip_set = 1;
-                  data_offset += EOE_IP4_LENGTH;
                }
+               data_offset += 4;
                if (flags & EOE_PARAM_SUBNET_IP_INCLUDE)
                {
                   EOE_ip_byte_to_uint32(&aEOEp->data[data_offset],
                      &ipparam->subnet);
                   ipparam->subnet_set = 1;
-                  data_offset += EOE_IP4_LENGTH;
                }
+               data_offset += 4;
                if (flags & EOE_PARAM_DEFAULT_GATEWAY_INCLUDE)
                {
                   EOE_ip_byte_to_uint32(&aEOEp->data[data_offset],
                      &ipparam->default_gateway);
                   ipparam->default_gateway_set = 1;
-                  data_offset += EOE_IP4_LENGTH;
                }
+               data_offset += 4;
                if (flags & EOE_PARAM_DNS_IP_INCLUDE)
                {
                   EOE_ip_byte_to_uint32(&aEOEp->data[data_offset],
                      &ipparam->dns_ip);
                   ipparam->dns_ip_set = 1;
-                  data_offset += EOE_IP4_LENGTH;
                }
+               data_offset += 4;
                if (flags & EOE_PARAM_DNS_NAME_INCLUDE)
                {
                   uint16_t dns_len;
@@ -280,8 +286,8 @@ int ecx_EOEgetIp(ecx_contextt *context, uint16 slave, uint8 port, eoe_param_t * 
                   /* Assume ZERO terminated string */
                   memcpy(ipparam->dns_name, &aEOEp->data[data_offset], dns_len);
                   ipparam->dns_name_set = 1;
-                  data_offset += EOE_DNS_NAME_LENGTH;
                }
+               data_offset += EOE_DNS_NAME_LENGTH;
                /* Something os not correct, flag the error */
                if(data_offset > eoedatasize)
                {

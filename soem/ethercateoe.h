@@ -22,8 +22,6 @@ extern "C"
 #define EOE_DNS_NAME_LENGTH  32
 /** Ethernet address length not including VLAN */
 #define EOE_ETHADDR_LENGTH    6
-/** IPv4 address length */
-#define EOE_IP4_LENGTH        sizeof(uint32_t)
 
 #define EOE_MAKEU32(a,b,c,d) (((uint32_t)((a) & 0xff) << 24) | \
                             ((uint32_t)((b) & 0xff) << 16) | \

@@ -33,10 +33,12 @@ extern "C"
 
 
 /** Define little endian target by default if no endian is set */
-#if !defined(EC_LITTLE_ENDIAN) && !defined(EC_BIG_ENDIAN)
-#   define EC_LITTLE_ENDIAN
+#if	__BYTE_ORDER__==__ORDER_LITTLE_ENDIAN__
+	#   define EC_LITTLE_ENDIAN
+#elif __BYTE_ORDER__==__ORDER_BIG_ENDIAN__
+	#   define EC_BIG_ENDIAN
 #endif
-
+   
 /** return value no frame returned */
 #define EC_NOFRAME            -1
 /** return value unknown frame received */
@@ -528,7 +530,7 @@ typedef struct
 #define put_unaligned64(val, ptr)        \
   (memcpy((ptr), &(val), 8))
 
-#if !defined(EC_BIG_ENDIAN) && defined(EC_LITTLE_ENDIAN)
+#if defined(EC_BIG_ENDIAN) && !defined(EC_LITTLE_ENDIAN)
 
   #define htoes(A) (A)
   #define htoel(A) (A)
@@ -537,7 +539,7 @@ typedef struct
   #define etohl(A) (A)
   #define etohll(A) (A)
 
-#elif !defined(EC_LITTLE_ENDIAN) && defined(EC_BIG_ENDIAN)
+#elif defined(EC_LITTLE_ENDIAN) && !defined(EC_BIG_ENDIAN)
 
   #define htoes(A) ((((uint16)(A) & 0xff00) >> 8) | \
                     (((uint16)(A) & 0x00ff) << 8))

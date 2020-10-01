@@ -329,7 +329,7 @@ int ecx_readIDNmap(ecx_contextt *context, uint16 slave, int *Osize, int *Isize)
       if ((wkc > 0) && (psize >= 4) && ((entries = etohs(SoEmapping.currentlength) / 2) > 0) && (entries <= EC_SOE_MAXMAPPING))
       {
          /* command word (uint16) is always mapped but not in list */
-         *Osize = 16;
+         *Osize += 16;
          for (itemcount = 0 ; itemcount < entries ; itemcount++)
          {
             psize = sizeof(SoEattribute);
@@ -348,7 +348,7 @@ int ecx_readIDNmap(ecx_contextt *context, uint16 slave, int *Osize, int *Isize)
       if ((wkc > 0) && (psize >= 4) && ((entries = etohs(SoEmapping.currentlength) / 2) > 0) && (entries <= EC_SOE_MAXMAPPING))
       {
          /* status word (uint16) is always mapped but not in list */
-         *Isize = 16;
+         *Isize += 16;
          for (itemcount = 0 ; itemcount < entries ; itemcount++)
          {
             psize = sizeof(SoEattribute);

@@ -165,10 +165,10 @@ void ec_setupheader(void *p)
  * @param[in] port        = port context struct
  * @return new index.
  */
-int ecx_getindex(ecx_portt *port)
+uint8 ecx_getindex(ecx_portt *port)
 {
-   	int idx;
-   	int cnt = 0;
+   	uint8 idx;
+   	uint8 cnt = 0;
 
 	ee_port_lock();
 
@@ -199,7 +199,7 @@ int ecx_getindex(ecx_portt *port)
  * @param[in] idx      = index in buffer array
  * @param[in] bufstat  = status to set
  */
-void ecx_setbufstat(ecx_portt *port, int idx, int bufstat)
+void ecx_setbufstat(ecx_portt *port, uint8 idx, int bufstat)
 {
    	port->rxbufstat[idx] = bufstat;
    	if (port->redstate != ECT_RED_NONE)
@@ -212,7 +212,7 @@ void ecx_setbufstat(ecx_portt *port, int idx, int bufstat)
  * @param[in] stacknumber  = 0=Primary 1=Secondary stack
  * @return socket send result
  */
-int ecx_outframe(ecx_portt *port, int idx, int stacknumber)
+int ecx_outframe(ecx_portt *port, uint8 idx, int stacknumber)
 {
    	int lp;
    	ec_stackT *stack;
@@ -234,7 +234,7 @@ int ecx_outframe(ecx_portt *port, int idx, int stacknumber)
  * @param[in] idx = index in tx buffer array
  * @return socket send result
  */
-int ecx_outframe_red(ecx_portt *port, int idx)
+int ecx_outframe_red(ecx_portt *port, uint8 idx)
 {
    	ec_comt *datagramP;
    	ec_etherheadert *ehp;
@@ -300,11 +300,11 @@ static int ecx_recvpkt(ecx_portt *port, int stacknumber)
  * @return Workcounter if a frame is found with corresponding index, otherwise
  * EC_NOFRAME or EC_OTHERFRAME.
  */
-int ecx_inframe(ecx_portt *port, int idx, int stacknumber)
+int ecx_inframe(ecx_portt *port, uint8 idx, int stacknumber)
 {
    	uint16  l;
    	int     rval;
-   	int     idxf;
+   	uint8     idxf;
    	ec_etherheadert *ehp;
    	ec_comt *ecp;
    	ec_stackT *stack;
@@ -389,7 +389,7 @@ int ecx_inframe(ecx_portt *port, int idx, int stacknumber)
  * @return Workcounter if a frame is found with corresponding index, otherwise
  * EC_NOFRAME.
  */
-static int ecx_waitinframe_red(ecx_portt *port, int idx, osal_timert *timer)
+static int ecx_waitinframe_red(ecx_portt *port, uint8 idx, osal_timert *timer)
 {
    	osal_timert timer2;
    	int wkc  = EC_NOFRAME;
@@ -464,7 +464,7 @@ static int ecx_waitinframe_red(ecx_portt *port, int idx, osal_timert *timer)
  * @return Workcounter if a frame is found with corresponding index, otherwise
  * EC_NOFRAME.
  */
-int ecx_waitinframe(ecx_portt *port, int idx, int timeout)
+int ecx_waitinframe(ecx_portt *port, uint8 idx, int timeout)
 {
    	int wkc;
    	osal_timert timer;
@@ -487,7 +487,7 @@ int ecx_waitinframe(ecx_portt *port, int idx, int timeout)
  * @param[in] timeout  = timeout in us
  * @return Workcounter or EC_NOFRAME
  */
-int ecx_srconfirm(ecx_portt *port, int idx, int timeout)
+int ecx_srconfirm(ecx_portt *port, uint8 idx, int timeout)
 {
    	int wkc = EC_NOFRAME;
    	osal_timert timer1, timer2;
@@ -529,32 +529,32 @@ int ec_getindex(void)
    return ecx_getindex(&ecx_port);
 }
 
-void ec_setbufstat(int idx, int bufstat)
+void ec_setbufstat(uint8 idx, int bufstat)
 {
    ecx_setbufstat(&ecx_port, idx, bufstat);
 }
 
-int ec_outframe(int idx, int stacknumber)
+int ec_outframe(uint8 idx, int stacknumber)
 {
    return ecx_outframe(&ecx_port, idx, stacknumber);
 }
 
-int ec_outframe_red(int idx)
+int ec_outframe_red(uint8 idx)
 {
    return ecx_outframe_red(&ecx_port, idx);
 }
 
-int ec_inframe(int idx, int stacknumber)
+int ec_inframe(uint8 idx, int stacknumber)
 {
    return ecx_inframe(&ecx_port, idx, stacknumber);
 }
 
-int ec_waitinframe(int idx, int timeout)
+int ec_waitinframe(uint8 idx, int timeout)
 {
    return ecx_waitinframe(&ecx_port, idx, timeout);
 }
 
-int ec_srconfirm(int idx, int timeout)
+int ec_srconfirm(uint8 idx, int timeout)
 {
    return ecx_srconfirm(&ecx_port, idx, timeout);
 }

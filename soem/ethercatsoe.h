@@ -116,12 +116,12 @@ PACKED_END
 #ifdef EC_VER1
 int ec_SoEread(uint16 slave, uint8 driveNo, uint8 elementflags, uint16 idn, int *psize, void *p, int timeout);
 int ec_SoEwrite(uint16 slave, uint8 driveNo, uint8 elementflags, uint16 idn, int psize, void *p, int timeout);
-int ec_readIDNmap(uint16 slave, int *Osize, int *Isize);
+int ec_readIDNmap(uint16 slave, uint32 *Osize, uint32 *Isize);
 #endif
 
 int ecx_SoEread(ecx_contextt *context, uint16 slave, uint8 driveNo, uint8 elementflags, uint16 idn, int *psize, void *p, int timeout);
 int ecx_SoEwrite(ecx_contextt *context, uint16 slave, uint8 driveNo, uint8 elementflags, uint16 idn, int psize, void *p, int timeout);
-int ecx_readIDNmap(ecx_contextt *context, uint16 slave, int *Osize, int *Isize);
+int ecx_readIDNmap(ecx_contextt *context, uint16 slave, uint32 *Osize, uint32 *Isize);
 
 #ifdef __cplusplus
 }

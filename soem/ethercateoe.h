@@ -18,6 +18,9 @@ extern "C"
 
 #include <ethercattype.h> 
 
+/* use maximum size for EOE mailbox data */
+#define EC_MAXEOEDATA EC_MAXMBX
+
 /** DNS length according to ETG 1000.6 */
 #define EOE_DNS_NAME_LENGTH  32
 /** Ethernet address length not including VLAN */
@@ -63,7 +66,7 @@ extern "C"
 #define EOE_HDR_FRAME_TYPE_GET(x)      (((x) >> 0) & 0xF)
 #define EOE_HDR_FRAME_PORT_OFFSET      4
 #define EOE_HDR_FRAME_PORT             (0xF << 4)
-#define EOE_HDR_FRAME_PORT_SET(x)      (((x) & 0xF) << 4)
+#define EOE_HDR_FRAME_PORT_SET(x)      ((uint16)(((x) & 0xF) << 4))
 #define EOE_HDR_FRAME_PORT_GET(x)      (((x) >> 4) & 0xF)
 #define EOE_HDR_LAST_FRAGMENT_OFFSET   8
 #define EOE_HDR_LAST_FRAGMENT          (0x1 << 8)
@@ -81,15 +84,15 @@ extern "C"
 /** Header frame info 2 */
 #define EOE_HDR_FRAG_NO_OFFSET         0
 #define EOE_HDR_FRAG_NO                (0x3F << 0)
-#define EOE_HDR_FRAG_NO_SET(x)         (((x) & 0x3F) << 0)
+#define EOE_HDR_FRAG_NO_SET(x)         ((uint16)(((x) & 0x3F) << 0))
 #define EOE_HDR_FRAG_NO_GET(x)         (((x) >> 0) & 0x3F)
 #define EOE_HDR_FRAME_OFFSET_OFFSET    6
 #define EOE_HDR_FRAME_OFFSET           (0x3F << 6)
-#define EOE_HDR_FRAME_OFFSET_SET(x)    (((x) & 0x3F) << 6)
+#define EOE_HDR_FRAME_OFFSET_SET(x)    ((uint16)(((x) & 0x3F) << 6))
 #define EOE_HDR_FRAME_OFFSET_GET(x)    (((x) >> 6) & 0x3F)
 #define EOE_HDR_FRAME_NO_OFFSET        12
 #define EOE_HDR_FRAME_NO               (0xF << 12)
-#define EOE_HDR_FRAME_NO_SET(x)        (((x) & 0xF) << 12)
+#define EOE_HDR_FRAME_NO_SET(x)        ((uint16)(((x) & 0xF) << 12))
 #define EOE_HDR_FRAME_NO_GET(x)        (((x) >> 12) & 0xF)
 
 /** EOE param */
@@ -165,7 +168,7 @@ typedef struct PACKED
       uint16_t frameinfo2;
       uint16_t result;
    };
-   uint8 data[0];
+   uint8 data[EC_MAXEOEDATA];
 } ec_EOEt;
 PACKED_END
 

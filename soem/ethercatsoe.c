@@ -78,7 +78,7 @@ void ecx_SoEerror(ecx_contextt *context, uint16 Slave, uint16 idn, uint16 Error)
 int ecx_SoEread(ecx_contextt *context, uint16 slave, uint8 driveNo, uint8 elementflags, uint16 idn, int *psize, void *p, int timeout)
 {
    ec_SoEt *SoEp, *aSoEp;
-   uint16 totalsize, framedatasize;
+   int totalsize, framedatasize;
    int wkc;
    uint8 *bp;
    uint8 *mp;
@@ -99,7 +99,7 @@ int ecx_SoEread(ecx_contextt *context, uint16 slave, uint8 driveNo, uint8 elemen
    /* get new mailbox count value, used as session handle */
    cnt = ec_nextmbxcnt(context->slavelist[slave].mbx_cnt);
    context->slavelist[slave].mbx_cnt = cnt;
-   SoEp->MbxHeader.mbxtype = ECT_MBXT_SOE + (cnt << 4); /* SoE */
+   SoEp->MbxHeader.mbxtype = ECT_MBXT_SOE + MBX_HDR_SET_CNT(cnt); /* SoE */
    SoEp->opCode = ECT_SOE_READREQ;
    SoEp->incomplete = 0;
    SoEp->error = 0;
@@ -200,7 +200,7 @@ int ecx_SoEread(ecx_contextt *context, uint16 slave, uint8 driveNo, uint8 elemen
 int ecx_SoEwrite(ecx_contextt *context, uint16 slave, uint8 driveNo, uint8 elementflags, uint16 idn, int psize, void *p, int timeout)
 {
    ec_SoEt *SoEp, *aSoEp;
-   uint16 framedatasize, maxdata;
+   int framedatasize, maxdata;
    int wkc;
    uint8 *mp;
    uint8 *hp;
@@ -236,13 +236,13 @@ int ecx_SoEwrite(ecx_contextt *context, uint16 slave, uint8 driveNo, uint8 eleme
          framedatasize = maxdata;  /*  segmented transfer needed  */
          NotLast = TRUE;
          SoEp->incomplete = 1;
-         SoEp->fragmentsleft = psize / maxdata;
+         SoEp->fragmentsleft = (uint16)(psize / maxdata);
       }
-      SoEp->MbxHeader.length = htoes(sizeof(ec_SoEt) - sizeof(ec_mbxheadert) + framedatasize);
+      SoEp->MbxHeader.length = htoes((uint16)(sizeof(ec_SoEt) - sizeof(ec_mbxheadert) + framedatasize));
       /* get new mailbox counter, used for session handle */
       cnt = ec_nextmbxcnt(context->slavelist[slave].mbx_cnt);
       context->slavelist[slave].mbx_cnt = cnt;
-      SoEp->MbxHeader.mbxtype = ECT_MBXT_SOE + (cnt << 4); /* SoE */
+      SoEp->MbxHeader.mbxtype = ECT_MBXT_SOE + MBX_HDR_SET_CNT(cnt); /* SoE */
       /* copy parameter data to mailbox */
       memcpy(mp, hp, framedatasize);
       hp += framedatasize;
@@ -309,12 +309,12 @@ int ecx_SoEwrite(ecx_contextt *context, uint16 slave, uint8 driveNo, uint8 eleme
  * @param[out] Isize   = Size in bits of input mapping (AT) found
  * @return >0 if mapping successful.
  */
-int ecx_readIDNmap(ecx_contextt *context, uint16 slave, int *Osize, int *Isize)
+int ecx_readIDNmap(ecx_contextt *context, uint16 slave, uint32 *Osize, uint32 *Isize)
 {
    int retVal = 0;
    int   wkc;
    int psize;
-   int driveNr;
+   uint8 driveNr;
    uint16 entries, itemcount;
    ec_SoEmappingt     SoEmapping;
    ec_SoEattributet   SoEattribute;
@@ -382,7 +382,7 @@ int ec_SoEwrite(uint16 slave, uint8 driveNo, uint8 elementflags, uint16 idn, int
    return ecx_SoEwrite(&ecx_context, slave, driveNo, elementflags, idn, psize, p, timeout);
 }
 
-int ec_readIDNmap(uint16 slave, int *Osize, int *Isize)
+int ec_readIDNmap(uint16 slave, uint32 *Osize, uint32 *Isize)
 {
    return ecx_readIDNmap(&ecx_context, slave, Osize, Isize);
 }

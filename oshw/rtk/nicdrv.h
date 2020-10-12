@@ -69,7 +69,7 @@ typedef struct
    /** temporary tx buffer length */
    int txbuflength2;
    /** last used frame index */
-   int lastidx;
+   uint8 lastidx;
    /** current redundancy state */
    int redstate;
    /** pointer to redundancy port and buffers */
@@ -88,22 +88,22 @@ extern ecx_redportt  ecx_redport;
 
 int ec_setupnic(const char * ifname, int secondary);
 int ec_closenic(void);
-void ec_setbufstat(int idx, int bufstat);
-int ec_getindex(void);
-int ec_outframe(int idx, int stacknumber);
-int ec_outframe_red(int idx);
-int ec_waitinframe(int idx, int timeout);
-int ec_srconfirm(int idx,int timeout);
+void ec_setbufstat(uint8 idx, int bufstat);
+uint8 ec_getindex(void);
+int ec_outframe(uint8 idx, int stacknumber);
+int ec_outframe_red(uint8 idx);
+int ec_waitinframe(uint8 idx, int timeout);
+int ec_srconfirm(uint8 idx,int timeout);
 #endif
 
 void ec_setupheader(void *p);
 int ecx_setupnic(ecx_portt *port, const char * ifname, int secondary);
 int ecx_closenic(ecx_portt *port);
-void ecx_setbufstat(ecx_portt *port, int idx, int bufstat);
-int ecx_getindex(ecx_portt *port);
-int ecx_outframe(ecx_portt *port, int idx, int stacknumber);
-int ecx_outframe_red(ecx_portt *port, int idx);
-int ecx_waitinframe(ecx_portt *port, int idx, int timeout);
-int ecx_srconfirm(ecx_portt *port, int idx,int timeout);
+void ecx_setbufstat(ecx_portt *port, uint8 idx, int bufstat);
+uint8 ecx_getindex(ecx_portt *port);
+int ecx_outframe(ecx_portt *port, uint8 idx, int stacknumber);
+int ecx_outframe_red(ecx_portt *port, uint8 idx);
+int ecx_waitinframe(ecx_portt *port, uint8 idx, int timeout);
+int ecx_srconfirm(ecx_portt *port, uint8 idx,int timeout);
 
 #endif

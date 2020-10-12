@@ -506,6 +506,10 @@ typedef struct
 } ec_errort;
 
 /** Helper macros */
+
+/** Set the count value in the Mailbox header */
+#define MBX_HDR_SET_CNT(cnt) ((uint8)((cnt) << 4))
+
 /** Macro to make a word from 2 bytes */
 #define MK_WORD(msb, lsb)   ((((uint16)(msb))<<8) | (lsb))
 /** Macro to get hi byte of a word */

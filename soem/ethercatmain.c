@@ -347,7 +347,7 @@ uint8 ecx_siigetbyte(ecx_contextt *context, uint16 slave, uint16 address)
    if (address < EC_MAXEEPBUF)
    {
       mapw = address >> 5;
-      mapb = address - (mapw << 5);
+      mapb = (uint16)(address - (mapw << 5));
       if (context->esimap[mapw] & (uint32)(1 << mapb))
       {
          /* byte is already in buffer */
@@ -375,7 +375,7 @@ uint8 ecx_siigetbyte(ecx_contextt *context, uint16 slave, uint16 address)
          }
          /* find bitmap location */
          mapw = eadr >> 4;
-         mapb = (eadr << 1) - (mapw << 5);
+         mapb = (uint16)((eadr << 1) - (mapw << 5));
          for(lp = 0 ; lp < cnt ; lp++)
          {
             /* set bitmap for each byte that is read */
@@ -550,7 +550,7 @@ uint16 ecx_siiSM(ecx_contextt *context, uint16 slave, ec_eepromSMt* SM)
       a = SM->Startpos;
       w = ecx_siigetbyte(context, slave, a++);
       w += (ecx_siigetbyte(context, slave, a++) << 8);
-      SM->nSM = (w / 4);
+      SM->nSM = (uint8)(w / 4);
       SM->PhStart = ecx_siigetbyte(context, slave, a++);
       SM->PhStart += (ecx_siigetbyte(context, slave, a++) << 8);
       SM->Plength = ecx_siigetbyte(context, slave, a++);
@@ -609,7 +609,7 @@ uint16 ecx_siiSMnext(ecx_contextt *context, uint16 slave, ec_eepromSMt* SM, uint
  *  @param[in]  t       = 0=RXPDO 1=TXPDO
  *  @return mapping size in bits of PDO
  */
-int ecx_siiPDO(ecx_contextt *context, uint16 slave, ec_eepromPDOt* PDO, uint8 t)
+uint32 ecx_siiPDO(ecx_contextt *context, uint16 slave, ec_eepromPDOt* PDO, uint8 t)
 {
    uint16 a , w, c, e, er, Size;
    uint8 eectl = context->slavelist[slave].eep_pdi;
@@ -683,7 +683,7 @@ int ecx_FPRD_multi(ecx_contextt *context, int n, uint16 *configlst, ec_alstatust
    int wkc;
    uint8 idx;
    ecx_portt *port;
-   int sldatapos[MAX_FPRD_MULTI];
+   uint16 sldatapos[MAX_FPRD_MULTI];
    int slcnt;
 
    port = context->port;
@@ -787,7 +787,7 @@ int ecx_readstate(ecx_contextt *context)
       fslave = 1;
       do
       {
-         lslave = *(context->slavecount);
+         lslave = (uint16)*(context->slavecount);
          if ((lslave - fslave) >= MAX_FPRD_MULTI)
          {
             lslave = fslave + MAX_FPRD_MULTI - 1;
@@ -1111,8 +1111,7 @@ int ecx_mbxreceive(ecx_contextt *context, uint16 slave, ec_mbxbuft *mbx, int tim
  */
 void ecx_esidump(ecx_contextt *context, uint16 slave, uint8 *esibuf)
 {
-   int address, incr;
-   uint16 configadr;
+   uint16 configadr, address, incr;
    uint64 *p64;
    uint16 *p16;
    uint64 edat;
@@ -1240,7 +1239,8 @@ int ecx_eeprom2pdi(ecx_contextt *context, uint16 slave)
 
 uint16 ecx_eeprom_waitnotbusyAP(ecx_contextt *context, uint16 aiadr,uint16 *estat, int timeout)
 {
-   int wkc, cnt = 0, retval = 0;
+   int wkc, cnt = 0;
+   uint16 retval = 0;
    osal_timert timer;
 
    osal_timer_start(&timer, timeout);
@@ -1409,7 +1409,8 @@ int ecx_writeeepromAP(ecx_contextt *context, uint16 aiadr, uint16 eeproma, uint1
 
 uint16 ecx_eeprom_waitnotbusyFP(ecx_contextt *context, uint16 configadr,uint16 *estat, int timeout)
 {
-   int wkc, cnt = 0, retval = 0;
+   int wkc, cnt = 0;
+   uint16 retval = 0;
    osal_timert timer;
 
    osal_timer_start(&timer, timeout);
@@ -1698,7 +1699,8 @@ static int ecx_main_send_processdata(ecx_contextt *context, uint8 group, boolean
 {
    uint32 LogAdr;
    uint16 w1, w2;
-   int length, sublength;
+   int length;
+   uint16 sublength;
    uint8 idx;
    int wkc;
    uint8* data;
@@ -1748,11 +1750,11 @@ static int ecx_main_send_processdata(ecx_contextt *context, uint8 group, boolean
             {
                if(currentsegment == context->grouplist[group].Isegment)
                {
-                  sublength = context->grouplist[group].IOsegment[currentsegment++] - context->grouplist[group].Ioffset;
+                  sublength = (uint16)(context->grouplist[group].IOsegment[currentsegment++] - context->grouplist[group].Ioffset);
                }
                else
                {
-                  sublength = context->grouplist[group].IOsegment[currentsegment++];
+                  sublength = (uint16)context->grouplist[group].IOsegment[currentsegment++];
                }
                /* get new index */
                idx = ecx_getindex(context->port);
@@ -1787,10 +1789,10 @@ static int ecx_main_send_processdata(ecx_contextt *context, uint8 group, boolean
             /* segment transfer if needed */
             do
             {
-               sublength = context->grouplist[group].IOsegment[currentsegment++];
+               sublength = (uint16)context->grouplist[group].IOsegment[currentsegment++];
                if((length - sublength) < 0)
                {
-                  sublength = length;
+                  sublength = (uint16)length;
                }
                /* get new index */
                idx = ecx_getindex(context->port);
@@ -1832,7 +1834,7 @@ static int ecx_main_send_processdata(ecx_contextt *context, uint8 group, boolean
          /* segment transfer if needed */
          do
          {
-            sublength = context->grouplist[group].IOsegment[currentsegment++];
+            sublength = (uint16)context->grouplist[group].IOsegment[currentsegment++];
             /* get new index */
             idx = ecx_getindex(context->port);
             w1 = LO_WORD(LogAdr);
@@ -1910,7 +1912,8 @@ int ecx_send_processdata_group(ecx_contextt *context, uint8 group)
  */
 int ecx_receive_processdata_group(ecx_contextt *context, uint8 group, int timeout)
 {
-   int pos, idx;
+   uint8 idx;
+   int pos;
    int wkc = 0, wkc2;
    uint16 le_wkc = 0;
    int valid_wkc = 0;
@@ -2127,7 +2130,7 @@ uint16 ec_siiSMnext(uint16 slave, ec_eepromSMt* SM, uint16 n)
  *  @return mapping size in bits of PDO
  *  @see ecx_siiPDO
  */
-int ec_siiPDO(uint16 slave, ec_eepromPDOt* PDO, uint8 t)
+uint32 ec_siiPDO(uint16 slave, ec_eepromPDOt* PDO, uint8 t)
 {
    return ecx_siiPDO (&ecx_context, slave, PDO, t);
 }

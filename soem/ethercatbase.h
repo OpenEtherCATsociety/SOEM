@@ -17,7 +17,7 @@ extern "C"
 #endif
 
 int ecx_setupdatagram(ecx_portt *port, void *frame, uint8 com, uint8 idx, uint16 ADP, uint16 ADO, uint16 length, void *data);
-int ecx_adddatagram(ecx_portt *port, void *frame, uint8 com, uint8 idx, boolean more, uint16 ADP, uint16 ADO, uint16 length, void *data);
+uint16 ecx_adddatagram(ecx_portt *port, void *frame, uint8 com, uint8 idx, boolean more, uint16 ADP, uint16 ADO, uint16 length, void *data);
 int ecx_BWR(ecx_portt *port, uint16 ADP,uint16 ADO,uint16 length,void *data,int timeout);
 int ecx_BRD(ecx_portt *port, uint16 ADP,uint16 ADO,uint16 length,void *data,int timeout);
 int ecx_APRD(ecx_portt *port, uint16 ADP, uint16 ADO, uint16 length, void *data, int timeout);
@@ -37,7 +37,7 @@ int ecx_LRWDC(ecx_portt *port, uint32 LogAdr, uint16 length, void *data, uint16 
 
 #ifdef EC_VER1
 int ec_setupdatagram(void *frame, uint8 com, uint8 idx, uint16 ADP, uint16 ADO, uint16 length, void *data);
-int ec_adddatagram(void *frame, uint8 com, uint8 idx, boolean more, uint16 ADP, uint16 ADO, uint16 length, void *data);
+uint16 ec_adddatagram(void *frame, uint8 com, uint8 idx, boolean more, uint16 ADP, uint16 ADO, uint16 length, void *data);
 int ec_BWR(uint16 ADP,uint16 ADO,uint16 length,void *data,int timeout);
 int ec_BRD(uint16 ADP,uint16 ADO,uint16 length,void *data,int timeout);
 int ec_APRD(uint16 ADP, uint16 ADO, uint16 length, void *data, int timeout);

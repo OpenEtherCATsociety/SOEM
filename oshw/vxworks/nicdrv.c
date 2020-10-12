@@ -371,10 +371,10 @@ void ec_setupheader(void *p)
  * @param[in] port        = port context struct
  * @return new index.
  */
-int ecx_getindex(ecx_portt *port)
+uint8 ecx_getindex(ecx_portt *port)
 {
-   int idx;
-   int cnt;
+   uint8 idx;
+   uint8 cnt;
 
    semTake(port->sem_get_index, WAIT_FOREVER);
    
@@ -408,7 +408,7 @@ int ecx_getindex(ecx_portt *port)
  * @param[in] idx      = index in buffer array
  * @param[in] bufstat  = status to set
  */
-void ecx_setbufstat(ecx_portt *port, int idx, int bufstat)
+void ecx_setbufstat(ecx_portt *port, uint8 idx, int bufstat)
 {
    port->rxbufstat[idx] = bufstat;
    if (port->redstate != ECT_RED_NONE)
@@ -423,7 +423,7 @@ void ecx_setbufstat(ecx_portt *port, int idx, int bufstat)
 * @param[in] len         = bytes to send
 * @return driver send result
 */
-static int ec_outfram_send(ETHERCAT_PKT_DEV * pPktDev, int idx, void * buf, int len)
+static int ec_outfram_send(ETHERCAT_PKT_DEV * pPktDev, uint8 idx, void * buf, int len)
 {
    STATUS status = OK;
    M_BLK_ID pPacket = NULL;
@@ -500,7 +500,7 @@ static int ec_outfram_send(ETHERCAT_PKT_DEV * pPktDev, int idx, void * buf, int 
 * @param[in] stacknumber  = 0=Primary 1=Secondary stack
 * @return socket send result
 */
-int ecx_outframe(ecx_portt *port, int idx, int stacknumber)
+int ecx_outframe(ecx_portt *port, uint8 idx, int stacknumber)
 {
    int rval = 0;
    ec_stackT *stack;
@@ -537,7 +537,7 @@ int ecx_outframe(ecx_portt *port, int idx, int stacknumber)
  * @param[in] idx   = index in tx buffer array
  * @return socket send result
  */
-int ecx_outframe_red(ecx_portt *port, int idx)
+int ecx_outframe_red(ecx_portt *port, uint8 idx)
 {
    ec_comt *datagramP;
    ec_etherheadert *ehp;
@@ -581,7 +581,7 @@ int ecx_outframe_red(ecx_portt *port, int idx)
 static int mux_rx_callback(void* pCookie, long type, M_BLK_ID pMblk, LL_HDR_INFO *llHdrInfo, void *muxUserArg)
 {
    BOOL ret = FALSE;
-   int idxf;
+   uint8 idxf;
    ec_comt *ecp;
    ec_bufT * tempbuf;
    ecx_portt * port;
@@ -678,7 +678,7 @@ static int mux_rx_callback(void* pCookie, long type, M_BLK_ID pMblk, LL_HDR_INFO
  * @param[in] timeout    = timeout in us
  * @return >0 if frame is available and read
  */
-static int ecx_recvpkt(ecx_portt *port, int idx, int stacknumber, M_BLK_ID * pMblk, int timeout)
+static int ecx_recvpkt(ecx_portt *port, uint8 idx, int stacknumber, M_BLK_ID * pMblk, int timeout)
 {
    int bytesrx = 0;
    MSG_Q_ID  msgQId;
@@ -728,7 +728,7 @@ static int ecx_recvpkt(ecx_portt *port, int idx, int stacknumber, M_BLK_ID * pMb
  * @return Workcounter if a frame is found with corresponding index, otherwise
  * EC_NOFRAME or EC_OTHERFRAME.
  */
-int ecx_inframe(ecx_portt *port, int idx, int stacknumber, int timeout)
+int ecx_inframe(ecx_portt *port, uint8 idx, int stacknumber, int timeout)
 {
    uint16  l;
    int     rval;
@@ -792,7 +792,7 @@ int ecx_inframe(ecx_portt *port, int idx, int stacknumber, int timeout)
  * @return Workcounter if a frame is found with corresponding index, otherwise
  * EC_NOFRAME.
  */
-static int ecx_waitinframe_red(ecx_portt *port, int idx, osal_timert *timer, int timeout)
+static int ecx_waitinframe_red(ecx_portt *port, uint8 idx, osal_timert *timer, int timeout)
 {
    osal_timert timer2;
    int wkc  = EC_NOFRAME;
@@ -881,7 +881,7 @@ static int ecx_waitinframe_red(ecx_portt *port, int idx, osal_timert *timer, int
  * @return Workcounter if a frame is found with corresponding index, otherwise
  * EC_NOFRAME.
  */
-int ecx_waitinframe(ecx_portt *port, int idx, int timeout)
+int ecx_waitinframe(ecx_portt *port, uint8 idx, int timeout)
 {
    int wkc;
    osal_timert timer;
@@ -904,7 +904,7 @@ int ecx_waitinframe(ecx_portt *port, int idx, int timeout)
  * @param[in] timeout  = timeout in us
  * @return Workcounter or EC_NOFRAME
  */
-int ecx_srconfirm(ecx_portt *port, int idx, int timeout)
+int ecx_srconfirm(ecx_portt *port, uint8 idx, int timeout)
 {
    int wkc = EC_NOFRAME;
    osal_timert timer1, timer2;
@@ -943,37 +943,37 @@ int ec_closenic(void)
    return ecx_closenic(&ecx_port);
 }
 
-int ec_getindex(void)
+uint8 ec_getindex(void)
 {
    return ecx_getindex(&ecx_port);
 }
 
-void ec_setbufstat(int idx, int bufstat)
+void ec_setbufstat(uint8 idx, int bufstat)
 {
    ecx_setbufstat(&ecx_port, idx, bufstat);
 }
 
-int ec_outframe(int idx, int stacknumber)
+int ec_outframe(uint8 idx, int stacknumber)
 {
    return ecx_outframe(&ecx_port, idx, stacknumber);
 }
 
-int ec_outframe_red(int idx)
+int ec_outframe_red(uint8 idx)
 {
    return ecx_outframe_red(&ecx_port, idx);
 }
 
-int ec_inframe(int idx, int stacknumber, int timeout)
+int ec_inframe(uint8 idx, int stacknumber, int timeout)
 {
    return ecx_inframe(&ecx_port, idx, stacknumber, timeout);
 }
 
-int ec_waitinframe(int idx, int timeout)
+int ec_waitinframe(uint8 idx, int timeout)
 {
    return ecx_waitinframe(&ecx_port, idx, timeout);
 }
 
-int ec_srconfirm(int idx, int timeout)
+int ec_srconfirm(uint8 idx, int timeout)
 {
    return ecx_srconfirm(&ecx_port, idx, timeout);
 }

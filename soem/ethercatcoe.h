@@ -66,8 +66,8 @@ int ec_SDOwrite(uint16 Slave, uint16 Index, uint8 SubIndex,
     boolean CA, int psize, void *p, int Timeout);
 int ec_RxPDO(uint16 Slave, uint16 RxPDOnumber , int psize, void *p);
 int ec_TxPDO(uint16 slave, uint16 TxPDOnumber , int *psize, void *p, int timeout);
-int ec_readPDOmap(uint16 Slave, int *Osize, int *Isize);
-int ec_readPDOmapCA(uint16 Slave, int Thread_n, int *Osize, int *Isize);
+int ec_readPDOmap(uint16 Slave, uint32 *Osize, uint32 *Isize);
+int ec_readPDOmapCA(uint16 Slave, int Thread_n, uint32 *Osize, uint32 *Isize);
 int ec_readODlist(uint16 Slave, ec_ODlistt *pODlist);
 int ec_readODdescription(uint16 Item, ec_ODlistt *pODlist);
 int ec_readOEsingle(uint16 Item, uint8 SubI, ec_ODlistt *pODlist, ec_OElistt *pOElist);
@@ -81,8 +81,8 @@ int ecx_SDOwrite(ecx_contextt *context, uint16 Slave, uint16 Index, uint8 SubInd
     boolean CA, int psize, void *p, int Timeout);
 int ecx_RxPDO(ecx_contextt *context, uint16 Slave, uint16 RxPDOnumber , int psize, void *p);
 int ecx_TxPDO(ecx_contextt *context, uint16 slave, uint16 TxPDOnumber , int *psize, void *p, int timeout);
-int ecx_readPDOmap(ecx_contextt *context, uint16 Slave, int *Osize, int *Isize);
-int ecx_readPDOmapCA(ecx_contextt *context, uint16 Slave, int Thread_n, int *Osize, int *Isize);
+int ecx_readPDOmap(ecx_contextt *context, uint16 Slave, uint32 *Osize, uint32 *Isize);
+int ecx_readPDOmapCA(ecx_contextt *context, uint16 Slave, int Thread_n, uint32 *Osize, uint32 *Isize);
 int ecx_readODlist(ecx_contextt *context, uint16 Slave, ec_ODlistt *pODlist);
 int ecx_readODdescription(ecx_contextt *context, uint16 Item, ec_ODlistt *pODlist);
 int ecx_readOEsingle(ecx_contextt *context, uint16 Item, uint8 SubI, ec_ODlistt *pODlist, ec_OElistt *pOElist);

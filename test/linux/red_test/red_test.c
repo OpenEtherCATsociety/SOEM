@@ -164,7 +164,7 @@ void add_timespec(struct timespec *ts, int64 addtime)
    sec = (addtime - nsec) / NSEC_PER_SEC;
    ts->tv_sec += sec;
    ts->tv_nsec += nsec;
-   if ( ts->tv_nsec > NSEC_PER_SEC )
+   if ( ts->tv_nsec >= NSEC_PER_SEC )
    {
       nsec = ts->tv_nsec % NSEC_PER_SEC;
       ts->tv_sec += (ts->tv_nsec - nsec) / NSEC_PER_SEC;

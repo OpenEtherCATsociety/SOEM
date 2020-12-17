@@ -253,7 +253,7 @@ typedef struct _ADAPTER  {
 	PCHAR DagBuffer;			///< Pointer to the buffer with the packets that is received from the DAG card
 	struct timeval DagReadTimeout;	///< Read timeout. The dagc API requires a timeval structure
 	unsigned DagFcsLen;			///< Length of the frame check sequence attached to any packet by the card. Obtained from the registry
-	DWORD DagFastProcess;		///< True if the user requests fast capture processing on this card. Higher level applications can use this value to provide a faster but possibly unprecise capture (for example, libpcap doesn't convert the timestamps).
+	DWORD DagFastProcess;		///< True if the user requests fast capture processing on this card. Higher level applications can use this value to provide a faster but possibly imprecise capture (for example, libpcap doesn't convert the timestamps).
 #endif // HAVE_DAG_API
 }  ADAPTER, *LPADAPTER;
 

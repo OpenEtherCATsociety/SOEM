@@ -16,7 +16,7 @@ extern "C"
 {
 #endif
 
-#include <ethercattype.h> 
+#include "ethercattype.h" 
 
 /* use maximum size for EOE mailbox data */
 #define EC_MAXEOEDATA EC_MAXMBX

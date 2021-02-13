@@ -426,6 +426,9 @@ struct ecx_context
    int            (*EOEhook)(ecx_contextt * context, uint16 slave, void * eoembx);
    /** flag to control legacy automatic state change or manual state change */
    int            manualstatechange;
+   /** userdata, promotes application configuration esp. in EC_VER2 with multiple 
+    * ec_context instances. Note: userdata memory is managed by application, not SOEM */
+   void           *userdata;
 };
 
 #ifdef EC_VER1

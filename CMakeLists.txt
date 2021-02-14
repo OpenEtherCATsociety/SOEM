@@ -13,7 +13,13 @@ endif()
 
 set(SOEM_INCLUDE_INSTALL_DIR include/soem)
 set(SOEM_LIB_INSTALL_DIR lib)
-set(BUILD_TESTS TRUE)
+
+if(CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
+  set(BUILD_TESTS TRUE)
+else()
+  message(STATUS "SOEM: not building tests when built as dependency")
+  set(BUILD_TESTS FALSE)
+endif()
 
 if(WIN32)
   set(OS "win32")

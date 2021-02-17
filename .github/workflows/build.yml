@@ -1,0 +1,31 @@
+name: build
+on: [push, pull_request]
+env:
+  BUILD_TYPE: Release
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os:
+          - ubuntu-20.04
+          - ubuntu-18.04
+          - ubuntu-16.04
+          - macos-latest
+          - windows-latest
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          submodules: true
+
+      - name: Configure
+        shell: bash
+        run: |
+          cmake -E make_directory $GITHUB_WORKSPACE/build
+          cmake -B $GITHUB_WORKSPACE/build -S $GITHUB_WORKSPACE \
+             -DCMAKE_BUILD_TYPE=$BUILD_TYPE
+
+      - name: Build
+        shell: bash
+        run: |
+          cmake --build $GITHUB_WORKSPACE/build -j4 --target install

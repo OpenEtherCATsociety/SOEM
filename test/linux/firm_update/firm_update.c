@@ -93,6 +93,14 @@ void boottest(char *ifname, uint16 slave, char *filename)
 			    (int)ec_slave[slave].SM[0].SMflags);
 			printf(" SM1 A:%4.4x L:%4d F:%8.8x\n", ec_slave[slave].SM[1].StartAddr, ec_slave[slave].SM[1].SMlength,
 			    (int)ec_slave[slave].SM[1].SMflags);
+
+			/* disable SM0 + SM1 so their offset + length can be changed from
+			 * the values set in ec_config_init()
+			 */
+			uint8_t activate = 0;
+			ec_FPWR(ec_slave[slave].configadr, ECT_REG_SM0ACT, 1, &activate, EC_TIMEOUTRET);
+			ec_FPWR(ec_slave[slave].configadr, ECT_REG_SM1ACT, 1, &activate, EC_TIMEOUTRET);
+
 			/* program SM0 mailbox in for slave */
 			ec_FPWR (ec_slave[slave].configadr, ECT_REG_SM0, sizeof(ec_smt), &ec_slave[slave].SM[0], EC_TIMEOUTRET);
 			/* program SM1 mailbox out for slave */

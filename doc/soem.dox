@@ -127,8 +127,8 @@
  *
  * \section start Getting started
  *
- * For examples see simple_test.c in ~/test/linux/simple_test.
- * First try (assume EtherCAT on eth0): sudo ./simple_test eth0
+ * For examples see simple_ng.c in ~/test/simple_ng.
+ * First try (assume EtherCAT on eth0): sudo ./simple_ng eth0
  * As SOEM uses RAW sockets it will need to run as root.
  *
  * \section bugs Squashed bugs

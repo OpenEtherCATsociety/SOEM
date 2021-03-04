@@ -1,6 +1,10 @@
 cmake_minimum_required(VERSION 2.8.12)
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_LIST_DIR}/cmake/Modules")
-project(SOEM C)
+cmake_policy(SET CMP0048 NEW)
+project(SOEM
+    DESCRIPTION "Simple Open EtherCAT Master"
+    VERSION 1.4.0
+    LANGUAGES C)
 
 if (CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
   # Default to installing in SOEM source directory
@@ -9,7 +13,13 @@ endif()
 
 set(SOEM_INCLUDE_INSTALL_DIR include/soem)
 set(SOEM_LIB_INSTALL_DIR lib)
-set(BUILD_TESTS TRUE)
+
+if(CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
+  set(BUILD_TESTS TRUE)
+else()
+  message(STATUS "SOEM: not building tests when built as dependency")
+  set(BUILD_TESTS FALSE)
+endif()
 
 if(WIN32)
   set(OS "win32")
@@ -33,8 +43,8 @@ elseif(APPLE)
   set(OS_LIBS pthread pcap)
 elseif(${CMAKE_SYSTEM_NAME} MATCHES "rt-kernel")
   set(OS "rtk")
-  message("ARCH is ${ARCH}")
-  message("BSP is ${BSP}")
+  message(STATUS "ARCH is ${ARCH}")
+  message(STATUS "BSP is ${BSP}")
   include_directories(oshw/${OS}/${ARCH})
   file(GLOB OSHW_EXTRA_SOURCES oshw/${OS}/${ARCH}/*.c)
   set(OSHW_SOURCES "${OS_HW_SOURCES} ${OSHW_ARCHSOURCES}")
@@ -44,13 +54,13 @@ elseif(${CMAKE_SYSTEM_NAME} MATCHES "rt-kernel")
   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wno-format")
   set(OS_LIBS "-Wl,--start-group -l${BSP} -l${ARCH} -lkern -ldev -lsio -lblock -lfs -lusb -llwip -leth -li2c -lrtc -lcan -lnand -lspi -lnor -lpwm -ladc -ltrace -lc -lm -Wl,--end-group")
 elseif(${CMAKE_SYSTEM_NAME} MATCHES "rtems")
-  message("Building for RTEMS")
+  message(STATUS "Building for RTEMS")
   set(OS "rtems")
   set(SOEM_LIB_INSTALL_DIR ${LIB_DIR})
   set(BUILD_TESTS FALSE)
 endif()
 
-message("OS is ${OS}")
+message(STATUS "OS is ${OS}")
 
 file(GLOB SOEM_SOURCES soem/*.c)
 file(GLOB OSAL_SOURCES osal/${OS}/*.c)
@@ -84,7 +94,7 @@ target_include_directories(soem
   $<INSTALL_INTERFACE:include/soem>
   )
 
-message("LIB_DIR: ${SOEM_LIB_INSTALL_DIR}")
+message(STATUS "LIB_DIR: ${SOEM_LIB_INSTALL_DIR}")
 
 install(TARGETS soem EXPORT soemConfig DESTINATION ${SOEM_LIB_INSTALL_DIR})
 

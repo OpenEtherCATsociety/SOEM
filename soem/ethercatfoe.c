@@ -19,8 +19,6 @@
 #include "ethercatmain.h"
 #include "ethercatfoe.h"
 
-#define EC_MAXFOEDATA 512
-
 /** FOE structure.
  * Used for Read, Write, Data, Ack and Error mailbox packets.
  */
@@ -38,9 +36,9 @@ typedef struct PACKED
    };
    union
    {
-      char          FileName[EC_MAXFOEDATA];
-      uint8         Data[EC_MAXFOEDATA];
-      char          ErrorText[EC_MAXFOEDATA];
+      char          FileName[EC_MAXMBX];
+      uint8         Data[EC_MAXMBX];
+      char          ErrorText[EC_MAXMBX];
    };
 } ec_FOEt;
 PACKED_END
@@ -309,13 +307,45 @@ int ecx_FOEwrite(ecx_contextt *context, uint16 slave, char *filename, uint32 pas
                      /* otherwise ignore */
                      if (sendpacket)
                      {
-                        if (!psize)
-                        {
-                           dofinalzero = TRUE;
-                        }
                         psize += segmentdata;
                         p = (uint8 *)p - segmentdata;
                         --sendpacket;
+                        tsize = psize;
+                        if (tsize > maxdata)
+                        {
+                           tsize = maxdata;
+                        }
+                        if(tsize || dofinalzero)
+                        {
+                           worktodo = TRUE;
+                           dofinalzero = FALSE;
+                           segmentdata = tsize;
+                           psize -= segmentdata;
+                           /* if last packet was full size, add a zero size packet as final */
+                           /* EOF is defined as packetsize < full packetsize */
+                           if (!psize && (segmentdata == maxdata))
+                           {
+                             dofinalzero = TRUE;
+                           }
+                           FOEp->MbxHeader.length = htoes(0x0006 + segmentdata);
+                           FOEp->MbxHeader.address = htoes(0x0000);
+                           FOEp->MbxHeader.priority = 0x00;
+                           /* get new mailbox count value */
+                           cnt = ec_nextmbxcnt(context->slavelist[slave].mbx_cnt);
+                           context->slavelist[slave].mbx_cnt = cnt;
+                           FOEp->MbxHeader.mbxtype = ECT_MBXT_FOE + (cnt << 4); /* FoE */
+                           FOEp->OpCode = ECT_FOE_DATA;
+                           sendpacket++;
+                           FOEp->PacketNumber = htoel(sendpacket);
+                           memcpy(&FOEp->Data[0], p, segmentdata);
+                           p = (uint8 *)p + segmentdata;
+                           /* send FoE data to slave */
+                           wkc = ecx_mbxsend(context, slave, (ec_mbxbuft *)&MbxOut, EC_TIMEOUTTXM);
+                           if (wkc <= 0)
+                           {
+                              worktodo = FALSE;
+                           }
+                        }
                      }
                      break;
                   }

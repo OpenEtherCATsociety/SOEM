@@ -325,7 +325,14 @@ int ecx_FPRD(ecx_portt *port, uint16 ADP, uint16 ADO, uint16 length, void *data,
    wkc = ecx_srconfirm(port, idx, timeout);
    if (wkc > 0)
    {
-      memcpy(data, &(port->rxbuf[idx][EC_HEADERSIZE]), length);
+      if (length <= EC_MAXMBX)
+      {
+         memcpy(data, &(port->rxbuf[idx][EC_HEADERSIZE]), length);
+      }
+      else
+      {
+         wkc = EC_ERROR;
+      }
    }
    ecx_setbufstat(port, idx, EC_BUF_EMPTY);
 

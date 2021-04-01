@@ -598,6 +598,7 @@ int ecx_config_init(ecx_contextt *context, uint8 usetable)
                ECT_REG_ALCTL,
                htoes(EC_STATE_PRE_OP | EC_STATE_ACK),
                EC_TIMEOUTRET3); /* set preop status */
+            (void)ecx_statecheck(context, slave, EC_STATE_PRE_OP, EC_TIMEOUTSTATE);
          }
       }
    }
@@ -1305,6 +1306,7 @@ int ecx_config_map_group(ecx_contextt *context, void *pIOmap, uint8 group)
                   ECT_REG_ALCTL,
                   htoes(EC_STATE_SAFE_OP),
                   EC_TIMEOUTRET3); /* set safeop status */
+               (void)ecx_statecheck(context, slave, EC_STATE_SAFE_OP, EC_TIMEOUTSTATE);
             }
             if (context->slavelist[slave].blockLRW)
             {
@@ -1449,6 +1451,7 @@ int ecx_config_overlap_map_group(ecx_contextt *context, void *pIOmap, uint8 grou
                   ECT_REG_ALCTL,
                   htoes(EC_STATE_SAFE_OP),
                   EC_TIMEOUTRET3);
+               (void)ecx_statecheck(context, slave, EC_STATE_SAFE_OP, EC_TIMEOUTSTATE);
             }
             if (context->slavelist[slave].blockLRW)
             {

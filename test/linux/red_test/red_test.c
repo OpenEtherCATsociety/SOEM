@@ -20,6 +20,7 @@
 #include <time.h>
 #include <pthread.h>
 #include <math.h>
+#include <inttypes.h>
 
 #include "ethercat.h"
 
@@ -52,6 +53,7 @@ void redtest(char *ifname, char *ifname2)
    printf("Starting Redundant test\n");
 
    /* initialise SOEM, bind socket to ifname */
+   (void) ifname2;
 //   if (ec_init_redundant(ifname, ifname2))
    if (ec_init(ifname))
    {
@@ -73,8 +75,8 @@ void redtest(char *ifname, char *ifname2)
             printf("Slave:%d Name:%s Output size:%3dbits Input size:%3dbits State:%2d delay:%d.%d\n",
                   cnt, ec_slave[cnt].name, ec_slave[cnt].Obits, ec_slave[cnt].Ibits,
                   ec_slave[cnt].state, (int)ec_slave[cnt].pdelay, ec_slave[cnt].hasdc);
-            printf("         Out:%8.8x,%4d In:%8.8x,%4d\n",
-                  (int)ec_slave[cnt].outputs, ec_slave[cnt].Obytes, (int)ec_slave[cnt].inputs, ec_slave[cnt].Ibytes);
+            printf("         Out:%p,%4d In:%p,%4d\n",
+                  ec_slave[cnt].outputs, ec_slave[cnt].Obytes, ec_slave[cnt].inputs, ec_slave[cnt].Ibytes);
             /* check for EL2004 or EL2008 */
             if( !digout && ((ec_slave[cnt].eep_id == 0x0af83052) || (ec_slave[cnt].eep_id == 0x07d83052)))
             {
@@ -105,7 +107,7 @@ void redtest(char *ifname, char *ifname2)
             /* acyclic loop 5000 x 20ms = 10s */
             for(i = 1; i <= 5000; i++)
             {
-               printf("Processdata cycle %5d , Wck %3d, DCtime %12lld, dt %12lld, O:",
+               printf("Processdata cycle %5d , Wck %3d, DCtime %12"PRId64", dt %12"PRId64", O:",
                   dorun, wkc , ec_DCtime, gl_delta);
                for(j = 0 ; j < oloop; j++)
                {
@@ -227,6 +229,8 @@ OSAL_THREAD_FUNC_RT ecatthread(void *ptr)
 OSAL_THREAD_FUNC ecatcheck( void *ptr )
 {
     int slave;
+
+    (void) ptr;
 
     while(1)
     {

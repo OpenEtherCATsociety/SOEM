@@ -198,6 +198,10 @@ OSAL_THREAD_FUNC_RT ecatthread(void *ptr)
    clock_gettime(CLOCK_MONOTONIC, &ts);
    ht = (ts.tv_nsec / 1000000) + 1; /* round to nearest ms */
    ts.tv_nsec = ht * 1000000;
+   if (ts.tv_nsec >= NSEC_PER_SEC) {
+      ts.tv_sec++;
+      ts.tv_nsec -= NSEC_PER_SEC;
+   }
    cycletime = *(int*)ptr * 1000; /* cycletime in ns */
    toff = 0;
    dorun = 0;

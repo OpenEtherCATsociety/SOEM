@@ -21,30 +21,15 @@ int osal_usleep (uint32 usec)
    return nanosleep(&ts, NULL);
 }
 
-int osal_gettimeofday(struct timeval *tv, struct timezone *tz)
-{
-   struct timespec ts;
-   int return_value;
-   (void)tz;       /* Not used */
-
-   /* Use clock_gettime to prevent possible live-lock.
-    * Gettimeofday uses CLOCK_REALTIME that can get NTP timeadjust.
-    * If this function preempts timeadjust and it uses vpage it live-locks.
-    * Also when using XENOMAI, only clock_gettime is RT safe */
-   return_value = clock_gettime(CLOCK_MONOTONIC, &ts);
-   tv->tv_sec = ts.tv_sec;
-   tv->tv_usec = ts.tv_nsec / 1000;
-   return return_value;
-}
-
 ec_timet osal_current_time(void)
 {
-   struct timeval current_time;
+   struct timespec current_time;
    ec_timet return_value;
 
-   osal_gettimeofday(&current_time, 0);
+   clock_gettime(CLOCK_REALTIME, &current_time);
    return_value.sec = current_time.tv_sec;
-   return_value.usec = current_time.tv_usec;
+   return_value.usec = current_time.tv_nsec / 1000;
+
    return return_value;
 }
 
@@ -60,13 +45,28 @@ void osal_time_diff(ec_timet *start, ec_timet *end, ec_timet *diff)
    }
 }
 
+/* Returns time from some unspecified moment in past,
+ * strictly increasing, used for time intervals measurement. */
+static void osal_getrelativetime(struct timeval *tv)
+{
+   struct timespec ts;
+
+   /* Use clock_gettime to prevent possible live-lock.
+    * Gettimeofday uses CLOCK_REALTIME that can get NTP timeadjust.
+    * If this function preempts timeadjust and it uses vpage it live-locks.
+    * Also when using XENOMAI, only clock_gettime is RT safe */
+   clock_gettime(CLOCK_MONOTONIC, &ts);
+   tv->tv_sec = ts.tv_sec;
+   tv->tv_usec = ts.tv_nsec / 1000;
+}
+
 void osal_timer_start(osal_timert * self, uint32 timeout_usec)
 {
    struct timeval start_time;
    struct timeval timeout;
    struct timeval stop_time;
 
-   osal_gettimeofday(&start_time, 0);
+   osal_getrelativetime(&start_time);
    timeout.tv_sec = timeout_usec / USECS_PER_SEC;
    timeout.tv_usec = timeout_usec % USECS_PER_SEC;
    timeradd(&start_time, &timeout, &stop_time);
@@ -81,7 +81,7 @@ boolean osal_timer_is_expired (osal_timert * self)
    struct timeval stop_time;
    int is_not_yet_expired;
 
-   osal_gettimeofday(&current_time, 0);
+   osal_getrelativetime(&current_time);
    stop_time.tv_sec = self->stop_time.sec;
    stop_time.tv_usec = self->stop_time.usec;
    is_not_yet_expired = timercmp(&current_time, &stop_time, <);

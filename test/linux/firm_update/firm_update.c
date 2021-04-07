@@ -63,6 +63,9 @@ void boottest(char *ifname, uint16 slave, char *filename)
 		{
 			printf("%d slaves found and configured.\n",ec_slavecount);
 
+			/* wait for all slaves to reach PRE_OP state */
+			ec_statecheck(0, EC_STATE_PRE_OP,  EC_TIMEOUTSTATE * 4);
+
 			printf("Request init state for slave %d\n", slave);
 			ec_slave[slave].state = EC_STATE_INIT;
 			ec_writestate(slave);

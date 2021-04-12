@@ -668,6 +668,7 @@ WARN_LOGFILE           =
 INPUT                  = doc/tutorial.txt \
                          doc/soem.dox \
                          soem \
+                         test/simple_ng \
                          test/linux/ebox \
                          test/linux/eepromtool \
                          test/linux/red_test \

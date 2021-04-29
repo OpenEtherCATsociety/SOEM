@@ -388,7 +388,6 @@ static void ecx_FoEerror(ecx_contextt *context, uint16 Slave, uint16 Error)
    Ec.Slave = Slave;
    Ec.Index = 0;
    Ec.SubIdx = 0;
-   *(context->ecaterror) = TRUE;
    Ec.Etype = EC_ERR_TYPE_FOE_ERROR;
    Ec.ErrorCode = Error;
    ecx_pusherror(context, &Ec);

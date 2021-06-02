@@ -16,10 +16,12 @@ extern "C"
 {
 #endif
 
-#include "ethercattype.h" 
+#include "ethercat.h"
 
-/* use maximum size for EOE mailbox data */
-#define EC_MAXEOEDATA EC_MAXMBX
+/* use maximum size for EOE mailbox data - mbxheader and 2x frameinfo */
+#define EC_MAXEOEDATA (EC_MAXMBX - (sizeof(ec_mbxheadert) +\
+                                    sizeof(uint16_t) +\
+                                    sizeof(uint16_t)))
 
 /** DNS length according to ETG 1000.6 */
 #define EOE_DNS_NAME_LENGTH  32

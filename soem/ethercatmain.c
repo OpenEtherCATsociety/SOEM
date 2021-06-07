@@ -224,7 +224,6 @@ void ecx_packeterror(ecx_contextt *context, uint16 Slave, uint16 Index, uint8 Su
    Ec.Slave = Slave;
    Ec.Index = Index;
    Ec.SubIdx = SubIdx;
-   *(context->ecaterror) = TRUE;
    Ec.Etype = EC_ERR_TYPE_PACKET_ERROR;
    Ec.ErrorCode = ErrorCode;
    ecx_pusherror(context, &Ec);

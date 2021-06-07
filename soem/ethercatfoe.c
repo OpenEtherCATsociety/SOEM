@@ -45,6 +45,8 @@ typedef struct PACKED
 } ec_FOEt;
 PACKED_END
 
+static void ecx_FoEerror(ecx_contextt *context, uint16 Slave, uint16 Error);
+
 /** FoE progress hook.
  *
  * @param[in]  context        = context struct
@@ -163,6 +165,7 @@ int ecx_FOEread(ecx_contextt *context, uint16 slave, char *filename, uint32 pass
                   if(aFOEp->OpCode == ECT_FOE_ERROR)
                   {
                      /* FoE error */
+                     ecx_FoEerror(context, slave, aFOEp->ErrorCode);
                      wkc = -EC_ERR_TYPE_FOE_ERROR;
                   }
                   else
@@ -322,6 +325,7 @@ int ecx_FOEwrite(ecx_contextt *context, uint16 slave, char *filename, uint32 pas
                   case ECT_FOE_ERROR:
                   {
                      /* FoE error */
+                     ecx_FoEerror(context, slave, aFOEp->ErrorCode);
                      if (aFOEp->ErrorCode == 0x8001)
                      {
                         wkc = -EC_ERR_TYPE_FOE_FILE_NOTFOUND;
@@ -368,3 +372,23 @@ int ec_FOEwrite(uint16 slave, char *filename, uint32 password, int psize, void *
    return ecx_FOEwrite(&ecx_context, slave, filename, password, psize, p, timeout);
 }
 #endif
+
+/** Report FoE error.
+ *
+ * @param[in]  context        = context struct
+ * @param[in]  Slave      = Slave number
+ * @param[in]  Error      = Error code, see EtherCAT documentation for list
+ */
+static void ecx_FoEerror(ecx_contextt *context, uint16 Slave, uint16 Error)
+{
+   ec_errort Ec;
+
+   memset(&Ec, 0, sizeof(Ec));
+   Ec.Time = osal_current_time();
+   Ec.Slave = Slave;
+   Ec.Index = 0;
+   Ec.SubIdx = 0;
+   Ec.Etype = EC_ERR_TYPE_FOE_ERROR;
+   Ec.ErrorCode = Error;
+   ecx_pusherror(context, &Ec);
+}

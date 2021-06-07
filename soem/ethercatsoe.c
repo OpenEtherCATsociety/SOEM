@@ -53,7 +53,6 @@ void ecx_SoEerror(ecx_contextt *context, uint16 Slave, uint16 idn, uint16 Error)
    Ec.Slave = Slave;
    Ec.Index = idn;
    Ec.SubIdx = 0;
-   *(context->ecaterror) = TRUE;
    Ec.Etype = EC_ERR_TYPE_SOE_ERROR;
    Ec.ErrorCode = Error;
    ecx_pusherror(context, &Ec);

@@ -1222,7 +1222,7 @@ int ecx_config_map_group(ecx_contextt *context, void *pIOmap, uint8 group)
                oLogAddr = LogAddr;
                if ((segmentsize + diff) > (EC_MAXLRWDATA - EC_FIRSTDCDATAGRAM))
                {
-                  context->grouplist[group].IOsegment[currentsegment] = segmentsize;
+                  context->grouplist[group].IOsegment[currentsegment] = segmentsize > 0 ? segmentsize:EC_FIRSTDCDATAGRAM;
                   if (currentsegment < (EC_MAXIOSEGMENTS - 1))
                   {
                      currentsegment++;
@@ -1282,7 +1282,7 @@ int ecx_config_map_group(ecx_contextt *context, void *pIOmap, uint8 group)
                oLogAddr = LogAddr;
                if ((segmentsize + diff) > (EC_MAXLRWDATA - EC_FIRSTDCDATAGRAM))
                {
-                  context->grouplist[group].IOsegment[currentsegment] = segmentsize;
+                  context->grouplist[group].IOsegment[currentsegment] = segmentsize > 0 ? segmentsize:EC_FIRSTDCDATAGRAM;
                   if (currentsegment < (EC_MAXIOSEGMENTS - 1))
                   {
                      currentsegment++;
@@ -1427,7 +1427,7 @@ int ecx_config_overlap_map_group(ecx_contextt *context, void *pIOmap, uint8 grou
 
             if ((segmentsize + diff) > (EC_MAXLRWDATA - EC_FIRSTDCDATAGRAM))
             {
-               context->grouplist[group].IOsegment[currentsegment] = segmentsize;
+               context->grouplist[group].IOsegment[currentsegment] = segmentsize > 0 ? segmentsize:EC_FIRSTDCDATAGRAM;
                if (currentsegment < (EC_MAXIOSEGMENTS - 1))
                {
                   currentsegment++;

@@ -336,6 +336,7 @@ int ecx_SDOwrite(ecx_contextt *context, uint16 Slave, uint16 Index, uint8 SubInd
    uint8 cnt, toggle;
    boolean  NotLast;
    uint8 *hp;
+   uint8 command;
 
    ec_clearmbx(&MbxIn);
    /* Empty slave out mailbox if something is in. Timeout set to 0 */
@@ -345,7 +346,7 @@ int ecx_SDOwrite(ecx_contextt *context, uint16 Slave, uint16 Index, uint8 SubInd
    SDOp = (ec_SDOt *)&MbxOut;
    maxdata = context->slavelist[Slave].mbx_l - 0x10; /* data section=mailbox size - 6 mbx - 2 CoE - 8 sdo req */
    /* if small data use expedited transfer */
-   if ((psize <= 4) && !CA)
+   if (psize <= 4)
    {
       SDOp->MbxHeader.length = htoes(0x000a);
       SDOp->MbxHeader.address = htoes(0x0000);
@@ -355,9 +356,21 @@ int ecx_SDOwrite(ecx_contextt *context, uint16 Slave, uint16 Index, uint8 SubInd
       context->slavelist[Slave].mbx_cnt = cnt;
       SDOp->MbxHeader.mbxtype = ECT_MBXT_COE + MBX_HDR_SET_CNT(cnt); /* CoE */
       SDOp->CANOpen = htoes(0x000 + (ECT_COES_SDOREQ << 12)); /* number 9bits service upper 4 bits */
-      SDOp->Command = ECT_SDO_DOWN_EXP | (((4 - psize) << 2) & 0x0c); /* expedited SDO download transfer */
+      if(CA)
+      {
+         command = ECT_SDO_DOWN_EXP_CA; /* set SDO command as expedited complete access */
+      }
+      else
+      {
+         command = ECT_SDO_DOWN_EXP; /* set SDO command as expedited */
+      }
+      SDOp->Command = command | (((4 - psize) << 2) & 0x0c); /* expedited SDO download transfer */
       SDOp->Index = htoes(Index);
       SDOp->SubIndex = SubIndex;
+      if (CA && (SubIndex > 1))
+      {
+         SDOp->SubIndex = 1;
+      }
       hp = p;
       /* copy parameter data to mailbox */
       memcpy(&SDOp->ldata[0], hp, psize);

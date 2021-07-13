@@ -347,6 +347,7 @@ enum
    ECT_SDO_DOWN_INIT    = 0x21,
    ECT_SDO_DOWN_EXP     = 0x23,
    ECT_SDO_DOWN_INIT_CA = 0x31,
+   ECT_SDO_DOWN_EXP_CA  = 0x33,
    ECT_SDO_UP_REQ       = 0x40,
    ECT_SDO_UP_REQ_CA    = 0x50,
    ECT_SDO_SEG_UP_REQ   = 0x60,

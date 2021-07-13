@@ -161,7 +161,7 @@ int ecx_setupnic(ecx_portt *port, const char *ifname, int secondary)
  */
 int ecx_closenic(ecx_portt *port)
 {
-   timeEndPeriod(15);
+   timeEndPeriod(1);
 
    if (port->sockhandle != NULL)
    {

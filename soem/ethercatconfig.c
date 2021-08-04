@@ -1472,7 +1472,10 @@ int ecx_config_overlap_map_group(ecx_contextt *context, void *pIOmap, uint8 grou
       /* Move calculated inputs with OBytes offset*/
       for (slave = 1; slave <= *(context->slavecount); slave++)
       {
-         context->slavelist[slave].inputs += context->grouplist[group].Obytes;
+         if (!group || (group == context->slavelist[slave].group))
+         {
+            context->slavelist[slave].inputs += context->grouplist[group].Obytes;
+         }
       }
 
       if (!group)

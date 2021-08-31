@@ -1474,7 +1474,10 @@ int ecx_config_overlap_map_group(ecx_contextt *context, void *pIOmap, uint8 grou
       {
          if (!group || (group == context->slavelist[slave].group))
          {
-            context->slavelist[slave].inputs += context->grouplist[group].Obytes;
+            if(context->slavelist[slave].Ibits > 0)
+            {
+               context->slavelist[slave].inputs += context->grouplist[group].Obytes;
+            }
          }
       }
 

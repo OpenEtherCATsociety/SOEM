@@ -23,85 +23,134 @@ ec_OElistt OElist;
 boolean printSDO = FALSE;
 boolean printMAP = FALSE;
 char usdo[128];
-char hstr[1024];
 
-char* dtype2string(uint16 dtype)
+
+#define OTYPE_VAR               0x0007
+#define OTYPE_ARRAY             0x0008
+#define OTYPE_RECORD            0x0009
+
+#define ATYPE_Rpre              0x01
+#define ATYPE_Rsafe             0x02
+#define ATYPE_Rop               0x04
+#define ATYPE_Wpre              0x08
+#define ATYPE_Wsafe             0x10
+#define ATYPE_Wop               0x20
+
+
+char* dtype2string(uint16 dtype, uint16 bitlen)
 {
+    static char str[32] = { 0 };
+
     switch(dtype)
     {
         case ECT_BOOLEAN:
-            sprintf(hstr, "BOOLEAN");
+            sprintf(str, "BOOLEAN");
             break;
         case ECT_INTEGER8:
-            sprintf(hstr, "INTEGER8");
+            sprintf(str, "INTEGER8");
             break;
         case ECT_INTEGER16:
-            sprintf(hstr, "INTEGER16");
+            sprintf(str, "INTEGER16");
             break;
         case ECT_INTEGER32:
-            sprintf(hstr, "INTEGER32");
+            sprintf(str, "INTEGER32");
             break;
         case ECT_INTEGER24:
-            sprintf(hstr, "INTEGER24");
+            sprintf(str, "INTEGER24");
             break;
         case ECT_INTEGER64:
-            sprintf(hstr, "INTEGER64");
+            sprintf(str, "INTEGER64");
             break;
         case ECT_UNSIGNED8:
-            sprintf(hstr, "UNSIGNED8");
+            sprintf(str, "UNSIGNED8");
             break;
         case ECT_UNSIGNED16:
-            sprintf(hstr, "UNSIGNED16");
+            sprintf(str, "UNSIGNED16");
             break;
         case ECT_UNSIGNED32:
-            sprintf(hstr, "UNSIGNED32");
+            sprintf(str, "UNSIGNED32");
             break;
         case ECT_UNSIGNED24:
-            sprintf(hstr, "UNSIGNED24");
+            sprintf(str, "UNSIGNED24");
             break;
         case ECT_UNSIGNED64:
-            sprintf(hstr, "UNSIGNED64");
+            sprintf(str, "UNSIGNED64");
             break;
         case ECT_REAL32:
-            sprintf(hstr, "REAL32");
+            sprintf(str, "REAL32");
             break;
         case ECT_REAL64:
-            sprintf(hstr, "REAL64");
+            sprintf(str, "REAL64");
             break;
         case ECT_BIT1:
-            sprintf(hstr, "BIT1");
+            sprintf(str, "BIT1");
             break;
         case ECT_BIT2:
-            sprintf(hstr, "BIT2");
+            sprintf(str, "BIT2");
             break;
         case ECT_BIT3:
-            sprintf(hstr, "BIT3");
+            sprintf(str, "BIT3");
             break;
         case ECT_BIT4:
-            sprintf(hstr, "BIT4");
+            sprintf(str, "BIT4");
             break;
         case ECT_BIT5:
-            sprintf(hstr, "BIT5");
+            sprintf(str, "BIT5");
             break;
         case ECT_BIT6:
-            sprintf(hstr, "BIT6");
+            sprintf(str, "BIT6");
             break;
         case ECT_BIT7:
-            sprintf(hstr, "BIT7");
+            sprintf(str, "BIT7");
             break;
         case ECT_BIT8:
-            sprintf(hstr, "BIT8");
+            sprintf(str, "BIT8");
             break;
         case ECT_VISIBLE_STRING:
-            sprintf(hstr, "VISIBLE_STRING");
+            sprintf(str, "VISIBLE_STR(%d)", bitlen);
             break;
         case ECT_OCTET_STRING:
-            sprintf(hstr, "OCTET_STRING");
+            sprintf(str, "OCTET_STR(%d)", bitlen);
             break;
         default:
-            sprintf(hstr, "Type 0x%4.4X", dtype);
+            sprintf(str, "dt:0x%4.4X (%d)", dtype, bitlen);
     }
-    return hstr;
+    return str;
+}
+
+char* otype2string(uint16 otype)
+{
+    static char str[32] = { 0 };
+
+    switch(otype)
+    {
+        case OTYPE_VAR:
+            sprintf(str, "VAR");
+            break;
+        case OTYPE_ARRAY:
+            sprintf(str, "ARRAY");
+            break;
+        case OTYPE_RECORD:
+            sprintf(str, "RECORD");
+            break;
+        default:
+            sprintf(str, "ot:0x%4.4X", otype);
+    }
+    return str;
+}
+
+char* access2string(uint16 access)
+{
+    static char str[32] = { 0 };
+
+    sprintf(str, "%s%s%s%s%s%s",
+            ((access & ATYPE_Rpre) != 0 ? "R" : "_"),
+            ((access & ATYPE_Wpre) != 0 ? "W" : "_"),
+            ((access & ATYPE_Rsafe) != 0 ? "R" : "_"),
+            ((access & ATYPE_Wsafe) != 0 ? "W" : "_"),
+            ((access & ATYPE_Rop) != 0 ? "R" : "_"),
+            ((access & ATYPE_Wop) != 0 ? "W" : "_"));
+    return str;
 }
 
 char* SDO2string(uint16 slave, uint16 index, uint8 subidx, uint16 dtype)
@@ -127,54 +176,55 @@ char* SDO2string(uint16 slave, uint16 index, uint8 subidx, uint16 dtype)
    }
    else
    {
+      static char str[64] = { 0 };
       switch(dtype)
       {
          case ECT_BOOLEAN:
             u8 = (uint8*) &usdo[0];
-            if (*u8) sprintf(hstr, "TRUE");
-             else sprintf(hstr, "FALSE");
+            if (*u8) sprintf(str, "TRUE");
+            else sprintf(str, "FALSE");
             break;
          case ECT_INTEGER8:
             i8 = (int8*) &usdo[0];
-            sprintf(hstr, "0x%2.2x %d", *i8, *i8);
+            sprintf(str, "0x%2.2x / %d", *i8, *i8);
             break;
          case ECT_INTEGER16:
             i16 = (int16*) &usdo[0];
-            sprintf(hstr, "0x%4.4x %d", *i16, *i16);
+            sprintf(str, "0x%4.4x / %d", *i16, *i16);
             break;
          case ECT_INTEGER32:
          case ECT_INTEGER24:
             i32 = (int32*) &usdo[0];
-            sprintf(hstr, "0x%8.8x %d", *i32, *i32);
+            sprintf(str, "0x%8.8x / %d", *i32, *i32);
             break;
          case ECT_INTEGER64:
             i64 = (int64*) &usdo[0];
-            sprintf(hstr, "0x%16.16"PRIx64" %"PRId64, *i64, *i64);
+            sprintf(str, "0x%16.16"PRIx64" / %"PRId64, *i64, *i64);
             break;
          case ECT_UNSIGNED8:
             u8 = (uint8*) &usdo[0];
-            sprintf(hstr, "0x%2.2x %u", *u8, *u8);
+            sprintf(str, "0x%2.2x / %u", *u8, *u8);
             break;
          case ECT_UNSIGNED16:
             u16 = (uint16*) &usdo[0];
-            sprintf(hstr, "0x%4.4x %u", *u16, *u16);
+            sprintf(str, "0x%4.4x / %u", *u16, *u16);
             break;
          case ECT_UNSIGNED32:
          case ECT_UNSIGNED24:
             u32 = (uint32*) &usdo[0];
-            sprintf(hstr, "0x%8.8x %u", *u32, *u32);
+            sprintf(str, "0x%8.8x / %u", *u32, *u32);
             break;
          case ECT_UNSIGNED64:
             u64 = (uint64*) &usdo[0];
-            sprintf(hstr, "0x%16.16"PRIx64" %"PRIu64, *u64, *u64);
+            sprintf(str, "0x%16.16"PRIx64" / %"PRIu64, *u64, *u64);
             break;
          case ECT_REAL32:
             sr = (float*) &usdo[0];
-            sprintf(hstr, "%f", *sr);
+            sprintf(str, "%f", *sr);
             break;
          case ECT_REAL64:
             dr = (double*) &usdo[0];
-            sprintf(hstr, "%f", *dr);
+            sprintf(str, "%f", *dr);
             break;
          case ECT_BIT1:
          case ECT_BIT2:
@@ -185,23 +235,25 @@ char* SDO2string(uint16 slave, uint16 index, uint8 subidx, uint16 dtype)
          case ECT_BIT7:
          case ECT_BIT8:
             u8 = (uint8*) &usdo[0];
-            sprintf(hstr, "0x%x", *u8);
+            sprintf(str, "0x%x / %u", *u8, *u8);
             break;
          case ECT_VISIBLE_STRING:
-            strcpy(hstr, usdo);
+            strcpy(str, "\"");
+            strcat(str, usdo);
+            strcat(str, "\"");
             break;
          case ECT_OCTET_STRING:
-            hstr[0] = 0x00;
+            str[0] = 0x00;
             for (i = 0 ; i < l ; i++)
             {
                sprintf(es, "0x%2.2x ", usdo[i]);
-               strcat( hstr, es);
+               strcat( str, es);
             }
             break;
          default:
-            sprintf(hstr, "Unknown type");
+            sprintf(str, "Unknown type");
       }
-      return hstr;
+      return str;
    }
 }
 
@@ -264,7 +316,7 @@ int si_PDOassign(uint16 slave, uint16 PDOassign, int mapoffset, int bitoffset)
                     printf("  [0x%4.4X.%1d] 0x%4.4X:0x%2.2X 0x%2.2X", abs_offset, abs_bit, obj_idx, obj_subidx, bitlen);
                     if((wkc > 0) && OElist.Entries)
                     {
-                        printf(" %-12s %s\n", dtype2string(OElist.DataType[obj_subidx]), OElist.Name[obj_subidx]);
+                        printf(" %-12s %s\n", dtype2string(OElist.DataType[obj_subidx], bitlen), OElist.Name[obj_subidx]);
                     }
                     else
                         printf("\n");
@@ -422,7 +474,7 @@ int si_siiPDO(uint16 slave, uint8 t, int mapoffset, int bitoffset)
                           ec_siistring(str_name, slave, obj_name);
 
                        printf("  [0x%4.4X.%1d] 0x%4.4X:0x%2.2X 0x%2.2X", abs_offset, abs_bit, obj_idx, obj_subidx, bitlen);
-                       printf(" %-12s %s\n", dtype2string(obj_datatype), str_name);
+                       printf(" %-12s %s\n", dtype2string(obj_datatype, bitlen), str_name);
                     }
                     bitoffset += bitlen;
                     totalsize += bitlen;
@@ -478,23 +530,49 @@ void si_sdo(int cnt)
         printf(" CoE Object Description found, %d entries.\n",ODlist.Entries);
         for( i = 0 ; i < ODlist.Entries ; i++)
         {
+            uint8_t max_sub;
+            char name[128] = { 0 };
+
             ec_readODdescription(i, &ODlist);
-            while(EcatError) printf("%s", ec_elist2string());
-            printf(" Index: %4.4x Datatype: %4.4x Objectcode: %2.2x Name: %s\n",
-                ODlist.Index[i], ODlist.DataType[i], ODlist.ObjectCode[i], ODlist.Name[i]);
+            while(EcatError) printf(" - %s\n", ec_elist2string());
+            snprintf(name, sizeof(name) - 1, "\"%s\"", ODlist.Name[i]);
+            if (ODlist.ObjectCode[i] == OTYPE_VAR)
+            {
+                printf("0x%04x      %-40s      [%s]\n", ODlist.Index[i], name,
+                       otype2string(ODlist.ObjectCode[i]));
+            }
+            else
+            {
+                printf("0x%04x      %-40s      [%s  maxsub(0x%02x / %d)]\n",
+                       ODlist.Index[i], name, otype2string(ODlist.ObjectCode[i]),
+                       ODlist.MaxSub[i], ODlist.MaxSub[i]);
+            }
             memset(&OElist, 0, sizeof(OElist));
             ec_readOE(i, &ODlist, &OElist);
-            while(EcatError) printf("%s", ec_elist2string());
-            for( j = 0 ; j < ODlist.MaxSub[i]+1 ; j++)
+            while(EcatError) printf("- %s\n", ec_elist2string());
+
+            if(ODlist.ObjectCode[i] != OTYPE_VAR)
+            {
+                int l = sizeof(max_sub);
+                ec_SDOread(cnt, ODlist.Index[i], 0, FALSE, &l, &max_sub, EC_TIMEOUTRXM);
+            }
+            else {
+                max_sub = ODlist.MaxSub[i];
+            }
+
+            for( j = 0 ; j < max_sub+1 ; j++)
             {
                 if ((OElist.DataType[j] > 0) && (OElist.BitLength[j] > 0))
                 {
-                    printf("  Sub: %2.2x Datatype: %4.4x Bitlength: %4.4x Obj.access: %4.4x Name: %s\n",
-                        j, OElist.DataType[j], OElist.BitLength[j], OElist.ObjAccess[j], OElist.Name[j]);
+                    snprintf(name, sizeof(name) - 1, "\"%s\"", OElist.Name[j]);
+                    printf("    0x%02x      %-40s      [%-16s %6s]      ", j, name,
+                           dtype2string(OElist.DataType[j], OElist.BitLength[j]),
+                           access2string(OElist.ObjAccess[j]));
                     if ((OElist.ObjAccess[j] & 0x0007))
                     {
-                        printf("          Value :%s\n", SDO2string(cnt, ODlist.Index[i], j, OElist.DataType[j]));
+                        printf("%s", SDO2string(cnt, ODlist.Index[i], j, OElist.DataType[j]));
                     }
+                    printf("\n");
                 }
             }
         }

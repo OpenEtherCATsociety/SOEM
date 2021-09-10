@@ -456,6 +456,8 @@ int main(int argc, char *argv[])
    }
    else
    {
+      ec_adaptert * adapter = NULL;
+
       printf("Usage: eepromtool ifname slave OPTION fname|alias\n");
       printf("ifname = eth0 for example\n");
       printf("slave = slave number in EtherCAT order 1..n\n");
@@ -465,6 +467,15 @@ int main(int argc, char *argv[])
       printf("    -ri     read EEPROM, output Intel Hex format\n");
       printf("    -w      write EEPROM, input binary format\n");
       printf("    -wi     write EEPROM, input Intel Hex format\n");
+
+      printf ("\nAvailable adapters:\n");
+      adapter = ec_find_adapters ();
+      while (adapter != NULL)
+      {
+         printf ("    - %s  (%s)\n", adapter->name, adapter->desc);
+         adapter = adapter->next;
+      }
+      ec_free_adapters(adapter);
    }
 
    printf("End program\n");

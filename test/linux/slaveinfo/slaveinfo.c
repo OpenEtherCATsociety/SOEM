@@ -643,6 +643,7 @@ int main(int argc, char *argv[])
          printf ("Description : %s, Device to use for wpcap: %s\n", adapter->desc,adapter->name);
          adapter = adapter->next;
       }
+      ec_free_adapters(adapter);
    }
 
    printf("End program\n");

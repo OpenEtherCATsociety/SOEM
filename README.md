@@ -8,7 +8,7 @@ BUILDING
 Prerequisites for all platforms
 -------------------------------
 
- * CMake 2.8.0 or later
+ * CMake 3.9 or later
 
 
 Windows (Visual Studio)

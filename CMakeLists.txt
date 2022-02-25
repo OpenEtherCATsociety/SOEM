@@ -76,6 +76,8 @@ add_library(soem STATIC
   ${OSHW_EXTRA_SOURCES})
 target_link_libraries(soem ${OS_LIBS})
 
+target_compile_definitions(soem PUBLIC __STDC_LIMIT_MACROS __STDC_CONSTANT_MACROS)
+
 target_include_directories(soem PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/soem>
   $<INSTALL_INTERFACE:include/soem>)
@@ -92,6 +94,13 @@ target_include_directories(soem
   PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/oshw/${OS}>
   $<INSTALL_INTERFACE:include/soem>
   )
+
+if(WIN32)
+  target_include_directories(soem
+    PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/oshw/${OS}/wpcap/Include>
+    $<INSTALL_INTERFACE:include/soem>)
+endif()
+
 
 message(STATUS "LIB_DIR: ${SOEM_LIB_INSTALL_DIR}")
 

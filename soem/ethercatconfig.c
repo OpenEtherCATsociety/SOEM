@@ -134,14 +134,14 @@ int ecx_detect_slaves(ecx_contextt *context)
    if (wkc > 0)
    {
       /* this is strictly "less than" since the master is "slave 0" */
-      if (wkc < EC_MAXSLAVE)
+      if (wkc < context->maxslave)
       {
          *(context->slavecount) = wkc;
       }
       else
       {
-         EC_PRINT("Error: too many slaves on network: num_slaves=%d, EC_MAXSLAVE=%d\n",
-               wkc, EC_MAXSLAVE);
+         EC_PRINT("Error: too many slaves on network: num_slaves=%d, max_slaves=%d\n",
+               wkc, context->maxslave);
          return EC_SLAVECOUNTEXCEEDED;
       }
    }

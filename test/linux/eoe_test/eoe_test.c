@@ -74,18 +74,18 @@ int eoe_hook(ecx_contextt * context, uint16 slave, void * eoembx)
    if (wkc > 0)
    {
       ec_etherheadert *bp = (ec_etherheadert *)rxbuf;
-      uint16 type = ntohs(bp->etype);
+      uint16 type = etohs(bp->etype);
       printf("Frameno %d, type 0x%x complete\n", rxframeno, type);
       if (type == ETH_P_ECAT)
       {
          /* Sanity check that received buffer still is OK */
          if (sizeof(txbuf) != size_of_rx)
          {
-            printf("Size differs, expected %d , received %d\n", sizeof(txbuf), size_of_rx);
+            printf("Size differs, expected %ld , received %d\n", sizeof(txbuf), size_of_rx);
          }
          else
          {
-            printf("Size OK, expected %d , received %d\n", sizeof(txbuf), size_of_rx);
+            printf("Size OK, expected %ld , received %d\n", sizeof(txbuf), size_of_rx);
          }
          /* Check that the TX and RX frames are EQ */
          if (memcmp(rxbuf, txbuf, size_of_rx))

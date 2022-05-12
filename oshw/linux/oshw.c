@@ -44,7 +44,7 @@ ec_adaptert * oshw_find_adapters(void)
    int i;
    struct if_nameindex *ids;
    ec_adaptert * adapter;
-   ec_adaptert * prev_adapter;
+   ec_adaptert * prev_adapter = NULL;
    ec_adaptert * ret_adapter = NULL;
 
 
@@ -60,7 +60,7 @@ ec_adaptert * oshw_find_adapters(void)
        * adapter.
        * Else save as pointer to return.
        */
-      if (i)
+      if (prev_adapter)
       {
          prev_adapter->next = adapter;
       }

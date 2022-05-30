@@ -328,14 +328,14 @@ int ecx_SDOread(ecx_contextt *context, uint16 slave, uint16 index, uint8 subinde
  * @return Workcounter from last slave response
  */
 int ecx_SDOwrite(ecx_contextt *context, uint16 Slave, uint16 Index, uint8 SubIndex,
-                boolean CA, int psize, void *p, int Timeout)
+                 boolean CA, int psize, const void *p, int Timeout)
 {
    ec_SDOt *SDOp, *aSDOp;
    int wkc, maxdata, framedatasize;
    ec_mbxbuft MbxIn, MbxOut;
    uint8 cnt, toggle;
    boolean  NotLast;
-   uint8 *hp;
+   const uint8 *hp;
 
    ec_clearmbx(&MbxIn);
    /* Empty slave out mailbox if something is in. Timeout set to 0 */
@@ -548,7 +548,7 @@ int ecx_SDOwrite(ecx_contextt *context, uint16 Slave, uint16 Index, uint8 SubInd
  * @param[out] p             = Pointer to PDO buffer
  * @return Workcounter from last slave response
  */
-int ecx_RxPDO(ecx_contextt *context, uint16 Slave, uint16 RxPDOnumber, int psize, void *p)
+int ecx_RxPDO(ecx_contextt *context, uint16 Slave, uint16 RxPDOnumber, int psize, const void *p)
 {
    ec_SDOt *SDOp;
    int wkc, maxdata, framedatasize;
@@ -1365,7 +1365,7 @@ int ec_SDOread(uint16 slave, uint16 index, uint8 subindex,
  * @see ecx_SDOwrite
  */
 int ec_SDOwrite(uint16 Slave, uint16 Index, uint8 SubIndex,
-                boolean CA, int psize, void *p, int Timeout)
+                boolean CA, int psize, const void *p, int Timeout)
 {
    return ecx_SDOwrite(&ecx_context, Slave, Index, SubIndex, CA, psize, p, Timeout);
 }
@@ -1381,7 +1381,7 @@ int ec_SDOwrite(uint16 Slave, uint16 Index, uint8 SubIndex,
  * @return Workcounter from last slave response
  * @see ecx_RxPDO
  */
-int ec_RxPDO(uint16 Slave, uint16 RxPDOnumber, int psize, void *p)
+int ec_RxPDO(uint16 Slave, uint16 RxPDOnumber, int psize, const void *p)
 {
    return ecx_RxPDO(&ecx_context, Slave, RxPDOnumber, psize, p);
 }

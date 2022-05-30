@@ -584,7 +584,7 @@ int ecx_RxPDO(ecx_contextt *context, uint16 Slave, uint16 RxPDOnumber, int psize
 
 /** CoE TxPDO read remote request, blocking.
  *
- * A RxPDO download request is issued.
+ * A TxPDO download request is issued.
  *
  * @param[in]  context       = context struct
  * @param[in]  slave         = Slave number
@@ -1388,7 +1388,7 @@ int ec_RxPDO(uint16 Slave, uint16 RxPDOnumber, int psize, const void *p)
 
 /** CoE TxPDO read remote request, blocking.
  *
- * A RxPDO download request is issued.
+ * A TxPDO download request is issued.
  *
  * @param[in]  slave         = Slave number
  * @param[in]  TxPDOnumber   = Related TxPDO number

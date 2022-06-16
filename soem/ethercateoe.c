@@ -420,6 +420,8 @@ int ecx_EOErecv(ecx_contextt *context, uint16 slave, uint8 port, int * psize, vo
    NotLast = TRUE;
    buffersize = *psize;
    rxfragmentno = 0;
+   rxframeno = 0xff;
+   rxframeoffset = 0;
    
    /* Hang for a while if nothing is in */
    wkc = ecx_mbxreceive(context, slave, (ec_mbxbuft *)&MbxIn, timeout);
@@ -446,7 +448,6 @@ int ecx_EOErecv(ecx_contextt *context, uint16 slave, uint8 port, int * psize, vo
 
          if (rxfragmentno == 0)
          {
-            rxframeoffset = 0;
             rxframeno = EOE_HDR_FRAME_NO_GET(frameinfo2);
             rxframesize = (EOE_HDR_FRAME_OFFSET_GET(frameinfo2) << 5);
             if (rxframesize > buffersize)

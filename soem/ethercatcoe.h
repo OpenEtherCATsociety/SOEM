@@ -61,10 +61,10 @@ typedef struct
 #ifdef EC_VER1
 void ec_SDOerror(uint16 Slave, uint16 Index, uint8 SubIdx, int32 AbortCode);
 int ec_SDOread(uint16 slave, uint16 index, uint8 subindex,
-                      boolean CA, int *psize, void *p, int timeout);
+               boolean CA, int *psize, void *p, int timeout);
 int ec_SDOwrite(uint16 Slave, uint16 Index, uint8 SubIndex,
-    boolean CA, int psize, void *p, int Timeout);
-int ec_RxPDO(uint16 Slave, uint16 RxPDOnumber , int psize, void *p);
+                boolean CA, int psize, const void *p, int Timeout);
+int ec_RxPDO(uint16 Slave, uint16 RxPDOnumber , int psize, const void *p);
 int ec_TxPDO(uint16 slave, uint16 TxPDOnumber , int *psize, void *p, int timeout);
 int ec_readPDOmap(uint16 Slave, uint32 *Osize, uint32 *Isize);
 int ec_readPDOmapCA(uint16 Slave, int Thread_n, uint32 *Osize, uint32 *Isize);
@@ -76,10 +76,10 @@ int ec_readOE(uint16 Item, ec_ODlistt *pODlist, ec_OElistt *pOElist);
 
 void ecx_SDOerror(ecx_contextt *context, uint16 Slave, uint16 Index, uint8 SubIdx, int32 AbortCode);
 int ecx_SDOread(ecx_contextt *context, uint16 slave, uint16 index, uint8 subindex,
-                      boolean CA, int *psize, void *p, int timeout);
+                boolean CA, int *psize, void *p, int timeout);
 int ecx_SDOwrite(ecx_contextt *context, uint16 Slave, uint16 Index, uint8 SubIndex,
-    boolean CA, int psize, void *p, int Timeout);
-int ecx_RxPDO(ecx_contextt *context, uint16 Slave, uint16 RxPDOnumber , int psize, void *p);
+                 boolean CA, int psize, const void *p, int Timeout);
+int ecx_RxPDO(ecx_contextt *context, uint16 Slave, uint16 RxPDOnumber , int psize, const void *p);
 int ecx_TxPDO(ecx_contextt *context, uint16 slave, uint16 TxPDOnumber , int *psize, void *p, int timeout);
 int ecx_readPDOmap(ecx_contextt *context, uint16 Slave, uint32 *Osize, uint32 *Isize);
 int ecx_readPDOmapCA(ecx_contextt *context, uint16 Slave, int Thread_n, uint32 *Osize, uint32 *Isize);

@@ -919,7 +919,7 @@ static void ecx_config_create_input_mappings(ecx_contextt *context, void *pIOmap
       }
    }
    /* search for SM that contribute to the input mapping */
-   while ((SMc < (EC_MAXSM - 1)) && (FMMUdone < ((context->slavelist[slave].Ibits + 7) / 8)))
+   while ((SMc < EC_MAXSM) && (FMMUdone < ((context->slavelist[slave].Ibits + 7) / 8)))
    {
       EC_PRINT("    FMMU %d\n", FMMUc);
       while ((SMc < (EC_MAXSM - 1)) && (context->slavelist[slave].SMtype[SMc] != 4))
@@ -1057,7 +1057,7 @@ static void ecx_config_create_output_mappings(ecx_contextt *context, void *pIOma
    configadr = context->slavelist[slave].configadr;
 
    /* search for SM that contribute to the output mapping */
-   while ((SMc < (EC_MAXSM - 1)) && (FMMUdone < ((context->slavelist[slave].Obits + 7) / 8)))
+   while ((SMc < EC_MAXSM) && (FMMUdone < ((context->slavelist[slave].Obits + 7) / 8)))
    {
       EC_PRINT("    FMMU %d\n", FMMUc);
       while ((SMc < (EC_MAXSM - 1)) && (context->slavelist[slave].SMtype[SMc] != 3))

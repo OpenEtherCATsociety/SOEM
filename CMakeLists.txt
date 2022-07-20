@@ -107,7 +107,9 @@ install(FILES
 
 if(BUILD_TESTS) 
   add_subdirectory(test/simple_ng)
-  add_subdirectory(test/linux/slaveinfo)
-  add_subdirectory(test/linux/eepromtool)
-  add_subdirectory(test/linux/simple_test)
+  add_subdirectory(test/win32/slaveinfo)
+  add_subdirectory(test/win32/eepromtool)
+  add_subdirectory(test/win32/simple_test)
+  add_subdirectory(test/win32/firm_update)
+  add_subdirectory(test/win32/eoe_test)
 endif()

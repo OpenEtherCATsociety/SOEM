@@ -15,12 +15,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <sys/time.h>
-#include <unistd.h>
+#include <time.h>
 
 #include "ethercat.h"
 
-#define FWBUFSIZE (8 * 1024 * 1024)
+#define FWBUFSIZE (16 * 1024 * 1024)
 
 uint8 ob;
 uint16 ow;
@@ -43,6 +42,7 @@ int input_bin(char *fname, int *length)
 	while (((c = fgetc(fp)) != EOF) && (cc < FWBUFSIZE))
 		filebuffer[cc++] = (uint8)c;
 	*length = cc;
+
 	fclose(fp);
 	return 1;
 }
@@ -106,7 +106,7 @@ void boottest(char *ifname, uint16 slave, char *filename)
 			if (ec_statecheck(slave, EC_STATE_BOOT,  EC_TIMEOUTSTATE * 10) == EC_STATE_BOOT)
 			{
 				printf("Slave %d state to BOOT.\n", slave);
-
+				filesize = 0;
 				if (input_bin(filename, &filesize))
 				{
 					printf("File read OK, %d bytes.\n",filesize);

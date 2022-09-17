@@ -716,6 +716,7 @@ int ecx_FPRD_multi(ecx_contextt *context, int n, uint16 *configlst, ec_alstatust
 }
 
 /** Read all slave states in ec_slave.
+ * @warning The BOOT state is actually higher than INIT and PRE_OP (see state representation)
  * @param[in] context = context struct
  * @return lowest state found
  */
@@ -753,9 +754,9 @@ int ecx_readstate(ecx_contextt *context)
 
    switch (bitwisestate)
    {
+       //Note: BOOT State collides with PRE_OP | INIT and cannot be used here
       case EC_STATE_INIT:
       case EC_STATE_PRE_OP:
-      case EC_STATE_BOOT:
       case EC_STATE_SAFE_OP:
       case EC_STATE_OPERATIONAL:
          allslavessamestate = TRUE;
@@ -851,7 +852,12 @@ int ecx_writestate(ecx_contextt *context, uint16 slave)
 
 /** Check actual slave state.
  * This is a blocking function.
- * To refresh the state of all slaves ecx_readstate()should be called
+ * To refresh the state of all slaves ecx_readstate() should be called
+ * @warning If this is used for slave 0 (=all slaves), the state of all slaves is read by an bitwise OR operation.
+ * The returned value is also the bitwise OR state of all slaves.
+ * This has some implications for the BOOT state. The Boot state representation collides with INIT | PRE_OP so this
+ * function cannot be used for slave = 0 and reqstate = EC_STATE_BOOT and also, if the returned state is BOOT, some
+ * slaves might actually be in INIT and PRE_OP and not in BOOT.
  * @param[in] context     = context struct
  * @param[in] slave       = Slave number, 0 = all slaves (only the "slavelist[0].state" is refreshed)
  * @param[in] reqstate    = Requested state
@@ -2137,6 +2143,7 @@ uint32 ec_siiPDO(uint16 slave, ec_eepromPDOt* PDO, uint8 t)
 }
 
 /** Read all slave states in ec_slave.
+ * @warning The BOOT state is actually higher than INIT and PRE_OP (see state representation).
  * @return lowest state found
  * @see ecx_readstate
  */
@@ -2158,6 +2165,12 @@ int ec_writestate(uint16 slave)
 
 /** Check actual slave state.
  * This is a blocking function.
+ * To refresh the state of all slaves ecx_readstate() should be called.
+ * @warning If this is used for slave 0 (=all slaves), the state of all slaves is read by an bitwise OR operation.
+ * The returned value is also the bitwise OR state of all slaves.
+ * This has some implications for the BOOT state. The Boot state representation collides with INIT | PRE_OP so this
+ * function cannot be used for slave = 0 and reqstate = EC_STATE_BOOT and also, if the returned state is BOOT, some
+ * slaves might actually be in INIT and PRE_OP and not in BOOT.
  * @param[in] slave       = Slave number, 0 = all slaves
  * @param[in] reqstate    = Requested state
  * @param[in] timeout     = Timeout value in us

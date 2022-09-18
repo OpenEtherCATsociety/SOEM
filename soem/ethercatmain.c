@@ -754,7 +754,7 @@ int ecx_readstate(ecx_contextt *context)
 
    switch (bitwisestate)
    {
-       //Note: BOOT State collides with PRE_OP | INIT and cannot be used here
+       /* Note: BOOT State collides with PRE_OP | INIT and cannot be used here */
       case EC_STATE_INIT:
       case EC_STATE_PRE_OP:
       case EC_STATE_SAFE_OP:

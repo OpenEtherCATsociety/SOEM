@@ -24,6 +24,7 @@ boolean needlf;
 volatile int wkc;
 boolean inOP;
 uint8 currentgroup = 0;
+boolean forceByteAlignment = FALSE;
 
 void simpletest(char *ifname)
 {
@@ -44,7 +45,14 @@ void simpletest(char *ifname)
       {
          printf("%d slaves found and configured.\n",ec_slavecount);
 
-         ec_config_map(&IOmap);
+         if (forceByteAlignment)
+         {
+            ec_config_map_aligned(&IOmap);
+         }
+         else
+         {
+            ec_config_map(&IOmap);
+         }
 
          ec_configdc();
 

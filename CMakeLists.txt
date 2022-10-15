@@ -10,9 +10,6 @@ if (CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
   set(CMAKE_INSTALL_PREFIX ${CMAKE_CURRENT_LIST_DIR}/install)
 endif()
 
-set(SOEM_INCLUDE_INSTALL_DIR include/soem)
-set(SOEM_LIB_INSTALL_DIR lib)
-
 if(CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
   set(BUILD_TESTS TRUE)
 else()
@@ -22,12 +19,25 @@ endif()
 
 if(WIN32)
   set(OS "win32")
-  include_directories(oshw/win32/wpcap/Include)
+  
+  set(ADDITIONAL_INCLUDE_BUILD "oshw/win32/wpcap/Include" "oshw/win32/wpcap/Include/pcap")
+  set(ADDITIONAL_INCLUDE_INSTALL "include/wpcap/pcap" "include/wpcap" )
+  install(DIRECTORY "${CMAKE_SOURCE_DIR}/oshw/win32/wpcap/Include/" # source directory
+        DESTINATION "include/wpcap" # target directory
+        FILES_MATCHING # install only matched files
+        PATTERN "*.h" # select header files
+	)
+  
   if(CMAKE_SIZEOF_VOID_P EQUAL 8)
     link_directories(${CMAKE_CURRENT_LIST_DIR}/oshw/win32/wpcap/Lib/x64)
   elseif(CMAKE_SIZEOF_VOID_P EQUAL 4)
     link_directories(${CMAKE_CURRENT_LIST_DIR}/oshw/win32/wpcap/Lib)
   endif()
+  install(DIRECTORY "${CMAKE_SOURCE_DIR}/oshw/win32/wpcap" # source directory
+        DESTINATION "lib/" # target directory
+        FILES_MATCHING # install only matched files
+        PATTERN "*.lib" # select header files
+	)
   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /D _CRT_SECURE_NO_WARNINGS")
   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS}  /WX")
   set(OS_LIBS wpcap.lib Packet.lib Ws2_32.lib Winmm.lib)
@@ -74,32 +84,32 @@ add_library(soem STATIC
   ${OSAL_SOURCES}
   ${OSHW_SOURCES}
   ${OSHW_EXTRA_SOURCES})
-  
+
+set(SOEM_INCLUDE_INSTALL_DIR include/soem)
+set(SOEM_LIB_INSTALL_DIR lib)
   
 set_target_properties(soem PROPERTIES
 			RELEASE_POSTFIX "-${CMAKE_VS_PLATFORM_TOOLSET}-${CMAKE_GENERATOR_PLATFORM}-${RUNTIME_INFO}"
 			RELWITHDEBINFO_POSTFIX "-${CMAKE_VS_PLATFORM_TOOLSET}-${CMAKE_GENERATOR_PLATFORM}-${RUNTIME_INFO}-relwithdebinfo"
 			MINSIZEREL_POSTFIX "-${CMAKE_VS_PLATFORM_TOOLSET}-${CMAKE_GENERATOR_PLATFORM}-${RUNTIME_INFO}-minsizerel"
 			DEBUG_POSTFIX "-${CMAKE_VS_PLATFORM_TOOLSET}-${CMAKE_GENERATOR_PLATFORM}-${RUNTIME_INFO}-debug")  
-  
+
 target_link_libraries(soem ${OS_LIBS})
 
 target_include_directories(soem PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/soem>
-  $<INSTALL_INTERFACE:include/soem>)
-
-target_include_directories(soem PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/osal>
-  $<INSTALL_INTERFACE:include/soem>)
-
-target_include_directories(soem PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/osal/${OS}>
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/oshw/${OS}>
   $<INSTALL_INTERFACE:include/soem>)
-
-target_include_directories(soem
-  PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/oshw/${OS}>
-  $<INSTALL_INTERFACE:include/soem>
-  )
+  
+foreach(folder ${ADDITIONAL_INCLUDE_BUILD})
+  target_include_directories(soem PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/${folder}>)
+endforeach() 
+  
+foreach(folder ${ADDITIONAL_INCLUDE_INSTALL})
+  target_include_directories(soem PUBLIC $<INSTALL_INTERFACE:${folder}>)
+endforeach()
 
 message(STATUS "LIB_DIR: ${SOEM_LIB_INSTALL_DIR}")
 

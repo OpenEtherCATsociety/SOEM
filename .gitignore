@@ -4,3 +4,5 @@ install
 /doc/latex
 /doc/html
 tags
+cmake-build*
+.idea/*

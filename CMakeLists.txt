@@ -10,9 +10,6 @@ if (CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
   set(CMAKE_INSTALL_PREFIX ${CMAKE_CURRENT_LIST_DIR}/install)
 endif()
 
-set(SOEM_INCLUDE_INSTALL_DIR include/soem)
-set(SOEM_LIB_INSTALL_DIR lib)
-
 if(CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
   set(BUILD_TESTS TRUE)
 else()
@@ -97,17 +94,15 @@ target_include_directories(soem PUBLIC
   $<INSTALL_INTERFACE:include/soem>
   )
 
-message(STATUS "LIB_DIR: ${SOEM_LIB_INSTALL_DIR}")
 
-install(TARGETS soem EXPORT soemConfig DESTINATION ${SOEM_LIB_INSTALL_DIR})
-
+install(TARGETS soem EXPORT soemConfig DESTINATION lib)
 install(EXPORT soemConfig DESTINATION cmake)
 
 install(FILES
   ${SOEM_HEADERS}
   ${OSAL_HEADERS}
   ${OSHW_HEADERS}
-  DESTINATION ${SOEM_INCLUDE_INSTALL_DIR})
+  DESTINATION include/soem)
 
 if(BUILD_TESTS) 
   add_subdirectory(test/simple_ng)

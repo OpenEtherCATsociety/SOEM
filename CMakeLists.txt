@@ -19,7 +19,6 @@ endif()
 
 if(WIN32)
   set(OS "win32")
-  include_directories(oshw/win32/wpcap/Include)
   if(CMAKE_SIZEOF_VOID_P EQUAL 8)
     SET(OS_LIBS Ws2_32.lib Winmm.lib
       \$<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/oshw/win32/wpcap/Lib/x64/wpcap.lib>
@@ -33,6 +32,17 @@ if(WIN32)
       \$<INSTALL_INTERFACE:\$\{_IMPORT_PREFIX\}/lib/wpcap/wpcap.lib>
       \$<INSTALL_INTERFACE:\$\{_IMPORT_PREFIX\}/lib/wpcap/Packet.lib>)
   endif()
+  
+  set(OS_INCLUDE
+    \$<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/oshw/win32/wpcap/Include>
+    \$<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/oshw/win32/wpcap/Include/pcap>
+    \$<INSTALL_INTERFACE:include/wpcap/pcap>
+    \$<INSTALL_INTERFACE:include/wpcap>)
+
+  install(DIRECTORY "${CMAKE_SOURCE_DIR}/oshw/win32/wpcap/Include/"
+    DESTINATION "include/wpcap"
+    FILES_MATCHING
+    PATTERN "*.h")
     
   install(DIRECTORY "${CMAKE_SOURCE_DIR}/oshw/win32/wpcap/Lib/" 
     DESTINATION "lib/wpcap"
@@ -92,8 +102,7 @@ target_include_directories(soem PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/osal/${OS}>
   $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/oshw/${OS}>
   $<INSTALL_INTERFACE:include/soem>
-  )
-
+  ${OS_INCLUDE})
 
 install(TARGETS soem EXPORT soemConfig DESTINATION lib)
 install(EXPORT soemConfig DESTINATION cmake)

@@ -24,13 +24,26 @@ if(WIN32)
   set(OS "win32")
   include_directories(oshw/win32/wpcap/Include)
   if(CMAKE_SIZEOF_VOID_P EQUAL 8)
-    link_directories(${CMAKE_CURRENT_LIST_DIR}/oshw/win32/wpcap/Lib/x64)
+    SET(OS_LIBS Ws2_32.lib Winmm.lib
+      \$<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/oshw/win32/wpcap/Lib/x64/wpcap.lib>
+      \$<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/oshw/win32/wpcap/Lib/x64/Packet.lib>
+      \$<INSTALL_INTERFACE:\$\{_IMPORT_PREFIX\}/lib/wpcap/x64/wpcap.lib>
+      \$<INSTALL_INTERFACE:\$\{_IMPORT_PREFIX\}/lib/wpcap/x64/Packet.lib>)
   elseif(CMAKE_SIZEOF_VOID_P EQUAL 4)
-    link_directories(${CMAKE_CURRENT_LIST_DIR}/oshw/win32/wpcap/Lib)
+    SET(OS_LIBS Ws2_32.lib Winmm.lib
+      \$<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/oshw/win32/wpcap/Lib/wpcap.lib>
+      \$<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/oshw/win32/wpcap/Lib/Packet.lib>
+      \$<INSTALL_INTERFACE:\$\{_IMPORT_PREFIX\}/lib/wpcap/wpcap.lib>
+      \$<INSTALL_INTERFACE:\$\{_IMPORT_PREFIX\}/lib/wpcap/Packet.lib>)
   endif()
+    
+  install(DIRECTORY "${CMAKE_SOURCE_DIR}/oshw/win32/wpcap/Lib/" 
+    DESTINATION "lib/wpcap"
+    FILES_MATCHING
+    PATTERN "*.lib")
+  
   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /D _CRT_SECURE_NO_WARNINGS")
   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS}  /WX")
-  set(OS_LIBS wpcap.lib Packet.lib Ws2_32.lib Winmm.lib)
 elseif(UNIX AND NOT APPLE)
   set(OS "linux")
   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Wextra -Werror")

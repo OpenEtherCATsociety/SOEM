@@ -91,18 +91,9 @@ target_link_libraries(soem ${OS_LIBS})
 
 target_include_directories(soem PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/soem>
-  $<INSTALL_INTERFACE:include/soem>)
-
-target_include_directories(soem PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/osal>
-  $<INSTALL_INTERFACE:include/soem>)
-
-target_include_directories(soem PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/osal/${OS}>
-  $<INSTALL_INTERFACE:include/soem>)
-
-target_include_directories(soem
-  PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/oshw/${OS}>
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/oshw/${OS}>
   $<INSTALL_INTERFACE:include/soem>
   )
 

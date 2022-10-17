@@ -94,6 +94,16 @@ add_library(soem STATIC
   ${OSAL_SOURCES}
   ${OSHW_SOURCES}
   ${OSHW_EXTRA_SOURCES})
+
+if(WIN32)
+    SET(ADD_INFO -${CMAKE_VS_PLATFORM_TOOLSET}-${CMAKE_GENERATOR_PLATFORM}-${RUNTIME_INFO})
+endif()
+set_target_properties(soem PROPERTIES
+  RELEASE_POSTFIX "${ADD_INFO}"
+  RELWITHDEBINFO_POSTFIX "${ADD_INFO}-relwithdebinfo"
+  MINSIZEREL_POSTFIX "${ADD_INFO}-minsizerel"
+  DEBUG_POSTFIX "${ADD_INFO}-debug")
+
 target_link_libraries(soem ${OS_LIBS})
 
 target_include_directories(soem PUBLIC

@@ -101,7 +101,7 @@ message(STATUS "LIB_DIR: ${SOEM_LIB_INSTALL_DIR}")
 
 install(TARGETS soem EXPORT soemConfig DESTINATION ${SOEM_LIB_INSTALL_DIR})
 
-install(EXPORT soemConfig DESTINATION share/soem/cmake)
+install(EXPORT soemConfig DESTINATION cmake)
 
 install(FILES
   ${SOEM_HEADERS}

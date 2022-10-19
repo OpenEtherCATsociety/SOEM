@@ -1175,16 +1175,7 @@ static void ecx_config_create_output_mappings(ecx_contextt *context, void *pIOma
       context->grouplist[group].outputsWKC++;
 }
 
-/** Map all PDOs in one group of slaves to IOmap with Outputs/Inputs
-* in sequential order (legacy SOEM way).
-*
- *
- * @param[in]  context    = context struct
- * @param[out] pIOmap     = pointer to IOmap
- * @param[in]  group      = group to map, 0 = all groups
- * @return IOmap size
- */
-int ecx_config_map_group(ecx_contextt *context, void *pIOmap, uint8 group)
+static int ecx_main_config_map_group(ecx_contextt *context, void *pIOmap, uint8 group, boolean forceByteAlignment)
 {
    uint16 slave, configadr;
    uint8 BitPos;
@@ -1218,6 +1209,17 @@ int ecx_config_map_group(ecx_contextt *context, void *pIOmap, uint8 group)
             if (context->slavelist[slave].Obits)
             {
                ecx_config_create_output_mappings (context, pIOmap, group, slave, &LogAddr, &BitPos);
+
+               if (forceByteAlignment)
+               {
+                  /* Force byte alignment if the output is < 8 bits */
+                  if (BitPos)
+                  {
+                     LogAddr++;
+                     BitPos = 0;
+                  }
+               } 
+
                diff = LogAddr - oLogAddr;
                oLogAddr = LogAddr;
                if ((segmentsize + diff) > (EC_MAXLRWDATA - EC_FIRSTDCDATAGRAM))
@@ -1278,6 +1280,17 @@ int ecx_config_map_group(ecx_contextt *context, void *pIOmap, uint8 group)
             {
  
                ecx_config_create_input_mappings(context, pIOmap, group, slave, &LogAddr, &BitPos);
+               
+               if (forceByteAlignment)
+               {
+                  /* Force byte alignment if the input is < 8 bits */
+                  if (BitPos)
+                  {
+                     LogAddr++;
+                     BitPos = 0;
+                  }
+               } 
+
                diff = LogAddr - oLogAddr;
                oLogAddr = LogAddr;
                if ((segmentsize + diff) > (EC_MAXLRWDATA - EC_FIRSTDCDATAGRAM))
@@ -1352,6 +1365,34 @@ int ecx_config_map_group(ecx_contextt *context, void *pIOmap, uint8 group)
    }
 
    return 0;
+}
+
+/** Map all PDOs in one group of slaves to IOmap with Outputs/Inputs
+* in sequential order (legacy SOEM way).
+*
+ *
+ * @param[in]  context    = context struct
+ * @param[out] pIOmap     = pointer to IOmap
+ * @param[in]  group      = group to map, 0 = all groups
+ * @return IOmap size
+ */
+int ecx_config_map_group(ecx_contextt *context, void *pIOmap, uint8 group)
+{
+   return ecx_main_config_map_group(context, pIOmap, group, FALSE);
+}
+
+/** Map all PDOs in one group of slaves to IOmap with Outputs/Inputs
+* in sequential order (legacy SOEM way) and force byte alignement.
+*
+ *
+ * @param[in]  context    = context struct
+ * @param[out] pIOmap     = pointer to IOmap
+ * @param[in]  group      = group to map, 0 = all groups
+ * @return IOmap size
+ */
+int ecx_config_map_group_aligned(ecx_contextt *context, void *pIOmap, uint8 group)
+{
+   return ecx_main_config_map_group(context, pIOmap, group, TRUE);
 }
 
 /** Map all PDOs in one group of slaves to IOmap with Outputs/Inputs
@@ -1659,6 +1700,19 @@ int ec_config_overlap_map_group(void *pIOmap, uint8 group)
    return ecx_config_overlap_map_group(&ecx_context, pIOmap, group);
 }
 
+/** Map all PDOs in one group of slaves to IOmap with Outputs/Inputs
+ * in sequential order (legacy SOEM way) and force byte alignment.
+ *
+ * @param[out] pIOmap     = pointer to IOmap
+ * @param[in]  group      = group to map, 0 = all groups
+ * @return IOmap size
+ * @see ecx_config_map_group
+ */
+int ec_config_map_group_aligned(void *pIOmap, uint8 group)
+{
+   return ecx_config_map_group_aligned(&ecx_context, pIOmap, group);
+}
+
 /** Map all PDOs from slaves to IOmap with Outputs/Inputs
  * in sequential order (legacy SOEM way).
  *
@@ -1679,6 +1733,17 @@ int ec_config_map(void *pIOmap)
 int ec_config_overlap_map(void *pIOmap)
 {
    return ec_config_overlap_map_group(pIOmap, 0);
+}
+
+/** Map all PDOs from slaves to IOmap with Outputs/Inputs
+ * in sequential order (legacy SOEM way) and force byte alignment.
+ *
+ * @param[out] pIOmap     = pointer to IOmap
+ * @return IOmap size
+ */
+int ec_config_map_aligned(void *pIOmap)
+{
+   return ec_config_map_group_aligned(pIOmap, 0);
 }
 
 /** Enumerate / map and init all slaves.

@@ -394,7 +394,7 @@ int si_map_sdo(int slave)
 
 int si_siiPDO(uint16 slave, uint8 t, int mapoffset, int bitoffset)
 {
-    uint16 a , w, c, e, er, Size;
+    uint16 a , w, c, e, er;
     uint8 eectl;
     uint16 obj_idx;
     uint8 obj_subidx;
@@ -408,7 +408,7 @@ int si_siiPDO(uint16 slave, uint8 t, int mapoffset, int bitoffset)
     char str_name[EC_MAXNAME + 1];
 
     eectl = ec_slave[slave].eep_pdi;
-    Size = 0;
+
     totalsize = 0;
     PDO = &eepPDO;
     PDO->nPDO = 0;
@@ -480,7 +480,6 @@ int si_siiPDO(uint16 slave, uint8 t, int mapoffset, int bitoffset)
                     totalsize += bitlen;
                 }
                 PDO->SMbitsize[ PDO->SyncM[PDO->nPDO] ] += PDO->BitSize[PDO->nPDO];
-                Size += PDO->BitSize[PDO->nPDO];
                 c++;
             }
             else /* PDO deactivated because SM is 0xff or > EC_MAXSM */

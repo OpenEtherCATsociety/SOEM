@@ -1,7 +1,7 @@
 /** \file
  * \brief Example code for Simple Open EtherCAT master
  *
- * Usage : red_test [ifname1] [ifname2] [cycletime]
+ * Usage : red_test [ifname1] [cycletime]
  * ifname is NIC interface, f.e. eth0
  * cycletime in us, f.e. 500
  *
@@ -45,17 +45,16 @@ boolean inOP;
 uint8 currentgroup = 0;
 
 
-void redtest(char *ifname, char *ifname2)
+void redtest(char *ifname)
 {
    int cnt, i, j, oloop, iloop;
 
    printf("Starting Redundant test\n");
 
    /* initialise SOEM, bind socket to ifname */
-//   if (ec_init_redundant(ifname, ifname2))
    if (ec_init(ifname))
    {
-      printf("ec_init on %s succeeded.\n",ifname);
+      printf("ec_init on %s succeeded.\n",ifname); 
       /* find and auto-config slaves */
       if ( ec_config(FALSE, &IOmap) > 0 )
       {
@@ -73,8 +72,8 @@ void redtest(char *ifname, char *ifname2)
             printf("Slave:%d Name:%s Output size:%3dbits Input size:%3dbits State:%2d delay:%d.%d\n",
                   cnt, ec_slave[cnt].name, ec_slave[cnt].Obits, ec_slave[cnt].Ibits,
                   ec_slave[cnt].state, (int)ec_slave[cnt].pdelay, ec_slave[cnt].hasdc);
-            printf("         Out:%8.8x,%4d In:%8.8x,%4d\n",
-                  (int)ec_slave[cnt].outputs, ec_slave[cnt].Obytes, (int)ec_slave[cnt].inputs, ec_slave[cnt].Ibytes);
+            printf("         Out:%8.8ld,%4d In:%8.8ld,%4d\n",
+                  (intptr_t)ec_slave[cnt].outputs, ec_slave[cnt].Obytes, (intptr_t)ec_slave[cnt].inputs, ec_slave[cnt].Ibytes);
             /* check for EL2004 or EL2008 */
             if( !digout && ((ec_slave[cnt].eep_id == 0x0af83052) || (ec_slave[cnt].eep_id == 0x07d83052)))
             {
@@ -105,7 +104,7 @@ void redtest(char *ifname, char *ifname2)
             /* acyclic loop 5000 x 20ms = 10s */
             for(i = 1; i <= 5000; i++)
             {
-               printf("Processdata cycle %5d , Wck %3d, DCtime %12lld, dt %12lld, O:",
+               printf("Processdata cycle %5d , Wck %3d, DCtime %12ld, dt %12ld, O:",
                   dorun, wkc , ec_DCtime, gl_delta);
                for(j = 0 ; j < oloop; j++)
                {
@@ -227,6 +226,7 @@ OSAL_THREAD_FUNC_RT ecatthread(void *ptr)
 OSAL_THREAD_FUNC ecatcheck( void *ptr )
 {
     int slave;
+    (void)ptr;
 
     while(1)
     {
@@ -308,10 +308,10 @@ int main(int argc, char *argv[])
 
    printf("SOEM (Simple Open EtherCAT Master)\nRedundancy test\n");
 
-   if (argc > 3)
+   if (argc > 2)
    {
       dorun = 0;
-      ctime = atoi(argv[3]);
+      ctime = atoi(argv[2]);
 
       /* create RT thread */
       osal_thread_create_rt(&thread1, stack64k * 2, &ecatthread, (void*) &ctime);
@@ -320,11 +320,11 @@ int main(int argc, char *argv[])
       osal_thread_create(&thread2, stack64k * 4, &ecatcheck, NULL);
 
       /* start acyclic part */
-      redtest(argv[1],argv[2]);
+      redtest(argv[1]);
    }
    else
    {
-      printf("Usage: red_test ifname1 ifname2 cycletime\nifname = eth0 for example\ncycletime in us\n");
+      printf("Usage: red_test ifname1 cycletime\nifname = eth0 for example\ncycletime in us\n");
    }
 
    printf("End program\n");

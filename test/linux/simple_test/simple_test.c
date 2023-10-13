@@ -235,7 +235,6 @@ int main(int argc, char *argv[])
    if (argc > 1)
    {
       /* create thread to handle slave error handling in OP */
-//      pthread_create( &thread1, NULL, (void *) &ecatcheck, NULL);
       osal_thread_create(&thread1, 128000, &ecatcheck, NULL);
       /* start cyclic part */
       simpletest(argv[1]);

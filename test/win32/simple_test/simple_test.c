@@ -350,7 +350,7 @@ int main(int argc, char *argv[])
    if (argc > 1)
    {
       /* create thread to handle slave error handling in OP */
-      osal_thread_create(&thread1, 128000, &ecatcheck, (void*) &ctime);
+      osal_thread_create(&thread1, 128000, &ecatcheck, NULL);
       strcpy(ifbuf, argv[1]);
       /* start cyclic part */
       simpletest(ifbuf);

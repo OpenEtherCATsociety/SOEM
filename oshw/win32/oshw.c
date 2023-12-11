@@ -35,7 +35,6 @@ uint16 oshw_ntohs (uint16 network)
 ec_adaptert * oshw_find_adapters (void)
 {
    int i = 0;
-   int ret = 0;
    pcap_if_t *alldevs;
    pcap_if_t *d;
    ec_adaptert * adapter;

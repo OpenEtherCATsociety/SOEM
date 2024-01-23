@@ -457,6 +457,7 @@ int main(int argc, char *argv[])
    else
    {
       ec_adaptert * adapter = NULL;
+      ec_adaptert * head = NULL;
 
       printf("Usage: eepromtool ifname slave OPTION fname|alias\n");
       printf("ifname = eth0 for example\n");
@@ -469,13 +470,13 @@ int main(int argc, char *argv[])
       printf("    -wi     write EEPROM, input Intel Hex format\n");
 
       printf ("\nAvailable adapters:\n");
-      adapter = ec_find_adapters ();
+      head = adapter = ec_find_adapters ();
       while (adapter != NULL)
       {
          printf ("    - %s  (%s)\n", adapter->name, adapter->desc);
          adapter = adapter->next;
       }
-      ec_free_adapters(adapter);
+      ec_free_adapters(head);
    }
 
    printf("End program\n");

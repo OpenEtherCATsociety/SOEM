@@ -349,6 +349,7 @@ void eepromtool(char *ifname, int slave, int mode, char *fname)
 int main(int argc, char *argv[])
 {
    ec_adaptert * adapter = NULL;
+   ec_adaptert * head = NULL;
    printf("SOEM (Simple Open EtherCAT Master)\nEEPROM tool\n");
 
    if (argc > 4)
@@ -374,12 +375,13 @@ int main(int argc, char *argv[])
       printf("    -wi     write EEPROM, input Intel Hex format\n");
    	/* Print the list */
       printf ("Available adapters\n");
-      adapter = ec_find_adapters ();
+      head = adapter = ec_find_adapters ();
       while (adapter != NULL)
       {
          printf ("Description : %s, Device to use for wpcap: %s\n", adapter->desc,adapter->name);
          adapter = adapter->next;
       }
+      ec_free_adapters(adapter);
    }
 
    printf("End program\n");

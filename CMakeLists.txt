@@ -22,7 +22,7 @@ endif()
 
 if(WIN32)
   set(OS "win32")
-  include_directories(oshw/win32/wpcap/Include)
+  set(EXTERNAL_LIB_INC_PATH ${CMAKE_CURRENT_LIST_DIR}/oshw/win32/wpcap/Include)
   if(CMAKE_SIZEOF_VOID_P EQUAL 8)
     set(EXTERNAL_LIB_PATH ${CMAKE_CURRENT_LIST_DIR}/oshw/win32/wpcap/Lib/x64)
   elseif(CMAKE_SIZEOF_VOID_P EQUAL 4)
@@ -93,6 +93,9 @@ target_include_directories(soem
   $<INSTALL_INTERFACE:include/soem>
   )
 
+target_include_directories(soem PUBLIC
+  $<BUILD_INTERFACE:${EXTERNAL_LIB_INC_PATH}>)
+  
 message(STATUS "LIB_DIR: ${SOEM_LIB_INSTALL_DIR}")
 
 install(TARGETS soem EXPORT soemConfig DESTINATION ${SOEM_LIB_INSTALL_DIR})

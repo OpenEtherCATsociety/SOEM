@@ -90,7 +90,7 @@ enum
  * differentiate the route the packet traverses through the EtherCAT
  * segment. This is needed to find out the packet flow in redundant
  * configurations. */
-const uint16 priMAC[3] = { 0x0101, 0x0101, 0x0101 };
+const uint16 priMAC[3] = { 0x0001, 0x0101, 0x0101 };
 /** Secondary source MAC address used for EtherCAT. */
 const uint16 secMAC[3] = { 0x0404, 0x0404, 0x0404 };
 

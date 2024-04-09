@@ -711,14 +711,16 @@ int main(int argc, char *argv[])
    }
    else
    {
+      ec_adaptert * node;
       printf("Usage: slaveinfo ifname [options]\nifname = eth0 for example\nOptions :\n -sdo : print SDO info\n -map : print mapping\n");
 
       printf ("Available adapters\n");
       adapter = ec_find_adapters ();
-      while (adapter != NULL)
+      node = adapter;
+      while (node != NULL)
       {
-         printf ("Description : %s, Device to use for wpcap: %s\n", adapter->desc,adapter->name);
-         adapter = adapter->next;
+         printf ("Description : %s, Device to use for wpcap: %s\n", node->desc,node->name);
+         node = node->next;
       }
       ec_free_adapters(adapter);
    }

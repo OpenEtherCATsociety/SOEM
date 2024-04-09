@@ -457,6 +457,7 @@ int main(int argc, char *argv[])
    else
    {
       ec_adaptert * adapter = NULL;
+      ec_adaptert * node = NULL;
 
       printf("Usage: eepromtool ifname slave OPTION fname|alias\n");
       printf("ifname = eth0 for example\n");
@@ -470,10 +471,11 @@ int main(int argc, char *argv[])
 
       printf ("\nAvailable adapters:\n");
       adapter = ec_find_adapters ();
-      while (adapter != NULL)
+      node = adapter;
+      while (node != NULL)
       {
-         printf ("    - %s  (%s)\n", adapter->name, adapter->desc);
-         adapter = adapter->next;
+         printf ("    - %s  (%s)\n", node->name, node->desc);
+         node = node->next;
       }
       ec_free_adapters(adapter);
    }

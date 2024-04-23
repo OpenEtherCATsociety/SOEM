@@ -25,12 +25,13 @@ if(WIN32)
   include_directories(oshw/win32/wpcap/Include)
   if(CMAKE_SIZEOF_VOID_P EQUAL 8)
     link_directories(${CMAKE_CURRENT_LIST_DIR}/oshw/win32/wpcap/Lib/x64)
+    set(OS_LIBS ${CMAKE_CURRENT_LIST_DIR}/oshw/win32/wpcap/Lib/x64/wpcap.lib ${CMAKE_CURRENT_LIST_DIR}/oshw/win32/wpcap/Lib/x64/Packet.lib Ws2_32.lib Winmm.lib)
   elseif(CMAKE_SIZEOF_VOID_P EQUAL 4)
     link_directories(${CMAKE_CURRENT_LIST_DIR}/oshw/win32/wpcap/Lib)
+    set(OS_LIBS ${CMAKE_CURRENT_LIST_DIR}/oshw/win32/wpcap/Lib/wpcap.lib ${CMAKE_CURRENT_LIST_DIR}/oshw/win32/wpcap/Lib/Packet.lib Ws2_32.lib Winmm.lib)
   endif()
   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /D _CRT_SECURE_NO_WARNINGS")
   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS}  /WX")
-  set(OS_LIBS wpcap.lib Packet.lib Ws2_32.lib Winmm.lib)
 elseif(UNIX AND NOT APPLE)
   set(OS "linux")
   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Wextra -Werror")
@@ -76,6 +77,8 @@ add_library(soem STATIC
   ${OSHW_EXTRA_SOURCES})
 target_link_libraries(soem ${OS_LIBS})
 
+target_compile_definitions(soem PUBLIC __STDC_LIMIT_MACROS __STDC_CONSTANT_MACROS)
+
 target_include_directories(soem PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/soem>
   $<INSTALL_INTERFACE:include/soem>)
@@ -92,6 +95,13 @@ target_include_directories(soem
   PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/oshw/${OS}>
   $<INSTALL_INTERFACE:include/soem>
   )
+
+if(WIN32)
+  target_include_directories(soem
+    PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/oshw/${OS}/wpcap/Include>
+    $<INSTALL_INTERFACE:include/soem>)
+endif()
+
 
 message(STATUS "LIB_DIR: ${SOEM_LIB_INSTALL_DIR}")
 

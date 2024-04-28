@@ -10,9 +10,6 @@ if (CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
   set(CMAKE_INSTALL_PREFIX ${CMAKE_CURRENT_LIST_DIR}/install)
 endif()
 
-set(SOEM_INCLUDE_INSTALL_DIR include/soem)
-set(SOEM_LIB_INSTALL_DIR lib)
-
 if(CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
   set(BUILD_TESTS TRUE)
 else()
@@ -22,15 +19,38 @@ endif()
 
 if(WIN32)
   set(OS "win32")
-  include_directories(oshw/win32/wpcap/Include)
   if(CMAKE_SIZEOF_VOID_P EQUAL 8)
-    link_directories(${CMAKE_CURRENT_LIST_DIR}/oshw/win32/wpcap/Lib/x64)
+    SET(OS_LIBS Ws2_32.lib Winmm.lib
+      \$<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/oshw/win32/wpcap/Lib/x64/wpcap.lib>
+      \$<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/oshw/win32/wpcap/Lib/x64/Packet.lib>
+      \$<INSTALL_INTERFACE:\$\{_IMPORT_PREFIX\}/lib/wpcap/x64/wpcap.lib>
+      \$<INSTALL_INTERFACE:\$\{_IMPORT_PREFIX\}/lib/wpcap/x64/Packet.lib>)
   elseif(CMAKE_SIZEOF_VOID_P EQUAL 4)
-    link_directories(${CMAKE_CURRENT_LIST_DIR}/oshw/win32/wpcap/Lib)
+    SET(OS_LIBS Ws2_32.lib Winmm.lib
+      \$<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/oshw/win32/wpcap/Lib/wpcap.lib>
+      \$<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/oshw/win32/wpcap/Lib/Packet.lib>
+      \$<INSTALL_INTERFACE:\$\{_IMPORT_PREFIX\}/lib/wpcap/wpcap.lib>
+      \$<INSTALL_INTERFACE:\$\{_IMPORT_PREFIX\}/lib/wpcap/Packet.lib>)
   endif()
+  
+  set(OS_INCLUDE
+    \$<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/oshw/win32/wpcap/Include>
+    \$<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/oshw/win32/wpcap/Include/pcap>
+    \$<INSTALL_INTERFACE:include/wpcap/pcap>
+    \$<INSTALL_INTERFACE:include/wpcap>)
+
+  install(DIRECTORY "${CMAKE_SOURCE_DIR}/oshw/win32/wpcap/Include/"
+    DESTINATION "include/wpcap"
+    FILES_MATCHING
+    PATTERN "*.h")
+    
+  install(DIRECTORY "${CMAKE_SOURCE_DIR}/oshw/win32/wpcap/Lib/" 
+    DESTINATION "lib/wpcap"
+    FILES_MATCHING
+    PATTERN "*.lib")
+  
   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /D _CRT_SECURE_NO_WARNINGS")
   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS}  /WX")
-  set(OS_LIBS wpcap.lib Packet.lib Ws2_32.lib Winmm.lib)
 elseif(UNIX AND NOT APPLE)
   set(OS "linux")
   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Wextra -Werror")
@@ -74,36 +94,34 @@ add_library(soem STATIC
   ${OSAL_SOURCES}
   ${OSHW_SOURCES}
   ${OSHW_EXTRA_SOURCES})
+
+if(WIN32)
+    SET(ADD_INFO -${CMAKE_VS_PLATFORM_TOOLSET}-${CMAKE_GENERATOR_PLATFORM}-${RUNTIME_INFO})
+endif()
+set_target_properties(soem PROPERTIES
+  RELEASE_POSTFIX "${ADD_INFO}"
+  RELWITHDEBINFO_POSTFIX "${ADD_INFO}-relwithdebinfo"
+  MINSIZEREL_POSTFIX "${ADD_INFO}-minsizerel"
+  DEBUG_POSTFIX "${ADD_INFO}-debug")
+
 target_link_libraries(soem ${OS_LIBS})
 
 target_include_directories(soem PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/soem>
-  $<INSTALL_INTERFACE:include/soem>)
-
-target_include_directories(soem PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/osal>
-  $<INSTALL_INTERFACE:include/soem>)
-
-target_include_directories(soem PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/osal/${OS}>
-  $<INSTALL_INTERFACE:include/soem>)
-
-target_include_directories(soem
-  PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/oshw/${OS}>
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/oshw/${OS}>
   $<INSTALL_INTERFACE:include/soem>
-  )
+  ${OS_INCLUDE})
 
-message(STATUS "LIB_DIR: ${SOEM_LIB_INSTALL_DIR}")
-
-install(TARGETS soem EXPORT soemConfig DESTINATION ${SOEM_LIB_INSTALL_DIR})
-
-install(EXPORT soemConfig DESTINATION share/soem/cmake)
+install(TARGETS soem EXPORT soemConfig DESTINATION lib)
+install(EXPORT soemConfig DESTINATION cmake)
 
 install(FILES
   ${SOEM_HEADERS}
   ${OSAL_HEADERS}
   ${OSHW_HEADERS}
-  DESTINATION ${SOEM_INCLUDE_INSTALL_DIR})
+  DESTINATION include/soem)
 
 if(BUILD_TESTS) 
   add_subdirectory(test/simple_ng)

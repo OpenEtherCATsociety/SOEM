@@ -89,6 +89,8 @@ static void ecx_clear_rxbufstat(int *rxbufstat)
  */
 int ecx_setupnic(ecx_portt *port, const char *ifname, int secondary)
 {
+   timeBeginPeriod(1);
+   
    int i, rval;
    pcap_t **psock;
 

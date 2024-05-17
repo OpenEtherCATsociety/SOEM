@@ -29,6 +29,4 @@
     }                                                                         \
   } while (0)
 
-int osal_gettimeofday (struct timeval *tv, struct timezone *tz);
-
 #endif

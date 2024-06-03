@@ -222,7 +222,7 @@ fieldbus_dump(Fieldbus *fieldbus)
     for (n = 0; n < grp->Ibytes; ++n) {
         printf(" %02X", grp->inputs[n]);
     }
-    printf("  T: %lld\r", (long long) fieldbus->DCtime);
+    printf("  T: %lld\n", (long long) fieldbus->DCtime);
     return TRUE;
 }
 

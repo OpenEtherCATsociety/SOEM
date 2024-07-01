@@ -34,12 +34,11 @@ uint16 oshw_ntohs (uint16 network)
  */
 ec_adaptert * oshw_find_adapters (void)
 {
-   int i = 0;
    int ret = 0;
    pcap_if_t *alldevs;
    pcap_if_t *d;
    ec_adaptert * adapter;
-   ec_adaptert * prev_adapter;
+   ec_adaptert * prev_adapter = NULL;
    ec_adaptert * ret_adapter = NULL;
    char errbuf[PCAP_ERRBUF_SIZE];
 
@@ -59,7 +58,7 @@ ec_adaptert * oshw_find_adapters (void)
        * adapter.
        * Else save as pointer to return.
        */
-      if (i)
+      if (prev_adapter)
       {
          prev_adapter->next = adapter;
       }
@@ -89,7 +88,6 @@ ec_adaptert * oshw_find_adapters (void)
           adapter->desc[0] = '\0';
       }
       prev_adapter = adapter;
-      i++;
    }
    /* free all devices allocated */
    pcap_freealldevs(alldevs);

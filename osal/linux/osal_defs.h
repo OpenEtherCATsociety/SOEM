@@ -20,11 +20,9 @@ extern "C"
 #define EC_PRINT(...) do {} while (0)
 #endif
 
-#ifndef PACKED
-#define PACKED_BEGIN
-#define PACKED  __attribute__((__packed__))
-#define PACKED_END
-#endif
+#define SOEM_PACKED_BEGIN
+#define SOEM_PACKED __attribute__((__packed__))
+#define SOEM_PACKED_END
 
 #include <pthread.h>
 #define OSAL_THREAD_HANDLE pthread_t *

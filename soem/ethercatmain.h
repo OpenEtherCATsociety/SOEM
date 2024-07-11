@@ -49,8 +49,8 @@ struct ec_adapter
 };
 
 /** record for FMMU */
-PACKED_BEGIN
-typedef struct PACKED ec_fmmu
+SOEM_PACKED_BEGIN
+typedef struct SOEM_PACKED ec_fmmu
 {
    uint32  LogStart;
    uint16  LogLength;
@@ -63,26 +63,26 @@ typedef struct PACKED ec_fmmu
    uint8   unused1;
    uint16  unused2;
 }  ec_fmmut;
-PACKED_END
+SOEM_PACKED_END
 
 /** record for sync manager */
-PACKED_BEGIN
-typedef struct PACKED ec_sm
+SOEM_PACKED_BEGIN
+typedef struct SOEM_PACKED ec_sm
 {
    uint16  StartAddr;
    uint16  SMlength;
    uint32  SMflags;
 } ec_smt;
-PACKED_END
+SOEM_PACKED_END
 
-PACKED_BEGIN
-typedef struct PACKED ec_state_status
+SOEM_PACKED_BEGIN
+typedef struct SOEM_PACKED ec_state_status
 {
    uint16  State;
    uint16  Unused;
    uint16  ALstatuscode;
 } ec_state_status;
-PACKED_END
+SOEM_PACKED_END
 
 #define ECT_MBXPROT_AOE      0x0001
 #define ECT_MBXPROT_EOE      0x0002
@@ -312,25 +312,25 @@ typedef struct ec_eepromPDO
 typedef uint8 ec_mbxbuft[EC_MAXMBX + 1];
 
 /** standard ethercat mailbox header */
-PACKED_BEGIN
-typedef struct PACKED ec_mbxheader
+SOEM_PACKED_BEGIN
+typedef struct SOEM_PACKED ec_mbxheader
 {
    uint16  length;
    uint16  address;
    uint8   priority;
    uint8   mbxtype;
 } ec_mbxheadert;
-PACKED_END
+SOEM_PACKED_END
 
 /** ALstatus and ALstatus code */
-PACKED_BEGIN
-typedef struct PACKED ec_alstatus
+SOEM_PACKED_BEGIN
+typedef struct SOEM_PACKED ec_alstatus
 {
    uint16  alstatus;
    uint16  unused;
    uint16  alstatuscode;
 } ec_alstatust;
-PACKED_END
+SOEM_PACKED_END
 
 /** stack structure to store segmented LRD/LWR/LRW constructs */
 typedef struct ec_idxstack
@@ -352,34 +352,34 @@ typedef struct ec_ering
 } ec_eringt;
 
 /** SyncManager Communication Type structure for CA */
-PACKED_BEGIN
-typedef struct PACKED ec_SMcommtype
+SOEM_PACKED_BEGIN
+typedef struct SOEM_PACKED ec_SMcommtype
 {
    uint8   n;
    uint8   nu1;
    uint8   SMtype[EC_MAXSM];
 } ec_SMcommtypet;
-PACKED_END
+SOEM_PACKED_END
 
 /** SDO assign structure for CA */
-PACKED_BEGIN
-typedef struct PACKED ec_PDOassign
+SOEM_PACKED_BEGIN
+typedef struct SOEM_PACKED ec_PDOassign
 {
    uint8   n;
    uint8   nu1;
    uint16  index[256];
 } ec_PDOassignt;
-PACKED_END
+SOEM_PACKED_END
 
 /** SDO description structure for CA */
-PACKED_BEGIN
-typedef struct PACKED ec_PDOdesc
+SOEM_PACKED_BEGIN
+typedef struct SOEM_PACKED ec_PDOdesc
 {
    uint8   n;
    uint8   nu1;
    uint32  PDO[256];
 } ec_PDOdesct;
-PACKED_END
+SOEM_PACKED_END
 
 /** Context structure , referenced by all ecx functions*/
 struct ecx_context

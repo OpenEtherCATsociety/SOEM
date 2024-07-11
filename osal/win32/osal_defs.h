@@ -20,11 +20,9 @@ extern "C"
 #define EC_PRINT(...) do {} while (0)
 #endif
 
-#ifndef PACKED
-#define PACKED_BEGIN __pragma(pack(push, 1))
-#define PACKED
-#define PACKED_END __pragma(pack(pop))
-#endif
+#define SOEM_PACKED_BEGIN __pragma(pack(push, 1))
+#define SOEM_PACKED
+#define SOEM_PACKED_END __pragma(pack(pop))
 
 #define OSAL_THREAD_HANDLE HANDLE
 #define OSAL_THREAD_FUNC void

@@ -20,8 +20,8 @@
 #define EC_SOE_MAX_DRIVES 8
 
 /** SoE (Servo over EtherCAT) mailbox structure */
-PACKED_BEGIN
-typedef struct PACKED
+SOEM_PACKED_BEGIN
+typedef struct SOEM_PACKED
 {
    ec_mbxheadert MbxHeader;
    uint8         opCode         :3;
@@ -35,7 +35,7 @@ typedef struct PACKED
       uint16     fragmentsleft;
    };
 } ec_SoEt;
-PACKED_END
+SOEM_PACKED_END
 
 /** Report SoE error.
  *

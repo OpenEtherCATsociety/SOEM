@@ -25,7 +25,7 @@
 
 #define NSEC_PER_SEC 1000000000
 
-typedef struct PACKED
+typedef struct SOEM_PACKED
 {
    uint8         status;
    uint8         counter;
@@ -35,13 +35,13 @@ typedef struct PACKED
    int32         enc[2];
 } in_EBOXt;
 
-typedef struct PACKED
+typedef struct SOEM_PACKED
 {
    uint8         counter;
    int16         stream[100];
 } in_EBOX_streamt;
 
-typedef struct PACKED
+typedef struct SOEM_PACKED
 {
    uint8         control;
    uint8         dout;
@@ -49,7 +49,7 @@ typedef struct PACKED
    uint16        pwmout[2];
 } out_EBOXt;
 
-typedef struct PACKED
+typedef struct SOEM_PACKED
 {
    uint8         control;
 } out_EBOX_streamt;

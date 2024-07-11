@@ -26,28 +26,28 @@
 #define EC_LOCALDELAY  200
 
 /** record for ethercat eeprom communications */
-PACKED_BEGIN
-typedef struct PACKED
+SOEM_PACKED_BEGIN
+typedef struct SOEM_PACKED
 {
    uint16    comm;
    uint16    addr;
    uint16    d2;
 } ec_eepromt;
-PACKED_END
+SOEM_PACKED_END
 
 /** mailbox error structure */
-PACKED_BEGIN
-typedef struct PACKED
+SOEM_PACKED_BEGIN
+typedef struct SOEM_PACKED
 {
    ec_mbxheadert   MbxHeader;
    uint16          Type;
    uint16          Detail;
 } ec_mbxerrort;
-PACKED_END
+SOEM_PACKED_END
 
 /** emergency request structure */
-PACKED_BEGIN
-typedef struct PACKED
+SOEM_PACKED_BEGIN
+typedef struct SOEM_PACKED
 {
    ec_mbxheadert   MbxHeader;
    uint16          CANOpen;
@@ -56,7 +56,7 @@ typedef struct PACKED
    uint8           bData;
    uint16          w1,w2;
 } ec_emcyt;
-PACKED_END
+SOEM_PACKED_END
 
 #ifdef EC_VER1
 /** Main slave data array.

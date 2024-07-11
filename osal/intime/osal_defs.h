@@ -20,16 +20,14 @@ extern "C"
 #define EC_PRINT(...) do {} while (0)
 #endif
 
-#ifndef PACKED
-    #ifdef _MSC_VER
-    #define PACKED_BEGIN __pragma(pack(push, 1))
-    #define PACKED
-    #define PACKED_END __pragma(pack(pop))
-    #elif defined(__GNUC__)
-    #define PACKED_BEGIN
-    #define PACKED  __attribute__((__packed__))
-    #define PACKED_END
-    #endif
+#ifdef _MSC_VER
+#define SOEM_PACKED_BEGIN __pragma(pack(push, 1))
+#define SOEM_PACKED
+#define SOEM_PACKED_END __pragma(pack(pop))
+#elif defined(__GNUC__)
+#define SOEM_PACKED_BEGIN
+#define SOEM_PACKED __attribute__((__packed__))
+#define SOEM_PACKED_END
 #endif
 
 #define OSAL_THREAD_HANDLE   RTHANDLE

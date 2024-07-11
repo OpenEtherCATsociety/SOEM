@@ -133,12 +133,12 @@ typedef struct eoe_ip4_addr {
 }eoe_ip4_addr_t;
 
 /** EOE ethernet address */
-PACKED_BEGIN
-typedef struct PACKED eoe_ethaddr
+SOEM_PACKED_BEGIN
+typedef struct SOEM_PACKED eoe_ethaddr
 {
    uint8_t addr[EOE_ETHADDR_LENGTH];
 } eoe_ethaddr_t;
-PACKED_END
+SOEM_PACKED_END
 
 /** EoE IP request structure, storage only, no need to pack */
 typedef struct eoe_param
@@ -160,8 +160,8 @@ typedef struct eoe_param
 /** EOE structure.
 * Used to interpret EoE mailbox packets.
 */
-PACKED_BEGIN
-typedef struct PACKED
+SOEM_PACKED_BEGIN
+typedef struct SOEM_PACKED
 {
    ec_mbxheadert mbxheader;
    uint16_t frameinfo1;
@@ -172,7 +172,7 @@ typedef struct PACKED
    };
    uint8 data[EC_MAXEOEDATA];
 } ec_EOEt;
-PACKED_END
+SOEM_PACKED_END
 
 int ecx_EOEdefinehook(ecx_contextt *context, void *hook);
 int ecx_EOEsetIp(ecx_contextt *context, 

@@ -24,11 +24,9 @@ extern "C"
 #define EC_PRINT(...) do {} while (0)
 #endif
 
-#ifndef PACKED
-#define PACKED_BEGIN
-#define PACKED  __attribute__((__packed__))
-#define PACKED_END
-#endif
+#define SOEM_PACKED_BEGIN
+#define SOEM_PACKED __attribute__((__packed__))
+#define SOEM_PACKED_END
 
 int osal_gettimeofday(struct timeval *tv, struct timezone *tz);
 void *osal_malloc(size_t size);

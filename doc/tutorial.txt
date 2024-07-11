@@ -326,7 +326,7 @@ set_output_int16(EL4001_1,0,slave_EL4001_1.out1);
 Target can handle non aligned pointers to the IOmap
 \code
 
-typedef struct PACKED
+typedef struct SOEM_PACKED
 {
 	int16	   outvalue1;
 	int16	   outvalue2;

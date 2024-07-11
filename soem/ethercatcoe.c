@@ -20,8 +20,8 @@
 #include "ethercatcoe.h"
 
 /** SDO structure, not to be confused with EcSDOserviceT */
-PACKED_BEGIN
-typedef struct PACKED
+SOEM_PACKED_BEGIN
+typedef struct SOEM_PACKED
 {
    ec_mbxheadert   MbxHeader;
    uint16          CANOpen;
@@ -35,11 +35,11 @@ typedef struct PACKED
       uint32  ldata[0x80];
    };
 } ec_SDOt;
-PACKED_END
+SOEM_PACKED_END
 
 /** SDO service structure */
-PACKED_BEGIN
-typedef struct PACKED
+SOEM_PACKED_BEGIN
+typedef struct SOEM_PACKED
 {
    ec_mbxheadert   MbxHeader;
    uint16          CANOpen;
@@ -53,7 +53,7 @@ typedef struct PACKED
       uint32  ldata[0x80];
    };
 } ec_SDOservicet;
-PACKED_END
+SOEM_PACKED_END
 
 /** Report SDO error.
  *

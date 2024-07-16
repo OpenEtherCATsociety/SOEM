@@ -33,7 +33,7 @@
 #define TH 2.0
 // #define TH2 0.16666666667
 #define TH2 1.0
-#define MOTOR_NUM 3
+#define MOTOR_NUM 2
 
 char IOmap[4096];
 OSAL_THREAD_HANDLE thread1;
@@ -50,6 +50,12 @@ typedef struct Cat_data {
 } cat_data;
 
 cat_data motor[MOTOR_NUM];
+
+static volatile int keepRunning = 1;
+void signal_handler(int signum) {
+  std::cerr<<std::endl<<std::endl<<std::endl<<std::endl<<"catch signum = "<<signum<<std::endl;
+    keepRunning = 0;
+}
 
 /*送信関数*/
 void set_output(uint16 slave_no, uint8 module_index, uint8* value)
@@ -151,6 +157,12 @@ void simpletest(char* ifname)
     printf("\033[2J\033[1;1H");  // 画面クリア
     printf("Starting simple test\n");
 
+    int is_host = 1;
+    ProcComm *proc_comm_sensor;
+    ProcComm *proc_comm_command;
+    proc_comm_sensor = new ProcComm(filename_data_legmotor_sensor, id_data_legmotor_sensor, num_data_legmotor_sensor, is_host);
+    proc_comm_command = new ProcComm(filename_data_legmotor_command, id_data_legmotor_command, num_data_legmotor_command, is_host);
+
     /* initialise SOEM, bind socket to ifname */
     if (ec_init(ifname)) {
         printf("ec_init on %s succeeded.\n", ifname);
@@ -158,8 +170,6 @@ void simpletest(char* ifname)
 
 
         if (ec_config_init(FALSE) > 0) {
-            //FILE* fp;
-            // fp = fopen("data.csv", "w");
             printf("%d slaves found and configured.\n", ec_slavecount);
 
             if (forceByteAlignment) {
@@ -199,11 +209,11 @@ void simpletest(char* ifname)
             ec_writestate(0);
             chk = 200;
             /* wait for all slaves to reach OP state */
-            do {
+            while (chk-- && (ec_slave[0].state != EC_STATE_OPERATIONAL)){
                 ec_send_processdata();
                 ec_receive_processdata(EC_TIMEOUTRET);
                 ec_statecheck(0, EC_STATE_OPERATIONAL, 50000);
-            } while (chk-- && (ec_slave[0].state != EC_STATE_OPERATIONAL));
+            };
             if (ec_slave[0].state == EC_STATE_OPERATIONAL) {
                 // printf("\nfdsjfakl\n");
                 // printf("\a");
@@ -280,8 +290,7 @@ void simpletest(char* ifname)
                                 } else {
                                     check[cnt]--;
                                 }
-                                /*
-                                    受信データ表示
+                                /* 受信データ表示
                                     id      :モータナンバー(unitreeのidとは違うもの)
                                     torque  :トルク
                                     anglevel:角速度
@@ -295,7 +304,6 @@ void simpletest(char* ifname)
                                     /*フィードバック値表示*/
                                     printf("id: %2d, torque: %10.6lf(Nm), anglevel: %12.6lf(rad/s), angle: %12.6lf(rad), temp: %3d℃ , error: %s\n", cnt, get_torque(motor[cnt].recv), get_angular_vel(motor[cnt].recv), get_position(motor[cnt].recv), get_temp(motor[cnt].recv), check_err(motor[cnt].recv, message));
                                     printf("\033[%d;1H\033[0K", MOTOR_NUM + 12 + cnt);
-                                    // time_count[cnt][time_index[cnt]] = (double)(end_clock[cnt] - st_clock[cnt]) / CLOCKS_PER_SEC * 1000;
                                     time_count[cnt][time_index[cnt]] = (double)(t_end[cnt].tv_nsec - t_st[cnt].tv_nsec) / 1000000;
                                     if (time_count[cnt][time_index[cnt]] < 0) {
                                         time_count[cnt][time_index[cnt]] += 1000;
@@ -306,7 +314,9 @@ void simpletest(char* ifname)
                                         time_index[cnt] = 0;
                                         mesure(time_count[cnt], &(ave_time[cnt]), &(var_time[cnt]), &(max_time[cnt]), &(over_num[cnt]), &over_num2[cnt], &min_time[cnt]);
                                     }
-                                } else {
+                                }
+                                else
+                                {
                                     printf("\033[%d;1H", MOTOR_NUM + 12 + cnt);
                                     printf("id %d CRC_error", cnt);
                                     printf("\a");
@@ -320,20 +330,21 @@ void simpletest(char* ifname)
                             printf("\033[%d;1H", MOTOR_NUM + 15 + cnt);
                             printf("\033[0K");
                             printf("id %d: time %fms ,", cnt, time_count[cnt][now_time[cnt]]);
-                            // printf("ave %8.6fms ,var %8.6fms ,max %8.6fms ,over_num(4kHz) %2d ,over ratio(4kHz) %7.4f %% ,over_num(6kHz) %2d ,over ratio(6kHz) %7.4f %%\n", ave_time[cnt], var_time[cnt], max_time[cnt], over_num[cnt], (float)over_num[cnt] / (float)NUM * 100.0, over_num2[cnt], (float)over_num2[cnt] / (float)NUM * 100);
                             printf("ave %8.6fms ,var %8.6fms ,max %8.6fms ,min %8.6fms ,over ratio(%5.2lfkHz) %7.4f %% ,over ratio(%5.2lfkHz) %7.4f %%\n", ave_time[cnt], var_time[cnt], max_time[cnt], min_time[cnt], 1.0 / (float)TH, (float)over_num[cnt] / (float)NUM * 100.0, 1.0 / (float)TH2, (float)over_num2[cnt] / (float)NUM * 100.0);
                         }
                         needlf = TRUE;
-                    } else {
+                    } // End of if (wkc >= expectedWKC)
+                    else
+                    {
                         printf("wkc error\n");
                     }
-                    // osal_usleep(1000);
-                    // osal_usleep(70);
+                    if (0==keepRunning) break;
                     // osal_usleep(50);
-                    // osal_usleep(30);
-                }
+                } // End of cyclic loop
                 inOP = FALSE;
-            } else {
+            } // End of if (ec_slave[0].state == EC_STATE_OPERATIONAL)
+            else
+            {
                 printf("Not all slaves reached operational state.\n");
                 ec_readstate();
                 for (i = 1; i <= ec_slavecount; i++) {
@@ -343,19 +354,27 @@ void simpletest(char* ifname)
                     }
                 }
             }
-            printf("\nRequest init state for all slaves\n");
+            printf("\n\nRequest init state for all slaves\n");
             ec_slave[0].state = EC_STATE_INIT;
             /* request INIT state for all slaves */
             ec_writestate(0);
-        } else {
+        } // End of if (ec_config_init(FALSE) > 0)
+        else
+        {
             printf("No slaves found!\n");
         }
         printf("End simple test, close socket\n");
+        printf("keepRunning = %d \n",keepRunning);
         /* stop SOEM, close socket */
         ec_close();
-    } else {
+    } // End of if (ec_init(ifname))
+    else
+    {
         printf("No socket connection on %s\nExecute as root\n", ifname);
     }
+
+    delete proc_comm_sensor;
+    delete proc_comm_command;
 }
 
 OSAL_THREAD_FUNC ecatcheck(void* ptr)
@@ -422,6 +441,9 @@ OSAL_THREAD_FUNC ecatcheck(void* ptr)
 int main(int argc, char* argv[])
 {
     printf("SOEM (Simple Open EtherCAT Master)\nSimple test\n");
+
+    signal(SIGINT, signal_handler); // killed by ctrl+C
+    signal(SIGHUP, signal_handler); // killed by tmux kill-server
 
     if (argc > 1) {
         /* create thread to handle slave error handling in OP */

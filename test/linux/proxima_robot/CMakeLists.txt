@@ -1,0 +1,10 @@
+# enable_language(C)
+enable_language(CXX)
+
+# set(CMAKE_C_COMPILER gcc)
+set(CMAKE_CXX_COMPILER g++)
+# set_source_files_properties(proxima_robot.c PROPERTIES LANGUAGE CXX )
+set(SOURCES proxima_robot.cpp)
+add_executable(proxima_robot ${SOURCES})
+target_link_libraries(proxima_robot soem pthread)
+install(TARGETS proxima_robot DESTINATION bin)

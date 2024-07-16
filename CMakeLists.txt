@@ -1,4 +1,7 @@
 cmake_minimum_required(VERSION 3.9)
+
+option(BUILD_ROBOT_PROGRAM "build communication program for robot" OFF )
+
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_LIST_DIR}/cmake/Modules")
 project(SOEM
     DESCRIPTION "Simple Open EtherCAT Master"
@@ -112,4 +115,7 @@ if(BUILD_TESTS)
   add_subdirectory(test/linux/simple_test)
   add_subdirectory(test/linux/cat_test_4)
   add_subdirectory(test/linux/red_test)
+  if(BUILD_ROBOT_PROGRAM)
+    add_subdirectory(test/linux/proxima_robot)
+  endif()
 endif()

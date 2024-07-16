@@ -56,6 +56,7 @@ ec_configlist_t ec_configlist[] = {
       {/*Man=*/0x00000002,/*ID=*/0x101a3052,/*Name=*/"EL4122"    ,/*dtype=*/5,/*Ibits=*/ 0,/*Obits=*/32,/*SM2a*/0x1000,/*SM2f*/0x00010024,/*SM3a*/0x1100,/*SM3f*/0x00000022,/*FM0ac*/1,/*FM1ac*/0},
       {/*Man=*/0x00000002,/*ID=*/0x10243052,/*Name=*/"EL4132"    ,/*dtype=*/5,/*Ibits=*/ 0,/*Obits=*/32,/*SM2a*/0x1000,/*SM2f*/0x00010024,/*SM3a*/0x1100,/*SM3f*/0x00000022,/*FM0ac*/1,/*FM1ac*/0},
       {/*Man=*/0x00000002,/*ID=*/0x13ed3052,/*Name=*/"EL5101"    ,/*dtype=*/7,/*Ibits=*/40,/*Obits=*/24,/*SM2a*/0x1000,/*SM2f*/0x00010024,/*SM3a*/0x1100,/*SM3f*/0x00010020,/*FM0ac*/1,/*FM1ac*/1},
+      {/*Man=*/0x00000002,/*ID=*/0x1c213052,/*Name=*/"EL7211-0011"    ,/*dtype=*/7,/*Ibits=*/48,/*Obits=*/48,/*SM2a*/0x1100,/*SM2f*/0x00010024,/*SM3a*/0x1180,/*SM3f*/0x00010020,/*FM0ac*/1,/*FM1ac*/1},
       {/*Man=*/EC_CONFIGEND,/*ID=*/0x00000000,/*Name=*/""        ,/*dtype=*/0,/*Ibits=*/ 0,/*Obits=*/ 0,/*SM2a*/     0,/*SM2f*/         0,/*SM3a*/     0,/*SM3f*/         0,/*FM0ac*/0,/*FM1ac*/0}
 };
 

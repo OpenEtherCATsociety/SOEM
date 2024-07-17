@@ -144,6 +144,8 @@ int ecx_setupnic(ecx_portt *port, const char *ifname, int secondary)
    }
    /* we use RAW packet socket, with packet type ETH_P_ECAT */
    *psock = socket(PF_PACKET, SOCK_RAW, htons(ETH_P_ECAT));
+   if(*psock < 0)
+      return 0;
 
    timeout.tv_sec =  0;
    timeout.tv_usec = 1;

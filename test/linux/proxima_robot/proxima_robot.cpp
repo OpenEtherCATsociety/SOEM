@@ -27,6 +27,7 @@
 
 #include "../../../../config.h"
 #include "../../../../shm/shm.hpp"
+#include <fstream>
 
 #define EC_TIMEOUTMON 500
 #define NUM 1000
@@ -56,6 +57,66 @@ void signal_handler(int signum) {
   std::cerr<<std::endl<<std::endl<<std::endl<<std::endl<<"catch signum = "<<signum<<std::endl;
     keepRunning = 0;
 }
+
+std::vector<double> get_offset(void) {
+
+    std::vector<double> pos_offset;
+
+    char const* tmp1 = getenv( "SMALL_NIMBUS_ID" );
+    char const* tmp2 = getenv( "SMALL_NIMBUS_PATH" );
+    if( tmp1==NULL )
+    {
+      std::cerr << "ERROR: SMALL_NIMBUS_IDが設定されていません" << std::endl;
+      std::exit(1);
+    }
+    else if( tmp2==NULL )
+    {
+      std::cerr << "ERROR: SMALL_NIMBUS_PATHが設定されていません" << std::endl;
+      std::exit(1);
+    }
+
+    else
+    {
+      std::string SMALL_NIMBUS_ID = std::getenv("SMALL_NIMBUS_ID");
+      std::string SMALL_NIMBUS_PATH = std::getenv("SMALL_NIMBUS_PATH");
+      std::cerr << "SMALL_NIMBUS_ID: "<< SMALL_NIMBUS_ID << std::endl;
+      std::cerr << "SMALL_NIMBUS_PATH: "<< SMALL_NIMBUS_PATH << std::endl;
+      std::string OFFSET_FILE = SMALL_NIMBUS_PATH + "/hardware/unitree_actuator_sdk/example/offset.txt";
+      std::ifstream file(OFFSET_FILE);
+
+      // TODO: 現在はSMALL_NIMBUSが1号機と2号機しか存在しないことを仮定してエラー処理をしているが、これをもう少し一般的にチェックできるようにする。
+      // https://github.com/proxima-technology/small_nimbus_ws/issues/111
+      if( std::stoi(SMALL_NIMBUS_ID)!=1 && std::stoi(SMALL_NIMBUS_ID)!=2 )
+      {
+        std::cerr << "ERROR: SMALL_NIMBUS_ID should be 1 or 2" << std::endl;
+        std::exit(1);
+      }
+      std::string line;
+      std::string column0, column1, column2;
+      if (file.is_open()) {
+        while (getline(file, line)) {
+          std::stringstream ss(line);
+          ss >> column0 >> column1 >> column2;
+          if (column0==SMALL_NIMBUS_ID){
+            pos_offset.push_back(std::stod(column1));
+            pos_offset.push_back(std::stod(column2));
+            break;
+          }
+        }
+      file.close();
+      std::cerr << "関節原点オフセットファイル\n"<< OFFSET_FILE << "\nを開くことができました。\n" << std::endl;
+      }
+      else {
+        std::cerr << "ERROR: 関節原点オフセットファイル\n"<< OFFSET_FILE << "\nを開けませんでした。\n" << std::endl;
+        std::exit(1);
+      }
+    }
+
+    return pos_offset;
+}
+std::vector<double> pos_offset = get_offset();
+std::vector<double> legmotor_sensor_shared(num_data_legmotor_sensor, 0.0);
+std::vector<double> legmotor_command_shared(num_data_legmotor_command, 0.0);
 
 /*送信関数*/
 void set_output(uint16 slave_no, uint8 module_index, uint8* value)
@@ -162,6 +223,8 @@ void simpletest(char* ifname)
     ProcComm *proc_comm_command;
     proc_comm_sensor = new ProcComm(filename_data_legmotor_sensor, id_data_legmotor_sensor, num_data_legmotor_sensor, is_host);
     proc_comm_command = new ProcComm(filename_data_legmotor_command, id_data_legmotor_command, num_data_legmotor_command, is_host);
+    int runtime_offset_rotation_count[MOTOR_NUM] = {0, 0};
+    bool need_initialize_runtime_offset_rotation_count[MOTOR_NUM] = {true, true};
 
     /* initialise SOEM, bind socket to ifname */
     if (ec_init(ifname)) {
@@ -241,6 +304,12 @@ void simpletest(char* ifname)
                     cyc_f = clock();
                     // printf("\033[%d;1H", 30);
                     double elapsedtime = (double)(cyc_f - cyc_f_pre) / CLOCKS_PER_SEC;
+
+                     // TODO: コマンド送信
+                     // TODO: 符号反転
+                     // TODO: PID制御の移植
+                     legmotor_command_shared = proc_comm_command->read_stdvec();
+
                     // printf("%lf", elapsedtime);
                     if (elapsedtime > 4.0) {
                         cyc_f_pre = cyc_f;
@@ -298,11 +367,51 @@ void simpletest(char* ifname)
                                     temp    :温度
                                 */
                                 if (check_CRC(motor[cnt].recv)) {  // CRCチェック
+                                    // TODO: オフセット実装
+                                    double raw_position = get_position(motor[cnt].recv);
+                                    // pos_offset[cnt] = 0.0; // only for debug, to be deleted
+                                    if(need_initialize_runtime_offset_rotation_count[cnt])
+                                    {
+                                      while(1)
+                                      {
+                                        legmotor_sensor_shared[POSITION_OBS_IDX*NUM_LEGMOTOR + cnt] = pos_offset[cnt] + raw_position / 6.33 + runtime_offset_rotation_count[cnt]*2*M_PI/6.33;
+                                        if(std::abs(legmotor_sensor_shared[cnt])<(-1e-6 + M_PI/6.33))
+                                        {
+                                          break;
+                                        }
+                                        if(legmotor_sensor_shared[cnt]<-(M_PI/6.33))
+                                        {
+                                          runtime_offset_rotation_count[cnt]++;
+                                        }
+                                        if(legmotor_sensor_shared[cnt]>(M_PI/6.33))
+                                        {
+                                          runtime_offset_rotation_count[cnt]--;
+                                        }
+                                      }
+                                      need_initialize_runtime_offset_rotation_count[cnt] = false;
+                                    }
+                                    legmotor_sensor_shared[POSITION_OBS_IDX*NUM_LEGMOTOR + cnt] = pos_offset[cnt] + raw_position / 6.33 + runtime_offset_rotation_count[cnt]*2*M_PI/6.33;
+
+                                    legmotor_sensor_shared[VELOCITY_OBS_IDX*NUM_LEGMOTOR + cnt] = get_angular_vel(motor[cnt].recv) / 6.33;
+                                    legmotor_sensor_shared[TORQUE_OBS_IDX*NUM_LEGMOTOR + cnt] = get_torque(motor[cnt].recv) * 6.33;
+                                    legmotor_sensor_shared[TEMPERATURE_OBS_IDX*NUM_LEGMOTOR + cnt] = get_temp(motor[cnt].recv);
+                                    // reverse just after read
+                                    if(1==cnt)
+                                    {
+                                      legmotor_sensor_shared[POSITION_OBS_IDX*NUM_LEGMOTOR + cnt] = - legmotor_sensor_shared[POSITION_OBS_IDX*NUM_LEGMOTOR + cnt];
+                                      legmotor_sensor_shared[VELOCITY_OBS_IDX*NUM_LEGMOTOR + cnt] = - legmotor_sensor_shared[VELOCITY_OBS_IDX*NUM_LEGMOTOR + cnt];
+                                      legmotor_sensor_shared[TORQUE_OBS_IDX*NUM_LEGMOTOR + cnt] = - legmotor_sensor_shared[TORQUE_OBS_IDX*NUM_LEGMOTOR + cnt];
+                                    }
+
                                     printf("\033[%d;1H", cnt + 12);
+
                                     char message[20];
                                     printf("\033[0K");
                                     /*フィードバック値表示*/
-                                    printf("id: %2d, torque: %10.6lf(Nm), anglevel: %12.6lf(rad/s), angle: %12.6lf(rad), temp: %3d℃ , error: %s\n", cnt, get_torque(motor[cnt].recv), get_angular_vel(motor[cnt].recv), get_position(motor[cnt].recv), get_temp(motor[cnt].recv), check_err(motor[cnt].recv, message));
+                                    printf("id: %2d, angle: %12.6lf(rad), anglevel: %12.6lf(rad/s), torque: %10.6lf(Nm), temp: %3f℃ , error: %s\n", cnt,
+                                      // get_position(motor[cnt].recv), get_angular_vel(motor[cnt].recv), get_torque(motor[cnt].recv), get_temp(motor[cnt].recv),
+                                      legmotor_sensor_shared[POSITION_OBS_IDX*NUM_LEGMOTOR + cnt], legmotor_sensor_shared[VELOCITY_OBS_IDX*NUM_LEGMOTOR + cnt], legmotor_sensor_shared[TORQUE_OBS_IDX*NUM_LEGMOTOR + cnt], legmotor_sensor_shared[TEMPERATURE_OBS_IDX*NUM_LEGMOTOR + cnt],
+                                      check_err(motor[cnt].recv, message));
                                     printf("\033[%d;1H\033[0K", MOTOR_NUM + 12 + cnt);
                                     time_count[cnt][time_index[cnt]] = (double)(t_end[cnt].tv_nsec - t_st[cnt].tv_nsec) / 1000000;
                                     if (time_count[cnt][time_index[cnt]] < 0) {
@@ -323,21 +432,25 @@ void simpletest(char* ifname)
                                     check[cnt]++;
                                 }
                             }
-                        }
+                        } // End of for (int cnt = 0; cnt < MOTOR_NUM; cnt++)
+                        proc_comm_sensor->write_stdvec(legmotor_sensor_shared);
 
                         /*計測時間表示*/
+                        /*
                         for (int cnt = 0; cnt < MOTOR_NUM; cnt++) {
                             printf("\033[%d;1H", MOTOR_NUM + 15 + cnt);
                             printf("\033[0K");
                             printf("id %d: time %fms ,", cnt, time_count[cnt][now_time[cnt]]);
                             printf("ave %8.6fms ,var %8.6fms ,max %8.6fms ,min %8.6fms ,over ratio(%5.2lfkHz) %7.4f %% ,over ratio(%5.2lfkHz) %7.4f %%\n", ave_time[cnt], var_time[cnt], max_time[cnt], min_time[cnt], 1.0 / (float)TH, (float)over_num[cnt] / (float)NUM * 100.0, 1.0 / (float)TH2, (float)over_num2[cnt] / (float)NUM * 100.0);
                         }
+                        */
                         needlf = TRUE;
                     } // End of if (wkc >= expectedWKC)
                     else
                     {
                         printf("wkc error\n");
                     }
+                    // TODO: 最後、ゼロコマンドを送受信してシャットダウンするように実装
                     if (0==keepRunning) break;
                     // osal_usleep(50);
                 } // End of cyclic loop

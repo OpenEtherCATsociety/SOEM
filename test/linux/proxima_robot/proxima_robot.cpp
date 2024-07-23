@@ -305,35 +305,40 @@ void simpletest(char* ifname)
                     // printf("\033[%d;1H", 30);
                     double elapsedtime = (double)(cyc_f - cyc_f_pre) / CLOCKS_PER_SEC;
 
-                     // TODO: コマンド送信
-                     // TODO: 符号反転
-                     // TODO: PID制御の移植
-                     legmotor_command_shared = proc_comm_command->read_stdvec();
+                    legmotor_command_shared = proc_comm_command->read_stdvec();
 
-                    // printf("%lf", elapsedtime);
-                    if (elapsedtime > 4.0) {
-                        cyc_f_pre = cyc_f;
-                        tor = 0;
-                        tor2 = 0;
-                    } else if (elapsedtime > 2.0) {
-                        // cyc_f_pre = cyc_f;
-                        tor = 0.048;
-                        tor2 = -0.048;
-                        tor = 0;
-                        tor2 = 0;
-                    }
                     for (int i = 0; i < MOTOR_NUM; i++) {
                         if (recv_fin[i]) {
                             recv_fin[i] = FALSE;
                             motor[i].send[15] = check[i];
-                            /*指令値セット*/
-                            set_mode(1, motor[i].send);
-                            if (i == 1) {
-                                set_torque(tor, motor[i].send);
-                            } else {
-                                set_torque(tor2, motor[i].send);
+
+                            double torque_control = legmotor_command_shared[TORQUE_CMD_IDX*NUM_LEGMOTOR + i];
+                            // TODO: 位置制御モードの実装
+                            /*
+                            double position_control_ratio = legmotor_command_shared[POSITION_CONTROL_MODE_RATIO_IDX*NUM_LEGMOTOR + i]; // [0,1] // 0 is using torque contol, 1 is using position control.
+                            double target_pos = legmotor_command_shared[POSITION_TARGET_IDX*NUM_LEGMOTOR + i];
+                            double kp = legmotor_command_shared[P_GAIN_IDX*NUM_LEGMOTOR + i];
+                            double kd = legmotor_command_shared[D_GAIN_IDX*NUM_LEGMOTOR + i];
+                            double ki = legmotor_command_shared[I_GAIN_IDX*NUM_LEGMOTOR + i];
+                            double position_control = - kp*(measured_pos-target_pos) - kd*measured_vel; // todo: implement I control
+                            double total_control = (1.0 - position_control_ratio) * torque_control + position_control_ratio * position_control;
+                            */
+                            double total_control = torque_control;
+
+                            double torque_max = 23.5;
+                            total_control = std::max(-torque_max, std::min(torque_max, total_control));
+
+                            // reverse just before send
+                            if(1==i)
+                            {
+                              total_control = - total_control;
                             }
-                            // set_torque(tor, motor[i].send);
+
+                            /*指令値セット*/
+                            #if (ENABLE_LEGMOTOR == 1)
+                            set_mode(1, motor[i].send);
+                            set_torque(total_control, motor[i].send);
+                            // set_torque(0, motor[i].send);
                             set_speed(0, motor[i].send);
                             set_K_P(0, motor[i].send);
                             set_K_W(0, motor[i].send);
@@ -342,6 +347,7 @@ void simpletest(char* ifname)
                             // st_clock[i] = clock();
                             clock_gettime(CLOCK_MONOTONIC, &t_st[i]);
                             set_output(1, i, motor[i].send);
+                            #endif
                         }
                     }
 
@@ -367,7 +373,6 @@ void simpletest(char* ifname)
                                     temp    :温度
                                 */
                                 if (check_CRC(motor[cnt].recv)) {  // CRCチェック
-                                    // TODO: オフセット実装
                                     double raw_position = get_position(motor[cnt].recv);
                                     // pos_offset[cnt] = 0.0; // only for debug, to be deleted
                                     if(need_initialize_runtime_offset_rotation_count[cnt])
@@ -407,6 +412,7 @@ void simpletest(char* ifname)
 
                                     char message[20];
                                     printf("\033[0K");
+                                    // TODO: いい感じのprint文を実装（unitree_sdkの方も参考に）
                                     /*フィードバック値表示*/
                                     printf("id: %2d, angle: %12.6lf(rad), anglevel: %12.6lf(rad/s), torque: %10.6lf(Nm), temp: %3f℃ , error: %s\n", cnt,
                                       // get_position(motor[cnt].recv), get_angular_vel(motor[cnt].recv), get_torque(motor[cnt].recv), get_temp(motor[cnt].recv),
@@ -450,7 +456,6 @@ void simpletest(char* ifname)
                     {
                         printf("wkc error\n");
                     }
-                    // TODO: 最後、ゼロコマンドを送受信してシャットダウンするように実装
                     if (0==keepRunning) break;
                     // osal_usleep(50);
                 } // End of cyclic loop
@@ -478,6 +483,23 @@ void simpletest(char* ifname)
         }
         printf("End simple test, close socket\n");
         printf("keepRunning = %d \n",keepRunning);
+
+        // ゼロ指令値を送信して終了
+        for (int i = 0; i < MOTOR_NUM; i++) {
+          if (recv_fin[i]) {
+            recv_fin[i] = FALSE;
+            motor[i].send[15] = check[i];
+            /*指令値セット*/
+            set_mode(1, motor[i].send);
+            set_torque(0, motor[i].send);
+            set_speed(0, motor[i].send);
+            set_K_P(0, motor[i].send);
+            set_K_W(0, motor[i].send);
+            set_position(0, motor[i].send);
+            set_output(1, i, motor[i].send);
+          }
+        }
+
         /* stop SOEM, close socket */
         ec_close();
     } // End of if (ec_init(ifname))
@@ -555,9 +577,12 @@ int main(int argc, char* argv[])
 {
     printf("SOEM (Simple Open EtherCAT Master)\nSimple test\n");
 
+    std::cout<<"ENABLE_LEGMOTOR: "<<ENABLE_LEGMOTOR<<std::endl;
+
     signal(SIGINT, signal_handler); // killed by ctrl+C
     signal(SIGHUP, signal_handler); // killed by tmux kill-server
 
+    #if (ENABLE_LEGMOTOR > 0)
     if (argc > 1) {
         /* create thread to handle slave error handling in OP */
         // osal_thread_create(&thread1, 128000, &ecatcheck, NULL);
@@ -576,6 +601,11 @@ int main(int argc, char* argv[])
         }
         ec_free_adapters(adapter);
     }
+    #endif
+
+    #if (ENABLE_LEGMOTOR == 0)
+    // TODO: ENABLE=0の場合の実装
+    #endif
 
     printf("End program\n");
     return (0);

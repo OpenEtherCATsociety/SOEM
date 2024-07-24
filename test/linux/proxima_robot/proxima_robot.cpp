@@ -573,6 +573,33 @@ OSAL_THREAD_FUNC ecatcheck(void* ptr)
     }
 }
 
+void dry_run_legmotor()
+{
+  std::cout<<"start void dry_run_legmotor()"<<std::endl;
+
+  int is_host = 1;
+  ProcComm *proc_comm_sensor;
+  ProcComm *proc_comm_command;
+  proc_comm_sensor = new ProcComm(filename_data_legmotor_sensor, id_data_legmotor_sensor, num_data_legmotor_sensor, is_host);
+  proc_comm_command = new ProcComm(filename_data_legmotor_command, id_data_legmotor_command, num_data_legmotor_command, is_host);
+
+  while(keepRunning)
+  {
+    legmotor_command_shared = proc_comm_command->read_stdvec();
+    std::cout<<"[dry run] legmotor_command: ";
+    for(int i=0;i<legmotor_command_shared.size();i++)
+    {
+      std::cout<<legmotor_command_shared[i]<<", ";
+    }
+    std::cout<<std::endl;
+    sleep(1);
+  }
+  printf("keepRunning = %d \n",keepRunning);
+
+  delete proc_comm_sensor;
+  delete proc_comm_command;
+}
+
 int main(int argc, char* argv[])
 {
     printf("SOEM (Simple Open EtherCAT Master)\nSimple test\n");
@@ -604,7 +631,7 @@ int main(int argc, char* argv[])
     #endif
 
     #if (ENABLE_LEGMOTOR == 0)
-    // TODO: ENABLE=0の場合の実装
+    dry_run_legmotor();
     #endif
 
     printf("End program\n");

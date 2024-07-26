@@ -33,3 +33,6 @@ $ make
 $ sudo setcap cap_net_raw=eip ./build/test/linux/proxima_robot/proxima_robot
 $ ./build/test/linux/proxima_robot/proxima_robot enp45s0
 ```
+
+
+通信機器のマニュアルは[こちら](https://docs.google.com/presentation/d/1llMmjt8A2hRTIBvRQ5TE9zqxqwxMua-kJgK8Y5UiObM/edit?usp=sharing)にあります。

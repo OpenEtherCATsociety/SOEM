@@ -10,6 +10,8 @@ if (CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
   set(CMAKE_INSTALL_PREFIX ${CMAKE_CURRENT_LIST_DIR}/install)
 endif()
 
+option(BUILD_SHARED_LIBS "Build using shared libraries" OFF)
+
 set(SOEM_INCLUDE_INSTALL_DIR include/soem)
 set(SOEM_LIB_INSTALL_DIR lib)
 
@@ -75,11 +77,16 @@ file(GLOB SOEM_HEADERS soem/*.h)
 file(GLOB OSAL_HEADERS osal/osal.h osal/${OS}/*.h)
 file(GLOB OSHW_HEADERS oshw/${OS}/*.h)
 
-add_library(soem STATIC
+add_library(soem
   ${SOEM_SOURCES}
   ${OSAL_SOURCES}
   ${OSHW_SOURCES}
   ${OSHW_EXTRA_SOURCES})
+
+if (BUILD_SHARED_LIBS)
+  set_target_properties(soem PROPERTIES VERSION ${PROJECT_VERSION} SOVERSION ${PROJECT_VERSION_MAJOR})
+endif(BUILD_SHARED_LIBS)
+
 target_link_libraries(soem ${OS_LIBS})
 
 target_include_directories(soem PUBLIC

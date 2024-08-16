@@ -356,6 +356,12 @@ int ecx_config_init(ecx_contextt *context, uint8 usetable)
       {
          eedat = ecx_readeeprom2(context, slave, EC_TIMEOUTEEP); /* Manuf */
          context->slavelist[slave].eep_man = etohl(eedat);
+         ecx_readeeprom1(context, slave, ECT_SII_SN); /* serial # */
+      }
+      for (slave = 1; slave <= *(context->slavecount); slave++)
+      {
+         eedat = ecx_readeeprom2(context, slave, EC_TIMEOUTEEP); /* serial # */
+         context->slavelist[slave].eep_sn = etohl(eedat);
          ecx_readeeprom1(context, slave, ECT_SII_ID); /* ID */
       }
       for (slave = 1; slave <= *(context->slavecount); slave++)

@@ -123,25 +123,26 @@ int ecx_SDOread(ecx_contextt *context, uint16 slave, uint16 index, uint8 subinde
 {
    ec_SDOt *SDOp, *aSDOp;
    uint16 bytesize, Framedatasize;
-   int wkc;
+   int wkc = 0;
    int32 SDOlen;
    uint8 *bp;
    uint8 *hp;
-   ec_mbxbuft MbxIn, MbxOut;
+   ec_mbxbuft *MbxIn, *MbxOut;
    uint8 cnt, toggle;
    boolean NotLast;
 
-   ec_clearmbx(&MbxIn);
-   /* Empty slave out mailbox if something is in. Timeout set to 0 */
-   wkc = ecx_mbxreceive(context, slave, (ec_mbxbuft *)&MbxIn, 0);
-   ec_clearmbx(&MbxOut);
-   aSDOp = (ec_SDOt *)&MbxIn;
-   SDOp = (ec_SDOt *)&MbxOut;
+   MbxIn = NULL;
+   MbxOut = NULL;
+   wkc = ecx_mbxreceive2(context, slave, &MbxIn, 0);
+   MbxOut = ecx_getmbx(context);
+   if(!MbxOut) return wkc;
+   ec_clearmbx(MbxOut);
+   SDOp = (ec_SDOt *)MbxOut;
    SDOp->MbxHeader.length = htoes(0x000a);
    SDOp->MbxHeader.address = htoes(0x0000);
    SDOp->MbxHeader.priority = 0x00;
    /* get new mailbox count value, used as session handle */
-   cnt = ec_nextmbxcnt(context->slavelist[slave].mbx_cnt);
+   cnt = ec_nextmbxcnt(context->slavelist[slave].mbx_cnt);   
    context->slavelist[slave].mbx_cnt = cnt;
    SDOp->MbxHeader.mbxtype = ECT_MBXT_COE + MBX_HDR_SET_CNT(cnt); /* CoE */
    SDOp->CANOpen = htoes(0x000 + (ECT_COES_SDOREQ << 12)); /* number 9bits service upper 4 bits (SDO request) */
@@ -161,14 +162,19 @@ int ecx_SDOread(ecx_contextt *context, uint16 slave, uint16 index, uint8 subinde
    SDOp->SubIndex = subindex;
    SDOp->ldata[0] = 0;
    /* send CoE request to slave */
-   wkc = ecx_mbxsend(context, slave, (ec_mbxbuft *)&MbxOut, EC_TIMEOUTTXM);
+   wkc = ecx_mbxsend(context, slave, MbxOut, EC_TIMEOUTTXM);
+   MbxOut = NULL;
    if (wkc > 0) /* succeeded to place mailbox in slave ? */
    {
-      /* clean mailboxbuffer */
-      ec_clearmbx(&MbxIn);
       /* read slave response */
-      wkc = ecx_mbxreceive(context, slave, (ec_mbxbuft *)&MbxIn, timeout);
-      if (wkc > 0) /* succeeded to read slave response ? */
+      if(MbxIn) ecx_dropmbx(context, MbxIn);
+      MbxIn = NULL;
+      do
+      {
+         wkc = ecx_mbxreceive2(context, slave, &MbxIn, timeout);
+      } while ((wkc > 0) && !MbxIn);   
+      aSDOp = (ec_SDOt *)MbxIn;
+      if ((wkc > 0) && MbxIn) /* succeeded to read slave response ? */
       {
          /* slave response should be CoE, SDO response and the correct index */
          if (((aSDOp->MbxHeader.mbxtype & 0x0f) == ECT_MBXT_COE) &&
@@ -213,7 +219,13 @@ int ecx_SDOread(ecx_contextt *context, uint16 slave, uint16 index, uint8 subinde
                      toggle= 0x00;
                      while (NotLast) /* segmented transfer */
                      {
-                        SDOp = (ec_SDOt *)&MbxOut;
+                        MbxOut = ecx_getmbx(context);
+                        if(!MbxOut)
+                        {
+                           NotLast = FALSE;
+                           break;
+                        }
+                        SDOp = (ec_SDOt *)MbxOut;
                         SDOp->MbxHeader.length = htoes(0x000a);
                         SDOp->MbxHeader.address = htoes(0x0000);
                         SDOp->MbxHeader.priority = 0x00;
@@ -226,13 +238,15 @@ int ecx_SDOread(ecx_contextt *context, uint16 slave, uint16 index, uint8 subinde
                         SDOp->SubIndex = subindex;
                         SDOp->ldata[0] = 0;
                         /* send segmented upload request to slave */
-                        wkc = ecx_mbxsend(context, slave, (ec_mbxbuft *)&MbxOut, EC_TIMEOUTTXM);
-                        /* is mailbox transferred to slave ? */
+                        wkc = ecx_mbxsend(context, slave, MbxOut, EC_TIMEOUTTXM);
+                        MbxOut = NULL;
                         if (wkc > 0)
                         {
-                           ec_clearmbx(&MbxIn);
+                           if(MbxIn) ecx_dropmbx(context, MbxIn);
+                           MbxIn = NULL;
                            /* read slave response */
-                           wkc = ecx_mbxreceive(context, slave, (ec_mbxbuft *)&MbxIn, timeout);
+                           wkc = ecx_mbxreceive2(context, slave, &MbxIn, timeout);
+                           aSDOp = (ec_SDOt *)MbxIn;
                            /* has slave responded ? */
                            if (wkc > 0)
                            {
@@ -308,6 +322,8 @@ int ecx_SDOread(ecx_contextt *context, uint16 slave, uint16 index, uint8 subinde
          }
       }
    }
+   if (MbxIn) ecx_dropmbx(context, MbxIn);  
+   if (MbxOut) ecx_dropmbx(context, MbxOut);  
    return wkc;
 }
 
@@ -332,18 +348,20 @@ int ecx_SDOwrite(ecx_contextt *context, uint16 Slave, uint16 Index, uint8 SubInd
                  boolean CA, int psize, const void *p, int Timeout)
 {
    ec_SDOt *SDOp, *aSDOp;
-   int wkc, maxdata, framedatasize;
-   ec_mbxbuft MbxIn, MbxOut;
+   int wkc, maxdata;
+   ec_mbxbuft *MbxIn, *MbxOut;
    uint8 cnt, toggle;
+   int framedatasize;
    boolean  NotLast;
    const uint8 *hp;
 
-   ec_clearmbx(&MbxIn);
-   /* Empty slave out mailbox if something is in. Timeout set to 0 */
-   wkc = ecx_mbxreceive(context, Slave, (ec_mbxbuft *)&MbxIn, 0);
-   ec_clearmbx(&MbxOut);
-   aSDOp = (ec_SDOt *)&MbxIn;
-   SDOp = (ec_SDOt *)&MbxOut;
+   MbxIn = NULL;
+   MbxOut = NULL;
+   wkc = ecx_mbxreceive2(context, Slave, &MbxIn, 0);
+   MbxOut = ecx_getmbx(context);
+   if(!MbxOut) return wkc;
+   ec_clearmbx(MbxOut);
+   SDOp = (ec_SDOt *)MbxOut;
    maxdata = context->slavelist[Slave].mbx_l - 0x10; /* data section=mailbox size - 6 mbx - 2 CoE - 8 sdo req */
    /* if small data use expedited transfer */
    if ((psize <= 4) && !CA)
@@ -363,14 +381,17 @@ int ecx_SDOwrite(ecx_contextt *context, uint16 Slave, uint16 Index, uint8 SubInd
       /* copy parameter data to mailbox */
       memcpy(&SDOp->ldata[0], hp, psize);
       /* send mailbox SDO download request to slave */
-      wkc = ecx_mbxsend(context, Slave, (ec_mbxbuft *)&MbxOut, EC_TIMEOUTTXM);
+      wkc = ecx_mbxsend(context, Slave, MbxOut, EC_TIMEOUTTXM);
+      MbxOut = NULL;
       if (wkc > 0)
       {
-         ec_clearmbx(&MbxIn);
+         if(MbxIn) ecx_dropmbx(context, MbxIn);
+         MbxIn = NULL;
          /* read slave response */
-         wkc = ecx_mbxreceive(context, Slave, (ec_mbxbuft *)&MbxIn, Timeout);
+         wkc = ecx_mbxreceive2(context, Slave, &MbxIn, Timeout);
          if (wkc > 0)
          {
+            aSDOp = (ec_SDOt *)MbxIn;
             /* response should be CoE, SDO response, correct index and subindex */
             if (((aSDOp->MbxHeader.mbxtype & 0x0f) == ECT_MBXT_COE) &&
                 ((etohs(aSDOp->CANOpen) >> 12) == ECT_COES_SDORES) &&
@@ -433,14 +454,17 @@ int ecx_SDOwrite(ecx_contextt *context, uint16 Slave, uint16 Index, uint8 SubInd
       hp += framedatasize;
       psize -= framedatasize;
       /* send mailbox SDO download request to slave */
-      wkc = ecx_mbxsend(context, Slave, (ec_mbxbuft *)&MbxOut, EC_TIMEOUTTXM);
+      wkc = ecx_mbxsend(context, Slave, MbxOut, EC_TIMEOUTTXM);
+      MbxOut = NULL;
       if (wkc > 0)
       {
-         ec_clearmbx(&MbxIn);
+         if(MbxIn) ecx_dropmbx(context, MbxIn);
+         MbxIn = NULL;
          /* read slave response */
-         wkc = ecx_mbxreceive(context, Slave, (ec_mbxbuft *)&MbxIn, Timeout);
+         wkc = ecx_mbxreceive2(context, Slave, &MbxIn, Timeout);
          if (wkc > 0)
          {
+            aSDOp = (ec_SDOt *)MbxIn;
             /* response should be CoE, SDO response, correct index and subindex */
             if (((aSDOp->MbxHeader.mbxtype & 0x0f) == ECT_MBXT_COE) &&
                 ((etohs(aSDOp->CANOpen) >> 12) == ECT_COES_SDORES) &&
@@ -453,7 +477,14 @@ int ecx_SDOwrite(ecx_contextt *context, uint16 Slave, uint16 Index, uint8 SubInd
                /* repeat while segments left */
                while (NotLast)
                {
-                  SDOp = (ec_SDOt *)&MbxOut;
+                  MbxOut = ecx_getmbx(context);
+                  if(!MbxOut)
+                  {
+                     NotLast = FALSE;
+                     break;
+                  }
+                  ec_clearmbx(MbxOut);
+                  SDOp = (ec_SDOt *)MbxOut;
                   framedatasize = psize;
                   NotLast = FALSE;
                   SDOp->Command = 0x01; /* last segment */
@@ -486,14 +517,17 @@ int ecx_SDOwrite(ecx_contextt *context, uint16 Slave, uint16 Index, uint8 SubInd
                   hp += framedatasize;
                   psize -= framedatasize;
                   /* send SDO download request */
-                  wkc = ecx_mbxsend(context, Slave, (ec_mbxbuft *)&MbxOut, EC_TIMEOUTTXM);
+                  wkc = ecx_mbxsend(context, Slave, MbxOut, EC_TIMEOUTTXM);
+                  MbxOut = NULL;
                   if (wkc > 0)
                   {
-                     ec_clearmbx(&MbxIn);
+                     if(MbxIn) ecx_dropmbx(context, MbxIn);
+                     MbxIn = NULL;
                      /* read slave response */
-                     wkc = ecx_mbxreceive(context, Slave, (ec_mbxbuft *)&MbxIn, Timeout);
+                     wkc = ecx_mbxreceive2(context, Slave, &MbxIn, Timeout);
                      if (wkc > 0)
                      {
+                        aSDOp = (ec_SDOt *)MbxIn;
                         if (((aSDOp->MbxHeader.mbxtype & 0x0f) == ECT_MBXT_COE) &&
                             ((etohs(aSDOp->CANOpen) >> 12) == ECT_COES_SDORES) &&
                             ((aSDOp->Command & 0xe0) == 0x20))
@@ -534,7 +568,8 @@ int ecx_SDOwrite(ecx_contextt *context, uint16 Slave, uint16 Index, uint8 SubInd
          }
       }
    }
-
+   if (MbxIn) ecx_dropmbx(context, MbxIn);  
+   if (MbxOut) ecx_dropmbx(context, MbxOut);  
    return wkc;
 }
 
@@ -553,14 +588,17 @@ int ecx_RxPDO(ecx_contextt *context, uint16 Slave, uint16 RxPDOnumber, int psize
 {
    ec_SDOt *SDOp;
    int wkc, maxdata, framedatasize;
-   ec_mbxbuft MbxIn, MbxOut;
+   ec_mbxbuft *MbxIn, *MbxOut;
    uint8 cnt;
-
-   ec_clearmbx(&MbxIn);
-   /* Empty slave out mailbox if something is in. Timeout set to 0 */
-   wkc = ecx_mbxreceive(context, Slave, (ec_mbxbuft *)&MbxIn, 0);
-   ec_clearmbx(&MbxOut);
-   SDOp = (ec_SDOt *)&MbxOut;
+   
+   MbxIn = NULL;
+   MbxOut = NULL;
+   wkc = ecx_mbxreceive2(context, Slave, &MbxIn, 0);
+   if (MbxIn) ecx_dropmbx(context, MbxIn);  
+   MbxOut = ecx_getmbx(context);
+   if(!MbxOut) return wkc;
+   ec_clearmbx(MbxOut);
+   SDOp = (ec_SDOt *)MbxOut;
    maxdata = context->slavelist[Slave].mbx_l - 0x08; /* data section=mailbox size - 6 mbx - 2 CoE */
    framedatasize = psize;
    if (framedatasize > maxdata)
@@ -578,8 +616,8 @@ int ecx_RxPDO(ecx_contextt *context, uint16 Slave, uint16 RxPDOnumber, int psize
    /* copy PDO data to mailbox */
    memcpy(&SDOp->Command, p, framedatasize);
    /* send mailbox RxPDO request to slave */
-   wkc = ecx_mbxsend(context, Slave, (ec_mbxbuft *)&MbxOut, EC_TIMEOUTTXM);
-
+   wkc = ecx_mbxsend(context, Slave, MbxOut, EC_TIMEOUTTXM);
+   MbxOut = NULL;
    return wkc;
 }
 
@@ -599,16 +637,18 @@ int ecx_TxPDO(ecx_contextt *context, uint16 slave, uint16 TxPDOnumber , int *psi
 {
    ec_SDOt *SDOp, *aSDOp;
    int wkc;
-   ec_mbxbuft MbxIn, MbxOut;
+   ec_mbxbuft *MbxIn, *MbxOut;
    uint8 cnt;
    uint16 framedatasize;
 
-   ec_clearmbx(&MbxIn);
-   /* Empty slave out mailbox if something is in. Timeout set to 0 */
-   wkc = ecx_mbxreceive(context, slave, (ec_mbxbuft *)&MbxIn, 0);
-   ec_clearmbx(&MbxOut);
-   aSDOp = (ec_SDOt *)&MbxIn;
-   SDOp = (ec_SDOt *)&MbxOut;
+   MbxIn = NULL;
+   MbxOut = NULL;
+   wkc = ecx_mbxreceive2(context, slave, &MbxIn, 0);
+   if (MbxIn) ecx_dropmbx(context, MbxIn);  
+   MbxOut = ecx_getmbx(context);
+   if(!MbxOut) return wkc;
+   ec_clearmbx(MbxOut);
+   SDOp = (ec_SDOt *)MbxOut;
    SDOp->MbxHeader.length = htoes(0x02);
    SDOp->MbxHeader.address = htoes(0x0000);
    SDOp->MbxHeader.priority = 0x00;
@@ -617,15 +657,17 @@ int ecx_TxPDO(ecx_contextt *context, uint16 slave, uint16 TxPDOnumber , int *psi
    context->slavelist[slave].mbx_cnt = cnt;
    SDOp->MbxHeader.mbxtype = ECT_MBXT_COE + MBX_HDR_SET_CNT(cnt); /* CoE */
    SDOp->CANOpen = htoes((TxPDOnumber & 0x01ff) + (ECT_COES_TXPDO_RR << 12)); /* number 9bits service upper 4 bits */
-   wkc = ecx_mbxsend(context, slave, (ec_mbxbuft *)&MbxOut, EC_TIMEOUTTXM);
+   wkc = ecx_mbxsend(context, slave, MbxOut, EC_TIMEOUTTXM);
+   MbxOut = NULL;
    if (wkc > 0)
    {
-      /* clean mailboxbuffer */
-      ec_clearmbx(&MbxIn);
+      if(MbxIn) ecx_dropmbx(context, MbxIn);
+      MbxIn = NULL;
       /* read slave response */
-      wkc = ecx_mbxreceive(context, slave, (ec_mbxbuft *)&MbxIn, timeout);
+      wkc = ecx_mbxreceive2(context, slave, &MbxIn, timeout);
       if (wkc > 0) /* succeeded to read slave response ? */
       {
+         aSDOp = (ec_SDOt *)MbxIn;
          /* slave response should be CoE, TxPDO */
          if (((aSDOp->MbxHeader.mbxtype & 0x0f) == ECT_MBXT_COE) &&
              ((etohs(aSDOp->CANOpen) >> 12) == ECT_COES_TXPDO))
@@ -661,7 +703,8 @@ int ecx_TxPDO(ecx_contextt *context, uint16 slave, uint16 TxPDOnumber , int *psi
          }
       }
    }
-
+   if (MbxIn) ecx_dropmbx(context, MbxIn);  
+   if (MbxOut) ecx_dropmbx(context, MbxOut);  
    return wkc;
 }
 
@@ -999,7 +1042,7 @@ int ecx_readPDOmapCA(ecx_contextt *context, uint16 Slave, int Thread_n, uint32 *
 int ecx_readODlist(ecx_contextt *context, uint16 Slave, ec_ODlistt *pODlist)
 {
    ec_SDOservicet *SDOp, *aSDOp;
-   ec_mbxbuft MbxIn, MbxOut;
+   ec_mbxbuft *MbxIn, *MbxOut;
    int wkc;
    uint16 x, n, i, sp, offset;
    boolean stop;
@@ -1008,12 +1051,15 @@ int ecx_readODlist(ecx_contextt *context, uint16 Slave, ec_ODlistt *pODlist)
 
    pODlist->Slave = Slave;
    pODlist->Entries = 0;
-   ec_clearmbx(&MbxIn);
-   /* clear pending out mailbox in slave if available. Timeout is set to 0 */
-   wkc = ecx_mbxreceive(context, Slave, &MbxIn, 0);
-   ec_clearmbx(&MbxOut);
-   aSDOp = (ec_SDOservicet*)&MbxIn;
-   SDOp = (ec_SDOservicet*)&MbxOut;
+   MbxIn = NULL;
+   MbxOut = NULL;
+   /* Empty slave out mailbox if something is in. Timout set to 0 */
+   wkc = ecx_mbxreceive2(context, Slave, &MbxIn, 0);
+   if (MbxIn) ecx_dropmbx(context, MbxIn);  
+   MbxOut = ecx_getmbx(context);
+   if(!MbxOut) return wkc;
+   ec_clearmbx(MbxOut);
+   SDOp = (ec_SDOservicet *)MbxOut;
    SDOp->MbxHeader.length = htoes(0x0008);
    SDOp->MbxHeader.address = htoes(0x0000);
    SDOp->MbxHeader.priority = 0x00;
@@ -1027,7 +1073,8 @@ int ecx_readODlist(ecx_contextt *context, uint16 Slave, ec_ODlistt *pODlist)
    SDOp->Fragments = 0; /* fragments left */
    SDOp->wdata[0] = htoes(0x01); /* all objects */
    /* send get object description list request to slave */
-   wkc = ecx_mbxsend(context, Slave, &MbxOut, EC_TIMEOUTTXM);
+   wkc = ecx_mbxsend(context, Slave, MbxOut, EC_TIMEOUTTXM);
+   MbxOut = NULL;
    /* mailbox placed in slave ? */
    if (wkc > 0)
    {
@@ -1038,12 +1085,14 @@ int ecx_readODlist(ecx_contextt *context, uint16 Slave, ec_ODlistt *pODlist)
       do
       {
          stop = TRUE; /* assume this is last iteration */
-         ec_clearmbx(&MbxIn);
+         if(MbxIn) ecx_dropmbx(context, MbxIn);
+         MbxIn = NULL;
          /* read slave response */
-         wkc = ecx_mbxreceive(context, Slave, &MbxIn, EC_TIMEOUTRXM);
+         wkc = ecx_mbxreceive2(context, Slave, &MbxIn, EC_TIMEOUTRXM);
          /* got response ? */
          if (wkc > 0)
          {
+            aSDOp = (ec_SDOservicet*)MbxIn;
             /* response should be CoE and "get object description list response" */
             if (((aSDOp->MbxHeader.mbxtype & 0x0f) == ECT_MBXT_COE) &&
                 ((aSDOp->Opcode & 0x7f) == ECT_GET_ODLIST_RES))
@@ -1105,6 +1154,8 @@ int ecx_readODlist(ecx_contextt *context, uint16 Slave, ec_ODlistt *pODlist)
       }
       while ((x <= 128) && !stop);
    }
+   if (MbxIn) ecx_dropmbx(context, MbxIn);  
+   if (MbxOut) ecx_dropmbx(context, MbxOut);  
    return wkc;
 }
 
@@ -1120,7 +1171,7 @@ int ecx_readODdescription(ecx_contextt *context, uint16 Item, ec_ODlistt *pODlis
    ec_SDOservicet *SDOp, *aSDOp;
    int wkc;
    uint16  n, Slave;
-   ec_mbxbuft MbxIn, MbxOut;
+   ec_mbxbuft *MbxIn, *MbxOut;
    uint8 cnt;
 
    Slave = pODlist->Slave;
@@ -1128,12 +1179,15 @@ int ecx_readODdescription(ecx_contextt *context, uint16 Item, ec_ODlistt *pODlis
    pODlist->ObjectCode[Item] = 0;
    pODlist->MaxSub[Item] = 0;
    pODlist->Name[Item][0] = 0;
-   ec_clearmbx(&MbxIn);
-   /* clear pending out mailbox in slave if available. Timeout is set to 0 */
-   wkc = ecx_mbxreceive(context, Slave, &MbxIn, 0);
-   ec_clearmbx(&MbxOut);
-   aSDOp = (ec_SDOservicet*)&MbxIn;
-   SDOp = (ec_SDOservicet*)&MbxOut;
+   MbxIn = NULL;
+   MbxOut = NULL;
+   /* Empty slave out mailbox if something is in. Timout set to 0 */
+   wkc = ecx_mbxreceive2(context, Slave, &MbxIn, 0);
+   if (MbxIn) ecx_dropmbx(context, MbxIn);  
+   MbxOut = ecx_getmbx(context);
+   if(!MbxOut) return wkc;
+   ec_clearmbx(MbxOut);
+   SDOp = (ec_SDOservicet *)MbxOut;
    SDOp->MbxHeader.length = htoes(0x0008);
    SDOp->MbxHeader.address = htoes(0x0000);
    SDOp->MbxHeader.priority = 0x00;
@@ -1147,16 +1201,19 @@ int ecx_readODdescription(ecx_contextt *context, uint16 Item, ec_ODlistt *pODlis
    SDOp->Fragments = 0; /* fragments left */
    SDOp->wdata[0] = htoes(pODlist->Index[Item]); /* Data of Index */
    /* send get object description request to slave */
-   wkc = ecx_mbxsend(context, Slave, &MbxOut, EC_TIMEOUTTXM);
+   wkc = ecx_mbxsend(context, Slave, MbxOut, EC_TIMEOUTTXM);
+   MbxOut = NULL;
    /* mailbox placed in slave ? */
    if (wkc > 0)
    {
-      ec_clearmbx(&MbxIn);
+      if (MbxIn) ecx_dropmbx(context, MbxIn);  
+      MbxIn = NULL;
       /* read slave response */
-      wkc = ecx_mbxreceive(context, Slave, &MbxIn, EC_TIMEOUTRXM);
+      wkc = ecx_mbxreceive2(context, Slave, &MbxIn, EC_TIMEOUTRXM);
       /* got response ? */
       if (wkc > 0)
       {
+         aSDOp = (ec_SDOservicet*)MbxIn;
          if (((aSDOp->MbxHeader.mbxtype & 0x0f) == ECT_MBXT_COE) &&
              ((aSDOp->Opcode & 0x7f) == ECT_GET_OD_RES))
          {
@@ -1187,7 +1244,8 @@ int ecx_readODdescription(ecx_contextt *context, uint16 Item, ec_ODlistt *pODlis
          }
       }
    }
-
+   if (MbxIn) ecx_dropmbx(context, MbxIn);  
+   if (MbxOut) ecx_dropmbx(context, MbxOut);  
    return wkc;
 }
 
@@ -1207,18 +1265,21 @@ int ecx_readOEsingle(ecx_contextt *context, uint16 Item, uint8 SubI, ec_ODlistt 
    int wkc;
    uint16 Index, Slave;
    int16 n;
-   ec_mbxbuft MbxIn, MbxOut;
+   ec_mbxbuft *MbxIn, *MbxOut;
    uint8 cnt;
 
    wkc = 0;
    Slave = pODlist->Slave;
    Index = pODlist->Index[Item];
-   ec_clearmbx(&MbxIn);
-   /* clear pending out mailbox in slave if available. Timeout is set to 0 */
-   wkc = ecx_mbxreceive(context, Slave, &MbxIn, 0);
-   ec_clearmbx(&MbxOut);
-   aSDOp = (ec_SDOservicet*)&MbxIn;
-   SDOp = (ec_SDOservicet*)&MbxOut;
+   MbxIn = NULL;
+   MbxOut = NULL;
+   /* Empty slave out mailbox if something is in. Timout set to 0 */
+   wkc = ecx_mbxreceive2(context, Slave, &MbxIn, 0);
+   if (MbxIn) ecx_dropmbx(context, MbxIn);  
+   MbxOut = ecx_getmbx(context);
+   if(!MbxOut) return wkc;
+   ec_clearmbx(MbxOut);
+   SDOp = (ec_SDOservicet *)MbxOut;
    SDOp->MbxHeader.length = htoes(0x000a);
    SDOp->MbxHeader.address = htoes(0x0000);
    SDOp->MbxHeader.priority = 0x00;
@@ -1234,16 +1295,19 @@ int ecx_readOEsingle(ecx_contextt *context, uint16 Item, uint8 SubI, ec_ODlistt 
    SDOp->bdata[2] = SubI;       /* SubIndex */
    SDOp->bdata[3] = 1 + 2 + 4; /* get access rights, object category, PDO */
    /* send get object entry description request to slave */
-   wkc = ecx_mbxsend(context, Slave, &MbxOut, EC_TIMEOUTTXM);
+   wkc = ecx_mbxsend(context, Slave, MbxOut, EC_TIMEOUTTXM);
+   MbxOut = NULL;
    /* mailbox placed in slave ? */
    if (wkc > 0)
    {
-      ec_clearmbx(&MbxIn);
+      if (MbxIn) ecx_dropmbx(context, MbxIn);  
+      MbxIn = NULL;
       /* read slave response */
-      wkc = ecx_mbxreceive(context, Slave, &MbxIn, EC_TIMEOUTRXM);
+      wkc = ecx_mbxreceive2(context, Slave, &MbxIn, EC_TIMEOUTRXM);
       /* got response ? */
       if (wkc > 0)
       {
+         aSDOp = (ec_SDOservicet*)MbxIn;
          if (((aSDOp->MbxHeader.mbxtype & 0x0f) == ECT_MBXT_COE) &&
              ((aSDOp->Opcode &  0x7f) == ECT_GET_OE_RES))
          {
@@ -1280,7 +1344,8 @@ int ecx_readOEsingle(ecx_contextt *context, uint16 Item, uint8 SubI, ec_ODlistt 
          }
       }
    }
-
+   if (MbxIn) ecx_dropmbx(context, MbxIn);  
+   if (MbxOut) ecx_dropmbx(context, MbxOut);  
    return wkc;
 }
 

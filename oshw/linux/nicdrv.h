@@ -36,6 +36,7 @@ typedef struct
    int         (*rxbufstat)[EC_MAXBUF];
    /** received MAC source address (middle word) */
    int         (*rxsa)[EC_MAXBUF];
+   uint64      rxcnt;
 } ec_stackT;
 
 /** pointer structure to buffers for redundant port */

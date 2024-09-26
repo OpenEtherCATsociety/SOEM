@@ -84,16 +84,17 @@ int ecx_SoEread(ecx_contextt *context, uint16 slave, uint8 driveNo, uint8 elemen
    uint8 *bp;
    uint8 *mp;
    uint16 *errorcode;
-   ec_mbxbuft MbxIn, MbxOut;
+   ec_mbxbuft *MbxIn, *MbxOut;
    uint8 cnt;
    boolean NotLast;
 
-   ec_clearmbx(&MbxIn);
-   /* Empty slave out mailbox if something is in. Timeout set to 0 */
-   wkc = ecx_mbxreceive(context, slave, (ec_mbxbuft *)&MbxIn, 0);
-   ec_clearmbx(&MbxOut);
-   aSoEp = (ec_SoEt *)&MbxIn;
-   SoEp = (ec_SoEt *)&MbxOut;
+   MbxIn = NULL;
+   MbxOut = NULL;
+   /* Empty slave out mailbox if something is in. Timout set to 0 */
+   wkc = ecx_mbxreceive2(context, slave, &MbxIn, 0);
+   MbxOut = ecx_getmbx(context);
+   ec_clearmbx(MbxOut);
+   SoEp = (ec_SoEt *)MbxOut;
    SoEp->MbxHeader.length = htoes(sizeof(ec_SoEt) - sizeof(ec_mbxheadert));
    SoEp->MbxHeader.address = htoes(0x0000);
    SoEp->MbxHeader.priority = 0x00;
@@ -109,20 +110,22 @@ int ecx_SoEread(ecx_contextt *context, uint16 slave, uint8 driveNo, uint8 elemen
    SoEp->idn = htoes(idn);
    totalsize = 0;
    bp = p;
-   mp = (uint8 *)&MbxIn + sizeof(ec_SoEt);
+   mp = (uint8 *)MbxIn + sizeof(ec_SoEt);
    NotLast = TRUE;
    /* send SoE request to slave */
-   wkc = ecx_mbxsend(context, slave, (ec_mbxbuft *)&MbxOut, EC_TIMEOUTTXM);
+   wkc = ecx_mbxsend(context, slave, MbxOut, EC_TIMEOUTTXM);
+   MbxOut = NULL;
    if (wkc > 0) /* succeeded to place mailbox in slave ? */
    {
       while (NotLast)
       {
-         /* clean mailboxbuffer */
-         ec_clearmbx(&MbxIn);
+         if(MbxIn) ecx_dropmbx(context, MbxIn);
+         MbxIn = NULL;
          /* read slave response */
-         wkc = ecx_mbxreceive(context, slave, (ec_mbxbuft *)&MbxIn, timeout);
+         wkc = ecx_mbxreceive2(context, slave, &MbxIn, timeout);
          if (wkc > 0) /* succeeded to read slave response ? */
          {
+            aSoEp = (ec_SoEt *)MbxIn;
             /* slave response should be SoE, ReadRes */
             if (((aSoEp->MbxHeader.mbxtype & 0x0f) == ECT_MBXT_SOE) &&
                 (aSoEp->opCode == ECT_SOE_READRES) &&
@@ -162,7 +165,7 @@ int ecx_SoEread(ecx_contextt *context, uint16 slave, uint8 driveNo, uint8 elemen
                    (aSoEp->opCode == ECT_SOE_READRES) &&
                    (aSoEp->error == 1))
                {
-                  mp = (uint8 *)&MbxIn + (etohs(aSoEp->MbxHeader.length) + sizeof(ec_mbxheadert) - sizeof(uint16));
+                  mp = (uint8 *)MbxIn + (etohs(aSoEp->MbxHeader.length) + sizeof(ec_mbxheadert) - sizeof(uint16));
                   errorcode = (uint16 *)mp;
                   ecx_SoEerror(context, slave, idn, *errorcode);
                }
@@ -180,6 +183,8 @@ int ecx_SoEread(ecx_contextt *context, uint16 slave, uint8 driveNo, uint8 elemen
          }
       }
    }
+   if(MbxIn) ecx_dropmbx(context, MbxIn);
+   if(MbxOut) ecx_dropmbx(context, MbxOut);
    return wkc;
 }
 
@@ -206,28 +211,29 @@ int ecx_SoEwrite(ecx_contextt *context, uint16 slave, uint8 driveNo, uint8 eleme
    uint8 *mp;
    uint8 *hp;
    uint16 *errorcode;
-   ec_mbxbuft MbxIn, MbxOut;
+   ec_mbxbuft *MbxIn, *MbxOut;
    uint8 cnt;
    boolean NotLast;
 
-   ec_clearmbx(&MbxIn);
-   /* Empty slave out mailbox if something is in. Timeout set to 0 */
-   wkc = ecx_mbxreceive(context, slave, (ec_mbxbuft *)&MbxIn, 0);
-   ec_clearmbx(&MbxOut);
-   aSoEp = (ec_SoEt *)&MbxIn;
-   SoEp = (ec_SoEt *)&MbxOut;
-   SoEp->MbxHeader.address = htoes(0x0000);
-   SoEp->MbxHeader.priority = 0x00;
-   SoEp->opCode = ECT_SOE_WRITEREQ;
-   SoEp->error = 0;
-   SoEp->driveNo = driveNo;
-   SoEp->elementflags = elementflags;
+   MbxIn = NULL;
+   MbxOut = NULL;
+   /* Empty slave out mailbox if something is in. Timout set to 0 */
+   wkc = ecx_mbxreceive2(context, slave, &MbxIn, 0);
    hp = p;
-   mp = (uint8 *)&MbxOut + sizeof(ec_SoEt);
    maxdata = context->slavelist[slave].mbx_l - sizeof(ec_SoEt);
    NotLast = TRUE;
    while (NotLast)
    {
+      MbxOut = ecx_getmbx(context);
+      ec_clearmbx(MbxOut);
+      SoEp = (ec_SoEt *)MbxOut;
+      SoEp->MbxHeader.address = htoes(0x0000);
+      SoEp->MbxHeader.priority = 0x00;
+      SoEp->opCode = ECT_SOE_WRITEREQ;
+      SoEp->error = 0;
+      SoEp->driveNo = driveNo;
+      SoEp->elementflags = elementflags;
+      mp = (uint8 *)MbxOut + sizeof(ec_SoEt);
       framedatasize = psize;
       NotLast = FALSE;
       SoEp->idn = htoes(idn);
@@ -249,17 +255,19 @@ int ecx_SoEwrite(ecx_contextt *context, uint16 slave, uint8 driveNo, uint8 eleme
       hp += framedatasize;
       psize -= framedatasize;
       /* send SoE request to slave */
-      wkc = ecx_mbxsend(context, slave, (ec_mbxbuft *)&MbxOut, EC_TIMEOUTTXM);
+      wkc = ecx_mbxsend(context, slave, MbxOut, EC_TIMEOUTTXM);
+      MbxOut = NULL;
       if (wkc > 0) /* succeeded to place mailbox in slave ? */
       {
          if (!NotLast || !ecx_mbxempty(context, slave, timeout))
          {
-            /* clean mailboxbuffer */
-            ec_clearmbx(&MbxIn);
+            if(MbxIn) ecx_dropmbx(context, MbxIn);
+            MbxIn = NULL;
             /* read slave response */
-            wkc = ecx_mbxreceive(context, slave, (ec_mbxbuft *)&MbxIn, timeout);
+            wkc = ecx_mbxreceive2(context, slave, &MbxIn, timeout);
             if (wkc > 0) /* succeeded to read slave response ? */
             {
+               aSoEp = (ec_SoEt *)MbxIn;
                NotLast = FALSE;
                /* slave response should be SoE, WriteRes */
                if (((aSoEp->MbxHeader.mbxtype & 0x0f) == ECT_MBXT_SOE) &&
@@ -277,7 +285,7 @@ int ecx_SoEwrite(ecx_contextt *context, uint16 slave, uint8 driveNo, uint8 eleme
                       (aSoEp->opCode == ECT_SOE_READRES) &&
                       (aSoEp->error == 1))
                   {
-                     mp = (uint8 *)&MbxIn + (etohs(aSoEp->MbxHeader.length) + sizeof(ec_mbxheadert) - sizeof(uint16));
+                     mp = (uint8 *)MbxIn + (etohs(aSoEp->MbxHeader.length) + sizeof(ec_mbxheadert) - sizeof(uint16));
                      errorcode = (uint16 *)mp;
                      ecx_SoEerror(context, slave, idn, *errorcode);
                   }
@@ -295,6 +303,8 @@ int ecx_SoEwrite(ecx_contextt *context, uint16 slave, uint8 driveNo, uint8 eleme
          }
       }
    }
+   if(MbxIn) ecx_dropmbx(context, MbxIn);
+   if(MbxOut) ecx_dropmbx(context, MbxOut);
    return wkc;
 }
 

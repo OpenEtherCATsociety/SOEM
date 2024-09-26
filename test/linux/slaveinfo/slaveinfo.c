@@ -529,7 +529,7 @@ void si_sdo(int cnt)
         printf(" CoE Object Description found, %d entries.\n",ODlist.Entries);
         for( i = 0 ; i < ODlist.Entries ; i++)
         {
-            uint8_t max_sub;
+            uint16_t max_sub;
             char name[128] = { 0 };
 
             ec_readODdescription(i, &ODlist);

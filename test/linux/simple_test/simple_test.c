@@ -183,11 +183,12 @@ OSAL_THREAD_FUNC ecatcheck( void *ptr )
                   {
                      printf("WARNING : slave %d is in SAFE_OP, change to OPERATIONAL.\n", slave);
                      ec_slave[slave].state = EC_STATE_OPERATIONAL;
+                     if(ec_slave[slave].mbxhandlerstate == ECT_MBXH_LOST) ec_slave[slave].mbxhandlerstate = ECT_MBXH_CYCLIC;
                      ec_writestate(slave);
                   }
                   else if(ec_slave[slave].state > EC_STATE_NONE)
                   {
-                     if (ec_reconfig_slave(slave, EC_TIMEOUTMON))
+                     if (ec_reconfig_slave(slave, EC_TIMEOUTMON) >= EC_STATE_PRE_OP)
                      {
                         ec_slave[slave].islost = FALSE;
                         printf("MESSAGE : slave %d reconfigured\n",slave);
@@ -200,13 +201,20 @@ OSAL_THREAD_FUNC ecatcheck( void *ptr )
                      if (ec_slave[slave].state == EC_STATE_NONE)
                      {
                         ec_slave[slave].islost = TRUE;
+                        ec_slave[slave].mbxhandlerstate = ECT_MBXH_LOST;
+                        /* zero input data for this slave */
+                        if(ec_slave[slave].Ibytes)
+                        {
+                           memset(ec_slave[slave].inputs, 0x00, ec_slave[slave].Ibytes);
+                           printf("zero inputs %p %d\n\r", ec_slave[slave].inputs, ec_slave[slave].Ibytes);
+                        }
                         printf("ERROR : slave %d lost\n",slave);
                      }
                   }
                }
                if (ec_slave[slave].islost)
                {
-                  if(ec_slave[slave].state == EC_STATE_NONE)
+                  if(ec_slave[slave].state <= EC_STATE_INIT)
                   {
                      if (ec_recover_slave(slave, EC_TIMEOUTMON))
                      {

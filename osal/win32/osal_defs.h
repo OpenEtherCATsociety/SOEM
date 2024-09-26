@@ -39,6 +39,8 @@ extern "C"
 #define OSAL_THREAD_FUNC void
 #define OSAL_THREAD_FUNC_RT void
 
+#define osal_mutext CRITICAL_SECTION
+
 #ifdef __cplusplus
 }
 #endif

@@ -114,6 +114,7 @@ void ecx_init_context(ecx_contextt *context)
    {
       /* default start address per group entry */
       context->grouplist[lp].logstartaddr = lp << EC_LOGGROUPOFFSET;
+      ecx_initmbxqueue(context, lp);
    }
 }
 
@@ -357,12 +358,6 @@ int ecx_config_init(ecx_contextt *context, uint8 usetable)
       {
          eedat = ecx_readeeprom2(context, slave, EC_TIMEOUTEEP); /* Manuf */
          context->slavelist[slave].eep_man = etohl(eedat);
-         ecx_readeeprom1(context, slave, ECT_SII_SN); /* serial # */
-      }
-      for (slave = 1; slave <= *(context->slavecount); slave++)
-      {
-         eedat = ecx_readeeprom2(context, slave, EC_TIMEOUTEEP); /* serial # */
-         context->slavelist[slave].eep_sn = etohl(eedat);
          ecx_readeeprom1(context, slave, ECT_SII_ID); /* ID */
       }
       for (slave = 1; slave <= *(context->slavecount); slave++)
@@ -375,6 +370,12 @@ int ecx_config_init(ecx_contextt *context, uint8 usetable)
       {
          eedat = ecx_readeeprom2(context, slave, EC_TIMEOUTEEP); /* revision */
          context->slavelist[slave].eep_rev = etohl(eedat);
+         ecx_readeeprom1(context, slave, ECT_SII_SER); /* serial number */
+      }
+      for (slave = 1; slave <= *(context->slavecount); slave++)
+      {
+         eedat = ecx_readeeprom2(context, slave, EC_TIMEOUTEEP); /* serial number */
+         context->slavelist[slave].eep_ser = etohl(eedat);
          ecx_readeeprom1(context, slave, ECT_SII_RXMBXADR); /* write mailbox address + mailboxsize */
       }
       for (slave = 1; slave <= *(context->slavecount); slave++)
@@ -1167,6 +1168,46 @@ static void ecx_config_create_output_mappings(ecx_contextt *context, void *pIOma
    context->slavelist[slave].FMMUunused = FMMUc;
 }
 
+static void ecx_config_create_mbxstatus_mappings(ecx_contextt *context, void *pIOmap,
+   uint8 group, int16 slave, uint32 * LogAddr)
+{
+   uint16 FMMUsize = 1;
+   uint16 configadr;
+   uint8 FMMUc;
+   int position;
+
+   EC_PRINT(" =Slave %d, MBXSTATUS MAPPING\n", slave);
+
+   configadr = context->slavelist[slave].configadr;
+   FMMUc = context->slavelist[slave].FMMUunused;
+   if (context->slavelist[slave].mbx_l && (FMMUc < EC_MAXFMMU)) /* slave with mailbox */
+   {
+      context->slavelist[slave].FMMU[FMMUc].LogStart = htoel(*LogAddr);
+      context->slavelist[slave].FMMU[FMMUc].LogStartbit = 0;
+      *LogAddr += FMMUsize;
+      context->slavelist[slave].FMMU[FMMUc].LogLength = htoes(FMMUsize);
+      context->slavelist[slave].FMMU[FMMUc].LogEndbit = 7;
+      context->slavelist[slave].FMMU[FMMUc].PhysStart  = ECT_REG_SM1STAT;
+      context->slavelist[slave].FMMU[FMMUc].PhysStartBit = 0;
+      context->slavelist[slave].FMMU[FMMUc].FMMUtype = 1;
+      context->slavelist[slave].FMMU[FMMUc].FMMUactive = 1;
+      /* program FMMU for input */
+      ecx_FPWR(context->port, configadr, ECT_REG_FMMU0 + (sizeof(ec_fmmut) * FMMUc),
+         sizeof(ec_fmmut), &(context->slavelist[slave].FMMU[FMMUc]), EC_TIMEOUTRET3);
+
+      position = etohl(context->slavelist[slave].FMMU[FMMUc].LogStart);
+      context->slavelist[slave].mbxstatus = (uint8 *)(pIOmap) + position;
+      position -= context->grouplist[group].Obytes + context->grouplist[group].Ibytes;
+      context->grouplist[group].mbxstatuslookup[position] = slave;
+      context->grouplist[group].mbxstatuslength++;
+      FMMUc++;
+      /* account for MBXSTATUS wkc increment */
+      if(!context->slavelist[slave].Ibytes)
+         context->grouplist[group].inputsWKC++;
+   }
+   context->slavelist[slave].FMMUunused = FMMUc;
+}
+
 static int ecx_main_config_map_group(ecx_contextt *context, void *pIOmap, uint8 group, boolean forceByteAlignment)
 {
    uint16 slave, configadr;
@@ -1339,14 +1380,52 @@ static int ecx_main_config_map_group(ecx_contextt *context, void *pIOmap, uint8 
       context->grouplist[group].nsegments = currentsegment + 1;
       context->grouplist[group].inputs = (uint8 *)(pIOmap) + context->grouplist[group].Obytes;
       context->grouplist[group].Ibytes = LogAddr -
-         context->grouplist[group].logstartaddr -
-         context->grouplist[group].Obytes;
+               context->grouplist[group].logstartaddr -
+               context->grouplist[group].Obytes;
+
+      /* do mbxstatus mapping of slave and program FMMUs */
+      for (slave = 1; slave <= *(context->slavecount); slave++)
+      {
+         configadr = context->slavelist[slave].configadr;
+         if (!group || (group == context->slavelist[slave].group))
+         {
+            ecx_config_create_mbxstatus_mappings(context, pIOmap, group, slave, &LogAddr);
+            diff = LogAddr - oLogAddr;
+            oLogAddr = LogAddr;
+            if ((segmentsize + diff) > (EC_MAXLRWDATA - EC_FIRSTDCDATAGRAM))
+            {
+                  context->grouplist[group].IOsegment[currentsegment] = segmentsize;
+                  if (currentsegment < (EC_MAXIOSEGMENTS - 1))
+                  {
+                        currentsegment++;
+                        segmentsize = diff;
+                  }
+            }
+            else
+            {
+                  segmentsize += diff;
+            }
+            ecx_eeprom2pdi(context, slave); /* set Eeprom control to PDI */
+            ecx_FPWRw(context->port, configadr, ECT_REG_ALCTL, htoes(EC_STATE_SAFE_OP) , EC_TIMEOUTRET3); /* set safeop status */
+            if (context->slavelist[slave].blockLRW)
+            {
+               context->grouplist[group].blockLRW++;
+            }
+            context->grouplist[group].Ebuscurrent += context->slavelist[slave].Ebuscurrent;
+         }
+      }
+
+      context->grouplist[group].IOsegment[currentsegment] = segmentsize;
+      context->grouplist[group].nsegments = currentsegment + 1;
+      context->grouplist[group].mbxstatus = (uint8 *)(pIOmap) + context->grouplist[group].Obytes + context->grouplist[group].Ibytes;
+      context->grouplist[group].mbxstatuslength = LogAddr - context->grouplist[group].Obytes - context->grouplist[group].Ibytes;
       if (!group)
       {
          context->slavelist[0].inputs = (uint8 *)(pIOmap) + context->slavelist[0].Obytes;
          context->slavelist[0].Ibytes = LogAddr -
             context->grouplist[group].logstartaddr -
             context->slavelist[0].Obytes; /* store input bytes in master record */
+         context->slavelist[0].mbxstatus = (uint8 *)(pIOmap) + context->slavelist[0].Obytes + context->slavelist[0].Ibytes;
       }
 
       EC_PRINT("IOmapSize %d\n", LogAddr - context->grouplist[group].logstartaddr);
@@ -1512,7 +1591,9 @@ int ecx_config_overlap_map_group(ecx_contextt *context, void *pIOmap, uint8 grou
       context->grouplist[group].outputs = pIOmap;
       context->grouplist[group].inputs = (uint8 *)pIOmap + context->grouplist[group].Obytes;
 
-      /* Move calculated inputs with OBytes offset*/
+      context->grouplist[group].mbxstatus = (uint8 *)pIOmap + context->grouplist[group].Obytes + context->grouplist[group].Ibytes;
+
+     /* Move calculated inputs with OBytes offset*/
       for (slave = 1; slave <= *(context->slavecount); slave++)
       {
          if (!group || (group == context->slavelist[slave].group))
@@ -1531,6 +1612,7 @@ int ecx_config_overlap_map_group(ecx_contextt *context, void *pIOmap, uint8 grou
          context->slavelist[0].Obytes = soLogAddr - context->grouplist[group].logstartaddr;
          context->slavelist[0].inputs = (uint8 *)pIOmap + context->slavelist[0].Obytes;
          context->slavelist[0].Ibytes = siLogAddr - context->grouplist[group].logstartaddr;
+         context->slavelist[0].mbxstatus = (uint8 *)pIOmap + context->slavelist[0].Obytes + context->slavelist[0].Ibytes;
       }
 
       EC_PRINT("IOmapSize %d\n", context->grouplist[group].Obytes + context->grouplist[group].Ibytes);
@@ -1637,6 +1719,8 @@ int ecx_reconfig_slave(ecx_contextt *context, uint16 slave, int timeout)
                sizeof(ec_smt), &context->slavelist[slave].SM[nSM], timeout);
          }
       }
+      /* small delay to allow slave to process SM changes */
+      osal_usleep(5000);
       ecx_FPWRw(context->port, configadr, ECT_REG_ALCTL, htoes(EC_STATE_PRE_OP) , timeout);
       state = ecx_statecheck(context, slave, EC_STATE_PRE_OP, EC_TIMEOUTSTATE); /* check state change pre-op */
       if( state == EC_STATE_PRE_OP)

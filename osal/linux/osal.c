@@ -143,3 +143,33 @@ int osal_thread_create_rt(void *thandle, int stacksize, void *func, void *param)
 
    return 1;
 }
+
+void *osal_mutex_create(void)
+{
+   pthread_mutexattr_t mutexattr;
+   osal_mutext *mutex;
+   mutex = (osal_mutext *)osal_malloc (sizeof(osal_mutext));
+   if(mutex)
+   {
+      pthread_mutexattr_init(&mutexattr);
+      pthread_mutexattr_setprotocol(&mutexattr, PTHREAD_PRIO_INHERIT);
+      pthread_mutex_init(mutex, &mutexattr);
+   }
+   return (void *)mutex;
+}
+
+void osal_mutex_destroy(void *mutex)
+{
+   pthread_mutex_destroy((osal_mutext *)mutex);
+   osal_free(mutex);
+}
+
+void osal_mutex_lock(void *mutex)
+{
+   pthread_mutex_lock((osal_mutext *) mutex);
+}
+
+void osal_mutex_unlock(void *mutex)
+{
+   pthread_mutex_unlock((osal_mutext *) mutex);
+}

@@ -31,6 +31,8 @@
  * This layer if fully transparent for the higher layers.
  */
 
+#define _GNU_SOURCE
+
 #include <sys/types.h>
 #include <sys/ioctl.h>
 #include <net/if.h>
@@ -44,6 +46,7 @@
 #include <string.h>
 #include <netpacket/packet.h>
 #include <pthread.h>
+#include <poll.h>
 
 #include "oshw.h"
 #include "osal.h"
@@ -92,7 +95,7 @@ int ecx_setupnic(ecx_portt *port, const char *ifname, int secondary)
 {
    int i;
    int r, rval, ifindex;
-   struct timeval timeout;
+ //  struct timeval timeout;
    struct ifreq ifr;
    struct sockaddr_ll sll;
    int *psock;
@@ -148,11 +151,13 @@ int ecx_setupnic(ecx_portt *port, const char *ifname, int secondary)
    if(*psock < 0)
       return 0;
 
+   r = 0;
+/*
    timeout.tv_sec =  0;
    timeout.tv_usec = 1;
-   r = 0;
    r |= setsockopt(*psock, SOL_SOCKET, SO_RCVTIMEO, &timeout, sizeof(timeout));
    r |= setsockopt(*psock, SOL_SOCKET, SO_SNDTIMEO, &timeout, sizeof(timeout));
+*/
    i = 1;
    r |= setsockopt(*psock, SOL_SOCKET, SO_DONTROUTE, &i, sizeof(i));
    /* connect socket to NIC by name */
@@ -406,14 +411,25 @@ int ecx_inframe(ecx_portt *port, uint8 idx, int stacknumber)
    else
    {
       pthread_mutex_lock(&(port->rx_mutex));
+      /* check again if requested index is already in buffer ?
+       * other task might have reveived it befor we grabbed mutex */
+      if ((idx < EC_MAXBUF) && ((*stack->rxbufstat)[idx] == EC_BUF_RCVD))
+      {
+         l = (*rxbuf)[0] + ((uint16)((*rxbuf)[1] & 0x0f) << 8);
+         /* return WKC */
+         rval = ((*rxbuf)[l] + ((uint16)(*rxbuf)[l + 1] << 8));
+         /* mark as completed */
+         (*stack->rxbufstat)[idx] = EC_BUF_COMPLETE;
+      }
       /* non blocking call to retrieve frame from socket */
-      if (ecx_recvpkt(port, stacknumber))
+      else if (ecx_recvpkt(port, stacknumber))
       {
          rval = EC_OTHERFRAME;
          ehp =(ec_etherheadert*)(stack->tempbuf);
          /* check if it is an EtherCAT frame */
          if (ehp->etype == htons(ETH_P_ECAT))
          {
+            stack->rxcnt++;
             ecp =(ec_comt*)(&(*stack->tempbuf)[ETH_HEADERSIZE]);
             l = etohs(ecp->elength) & 0x0fff;
             idxf = ecp->index;
@@ -478,17 +494,40 @@ static int ecx_waitinframe_red(ecx_portt *port, uint8 idx, osal_timert *timer)
    /* if not in redundant mode then always assume secondary is OK */
    if (port->redstate == ECT_RED_NONE)
       wkc2 = 0;
+   /* use ppoll to reduce busy_polling */
+   struct pollfd fds[2];
+   struct pollfd *fdsp;
+   int poll_err = 0;
+   struct timespec timeout_spec = { 0, 0 };
+   timeout_spec.tv_nsec = 50 * 1000;
+   ec_stackT *stack;
+   stack = &(port->stack);
+   fds[0].fd = *stack->sock;
+   fds[0].events = POLLIN;
+   int pollcnt = 1;
+   if(port->redstate != ECT_RED_NONE)
+   {
+      pollcnt = 2;
+      stack = &(port->redport->stack);
+      fds[1].fd = *stack->sock;
+      fds[1].events = POLLIN;
+   }
+   fdsp = &fds[0];
    do
    {
-      /* only read frame if not already in */
-      if (wkc <= EC_NOFRAME)
-         wkc  = ecx_inframe(port, idx, 0);
-      /* only try secondary if in redundant mode */
-      if (port->redstate != ECT_RED_NONE)
+      poll_err = ppoll(fdsp, pollcnt, &timeout_spec, NULL);
+      if(poll_err >= 0)
       {
          /* only read frame if not already in */
-         if (wkc2 <= EC_NOFRAME)
-            wkc2 = ecx_inframe(port, idx, 1);
+         if (wkc <= EC_NOFRAME)
+            wkc  = ecx_inframe(port, idx, 0);
+         /* only try secondary if in redundant mode */
+         if (port->redstate != ECT_RED_NONE)
+         {
+            /* only read frame if not already in */
+            if (wkc2 <= EC_NOFRAME)
+               wkc2 = ecx_inframe(port, idx, 1);
+         }
       }
    /* wait for both frames to arrive or timeout */
    } while (((wkc <= EC_NOFRAME) || (wkc2 <= EC_NOFRAME)) && !osal_timer_is_expired(timer));

@@ -85,6 +85,36 @@ typedef struct PACKED ec_state_status
 } ec_state_status;
 PACKED_END
 
+/** mailbox buffer array */
+typedef uint8 ec_mbxbuft[EC_MAXMBX + 1];
+
+#define EC_MBXPOOLSIZE  32
+#define EC_MBXINENABLE  (uint8 *)1
+
+typedef struct
+{
+   int         listhead, listtail, listcount;
+   int         mbxemptylist[EC_MBXPOOLSIZE];
+   osal_mutext *mbxmutex;
+   ec_mbxbuft  mbx[EC_MBXPOOLSIZE];
+} ec_mbxpoolt;
+
+#define EC_MBXQUEUESTATE_NONE       0
+#define EC_MBXQUEUESTATE_REQ        1
+#define EC_MBXQUEUESTATE_FAIL       2
+#define EC_MBXQUEUESTATE_DONE       3
+
+typedef struct
+{
+   int         listhead, listtail, listcount;
+   ec_mbxbuft  *mbx[EC_MBXPOOLSIZE];
+   int         mbxstate[EC_MBXPOOLSIZE];
+   int         mbxremove[EC_MBXPOOLSIZE];
+   int         mbxticket[EC_MBXPOOLSIZE];
+   uint16      mbxslave[EC_MBXPOOLSIZE];
+   osal_mutext *mbxmutex;
+} ec_mbxqueuet;
+
 #define ECT_MBXPROT_AOE      0x0001
 #define ECT_MBXPROT_EOE      0x0002
 #define ECT_MBXPROT_COE      0x0004
@@ -102,6 +132,10 @@ PACKED_END
 #define EC_SMENABLEMASK      0xfffeffff
 
 typedef struct ecx_context ecx_contextt;
+
+#define ECT_MBXH_NONE         0
+#define ECT_MBXH_CYCLIC       1
+#define ECT_MBXH_LOST         2
 
 /** for list of ethercat slaves detected */
 typedef struct ec_slave
@@ -121,7 +155,7 @@ typedef struct ec_slave
    /** revision from EEprom */
    uint32           eep_rev;
    /** serial number from EEprom */
-   uint32           eep_sn;
+   uint32           eep_ser;
    /** Interface type */
    uint16           Itype;
    /** Device type */
@@ -132,6 +166,8 @@ typedef struct ec_slave
    uint32           Obytes;
    /** output pointer in IOmap buffer */
    uint8            *outputs;
+   /** output offset in IOmap buffer */
+   uint32           Ooffset;
    /** startbit in first output byte */
    uint8            Ostartbit;
    /** input bits */
@@ -140,6 +176,8 @@ typedef struct ec_slave
    uint32           Ibytes;
    /** input pointer in IOmap buffer */
    uint8            *inputs;
+   /** input offset in IOmap buffer */
+   uint32           Ioffset;
    /** startbit in first input byte */
    uint8            Istartbit;
    /** SM structure */
@@ -148,7 +186,7 @@ typedef struct ec_slave
    uint8            SMtype[EC_MAXSM];
    /** FMMU structure */
    ec_fmmut         FMMU[EC_MAXFMMU];
-   /** FMMU0 function */
+   /** FMMU0 function 0=unused 1=outputs 2=inputs 3=SM status*/
    uint8            FMMU0func;
    /** FMMU1 function */
    uint8            FMMU1func;
@@ -234,6 +272,50 @@ typedef struct ec_slave
    int              (*PO2SOconfig)(uint16 slave);
    /** registered configuration function PO->SO */
    int              (*PO2SOconfigx)(ecx_contextt * context, uint16 slave);
+   /** mailbox handler state, 0 = no handler, 1 = cyclic task mbx handler, 2 = slave lost */
+   int              mbxhandlerstate;
+   /** mailbox handler robust mailbox protocol state */
+   int              mbxrmpstate;
+   /** mailbox handler RMP extended mbx in state */
+   uint16           mbxinstateex;
+   /** pointer to CoE mailbox in buffer */
+   uint8            *coembxin;
+   /** CoE mailbox in flag, true = mailbox full */
+   boolean          coembxinfull;
+   /** CoE mailbox in overrun counter */
+   int              coembxoverrun;
+   /** pointer to SoE mailbox in buffer */
+   uint8            *soembxin;
+   /** SoE mailbox in flag, true = mailbox full */
+   boolean          soembxinfull;
+   /** SoE mailbox in overrun counter */
+   int              soembxoverrun;
+   /** pointer to FoE mailbox in buffer */
+   uint8            *foembxin;
+   /** FoE mailbox in flag, true = mailbox full */
+   boolean          foembxinfull;
+   /** FoE mailbox in overrun counter */
+   int              foembxoverrun;
+   /** pointer to EoE mailbox in buffer */
+   uint8            *eoembxin;
+   /** EoE mailbox in flag, true = mailbox full */
+   boolean          eoembxinfull;
+   /** EoE mailbox in overrun counter */
+   int              eoembxoverrun;
+   /** pointer to VoE mailbox in buffer */
+   uint8            *voembxin;
+   /** VoE mailbox in flag, true = mailbox full */
+   boolean          voembxinfull;
+   /** VoE mailbox in overrun counter */
+   int              voembxoverrun;
+   /** pointer to AoE mailbox in buffer */
+   uint8            *aoembxin;
+   /** AoE mailbox in flag, true = mailbox full */
+   boolean          aoembxinfull;
+   /** AoE mailbox in overrun counter */
+   int              aoembxoverrun;
+   /** pointer to out mailbox status register buffer */
+   uint8            *mbxstatus;
    /** readable name */
    char             name[EC_MAXNAME + 1];
 } ec_slavet;
@@ -273,6 +355,16 @@ typedef struct ec_group
    boolean          docheckstate;
    /** IO segmentation list. Datagrams must not break SM in two. */
    uint32           IOsegment[EC_MAXIOSEGMENTS];
+   /** pointer to out mailbox status register buffer */
+   uint8            *mbxstatus;
+   /** mailbox status register buffer length */
+   int32            mbxstatuslength;
+   /** mailbox status lookup table */
+   uint16           mbxstatuslookup[EC_MAXSLAVE];
+   /** mailbox last handled in mxbhandler */
+   uint16           lastmbxpos;
+   /** mailbox  transmit queue struct */
+   ec_mbxqueuet     mbxtxqueue;
 } ec_groupt;
 
 /** SII FMMU structure */
@@ -311,9 +403,6 @@ typedef struct ec_eepromPDO
    uint16  SMbitsize[EC_MAXSM];
 } ec_eepromPDOt;
 
-/** mailbox buffer array */
-typedef uint8 ec_mbxbuft[EC_MAXMBX + 1];
-
 /** standard ethercat mailbox header */
 PACKED_BEGIN
 typedef struct PACKED ec_mbxheader
@@ -344,6 +433,7 @@ typedef struct ec_idxstack
    void    *data[EC_MAXBUF];
    uint16  length[EC_MAXBUF];
    uint16  dcoffset[EC_MAXBUF];
+   uint8   type[EC_MAXBUF];
 } ec_idxstackT;
 
 /** ringbuf for error storage */
@@ -423,13 +513,15 @@ struct ecx_context
    ec_eepromSMt   *eepSM;
    /** internal, FMMU list from eeprom */
    ec_eepromFMMUt *eepFMMU;
+   /** internal, mailbox pool */
+   ec_mbxpoolt    *mbxpool;
    /** registered FoE hook */
    int            (*FOEhook)(uint16 slave, int packetnumber, int datasize);
    /** registered EoE hook */
    int            (*EOEhook)(ecx_contextt * context, uint16 slave, void * eoembx);
    /** flag to control legacy automatic state change or manual state change */
    int            manualstatechange;
-   /** userdata, promotes application configuration esp. in EC_VER2 with multiple 
+   /** userdata, promotes application configuration esp. in EC_VER2 with multiple
     * ec_context instances. Note: userdata memory is managed by application, not SOEM */
    void           *userdata;
 };
@@ -445,6 +537,7 @@ extern int         ec_slavecount;
 extern ec_groupt   ec_group[EC_MAXGROUP];
 extern boolean     EcatError;
 extern int64       ec_DCtime;
+extern ec_mbxpoolt ec_mbxpool;
 
 void ec_pusherror(const ec_errort *Ec);
 boolean ec_poperror(ec_errort *Ec);
@@ -506,9 +599,11 @@ uint32 ecx_siiPDO(ecx_contextt *context, uint16 slave, ec_eepromPDOt* PDO, uint8
 int ecx_readstate(ecx_contextt *context);
 int ecx_writestate(ecx_contextt *context, uint16 slave);
 uint16 ecx_statecheck(ecx_contextt *context, uint16 slave, uint16 reqstate, int timeout);
+int ecx_mbxhandler(ecx_contextt *context, uint8 group, int limit);
 int ecx_mbxempty(ecx_contextt *context, uint16 slave, int timeout);
 int ecx_mbxsend(ecx_contextt *context, uint16 slave,ec_mbxbuft *mbx, int timeout);
 int ecx_mbxreceive(ecx_contextt *context, uint16 slave, ec_mbxbuft *mbx, int timeout);
+int ecx_mbxreceive2(ecx_contextt *context, uint16 slave, ec_mbxbuft **mbx, int timeout);
 void ecx_esidump(ecx_contextt *context, uint16 slave, uint8 *esibuf);
 uint32 ecx_readeeprom(ecx_contextt *context, uint16 slave, uint16 eeproma, int timeout);
 int ecx_writeeeprom(ecx_contextt *context, uint16 slave, uint16 eeproma, uint16 data, int timeout);
@@ -526,6 +621,11 @@ int ecx_send_processdata(ecx_contextt *context);
 int ecx_send_overlap_processdata(ecx_contextt *context);
 int ecx_receive_processdata(ecx_contextt *context, int timeout);
 int ecx_send_processdata_group(ecx_contextt *context, uint8 group);
+ec_mbxbuft *ecx_getmbx(ecx_contextt *context);
+int ecx_dropmbx(ecx_contextt *context, ec_mbxbuft *mbx);
+int ecx_initmbxpool(ecx_contextt *context);
+int ecx_initmbxqueue(ecx_contextt *context, uint16 group);
+int ecx_slavembxcyclic(ecx_contextt *context, uint16 slave);
 
 #ifdef __cplusplus
 }

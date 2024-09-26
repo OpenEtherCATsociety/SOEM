@@ -82,17 +82,18 @@ int ecx_FOEread(ecx_contextt *context, uint16 slave, char *filename, uint32 pass
    int32 dataread = 0;
    int32 buffersize, packetnumber, prevpacket = 0;
    uint16 fnsize, maxdata, segmentdata;
-   ec_mbxbuft MbxIn, MbxOut;
+   ec_mbxbuft *MbxIn, *MbxOut;
    uint8 cnt;
    boolean worktodo;
 
    buffersize = *psize;
-   ec_clearmbx(&MbxIn);
-   /* Empty slave out mailbox if something is in. Timeout set to 0 */
-   wkc = ecx_mbxreceive(context, slave, (ec_mbxbuft *)&MbxIn, 0);
-   ec_clearmbx(&MbxOut);
-   aFOEp = (ec_FOEt *)&MbxIn;
-   FOEp = (ec_FOEt *)&MbxOut;
+   MbxIn = NULL;
+   MbxOut = NULL;
+   /* Empty slave out mailbox if something is in. Timout set to 0 */
+   wkc = ecx_mbxreceive2(context, slave, &MbxIn, 0);
+   MbxOut = ecx_getmbx(context);
+   ec_clearmbx(MbxOut);
+   FOEp = (ec_FOEt *)MbxOut;
    fnsize = (uint16)strlen(filename);
    if (fnsize > EC_MAXFOEDATA)
    {
@@ -115,18 +116,20 @@ int ecx_FOEread(ecx_contextt *context, uint16 slave, char *filename, uint32 pass
    /* copy filename in mailbox */
    memcpy(&FOEp->FileName[0], filename, fnsize);
    /* send FoE request to slave */
-   wkc = ecx_mbxsend(context, slave, (ec_mbxbuft *)&MbxOut, EC_TIMEOUTTXM);
+   wkc = ecx_mbxsend(context, slave, MbxOut, EC_TIMEOUTTXM);
+   MbxOut = NULL;
    if (wkc > 0) /* succeeded to place mailbox in slave ? */
    {
       do
       {
          worktodo = FALSE;
-         /* clean mailboxbuffer */
-         ec_clearmbx(&MbxIn);
+         if(MbxIn) ecx_dropmbx(context, MbxIn);
+         MbxIn = NULL;
          /* read slave response */
-         wkc = ecx_mbxreceive(context, slave, (ec_mbxbuft *)&MbxIn, timeout);
+         wkc = ecx_mbxreceive2(context, slave, &MbxIn, timeout);
          if (wkc > 0) /* succeeded to read slave response ? */
          {
+            aFOEp = (ec_FOEt *)MbxIn;
             /* slave response should be FoE */
             if ((aFOEp->MbxHeader.mbxtype & 0x0f) == ECT_MBXT_FOE)
             {
@@ -143,6 +146,9 @@ int ecx_FOEread(ecx_contextt *context, uint16 slave, char *filename, uint32 pass
                      {
                         worktodo = TRUE;
                      }
+                     MbxOut = ecx_getmbx(context);
+                     ec_clearmbx(MbxOut);
+                     FOEp = (ec_FOEt *)MbxOut;
                      FOEp->MbxHeader.length = htoes(0x0006);
                      FOEp->MbxHeader.address = htoes(0x0000);
                      FOEp->MbxHeader.priority = 0x00;
@@ -153,7 +159,8 @@ int ecx_FOEread(ecx_contextt *context, uint16 slave, char *filename, uint32 pass
                      FOEp->OpCode = ECT_FOE_ACK;
                      FOEp->PacketNumber = htoel(packetnumber);
                      /* send FoE ack to slave */
-                     wkc = ecx_mbxsend(context, slave, (ec_mbxbuft *)&MbxOut, EC_TIMEOUTTXM);
+                     wkc = ecx_mbxsend(context, slave, MbxOut, EC_TIMEOUTTXM);
+                     MbxOut = NULL;
                      if (wkc <= 0)
                      {
                         worktodo = FALSE;
@@ -192,7 +199,8 @@ int ecx_FOEread(ecx_contextt *context, uint16 slave, char *filename, uint32 pass
          }
       } while (worktodo);
    }
-
+   if(MbxIn) ecx_dropmbx(context, MbxIn);
+   if(MbxOut) ecx_dropmbx(context, MbxOut);
    return wkc;
 }
 
@@ -214,17 +222,18 @@ int ecx_FOEwrite(ecx_contextt *context, uint16 slave, char *filename, uint32 pas
    int32 packetnumber, sendpacket = 0;
    uint16 fnsize, maxdata;
    int segmentdata;
-   ec_mbxbuft MbxIn, MbxOut;
+   ec_mbxbuft *MbxIn, *MbxOut;
    uint8 cnt;
    boolean worktodo, dofinalzero;
    int tsize;
 
-   ec_clearmbx(&MbxIn);
-   /* Empty slave out mailbox if something is in. Timeout set to 0 */
-   wkc = ecx_mbxreceive(context, slave, (ec_mbxbuft *)&MbxIn, 0);
-   ec_clearmbx(&MbxOut);
-   aFOEp = (ec_FOEt *)&MbxIn;
-   FOEp = (ec_FOEt *)&MbxOut;
+   MbxIn = NULL;
+   MbxOut = NULL;
+   /* Empty slave out mailbox if something is in. Timout set to 0 */
+   wkc = ecx_mbxreceive2(context, slave, &MbxIn, 0);
+   MbxOut = ecx_getmbx(context);
+   ec_clearmbx(MbxOut);
+   FOEp = (ec_FOEt *)MbxOut;
    dofinalzero = TRUE;
    fnsize = (uint16)strlen(filename);
    if (fnsize > EC_MAXFOEDATA)
@@ -248,18 +257,20 @@ int ecx_FOEwrite(ecx_contextt *context, uint16 slave, char *filename, uint32 pas
    /* copy filename in mailbox */
    memcpy(&FOEp->FileName[0], filename, fnsize);
    /* send FoE request to slave */
-   wkc = ecx_mbxsend(context, slave, (ec_mbxbuft *)&MbxOut, EC_TIMEOUTTXM);
+   wkc = ecx_mbxsend(context, slave, MbxOut, EC_TIMEOUTTXM);
+   MbxOut = NULL;
    if (wkc > 0) /* succeeded to place mailbox in slave ? */
    {
       do
       {
          worktodo = FALSE;
-         /* clean mailboxbuffer */
-         ec_clearmbx(&MbxIn);
+         if(MbxIn) ecx_dropmbx(context, MbxIn);
+         MbxIn = NULL;
          /* read slave response */
-         wkc = ecx_mbxreceive(context, slave, (ec_mbxbuft *)&MbxIn, timeout);
+         wkc = ecx_mbxreceive2(context, slave, &MbxIn, timeout);
          if (wkc > 0) /* succeeded to read slave response ? */
          {
+            aFOEp = (ec_FOEt *)MbxIn;
             /* slave response should be FoE */
             if ((aFOEp->MbxHeader.mbxtype & 0x0f) == ECT_MBXT_FOE)
             {
@@ -291,6 +302,9 @@ int ecx_FOEwrite(ecx_contextt *context, uint16 slave, char *filename, uint32 pas
                            {
                               dofinalzero = TRUE;
                            }
+                           MbxOut = ecx_getmbx(context);
+                           ec_clearmbx(MbxOut);
+                           FOEp = (ec_FOEt *)MbxOut;
                            FOEp->MbxHeader.length = htoes((uint16)(0x0006 + segmentdata));
                            FOEp->MbxHeader.address = htoes(0x0000);
                            FOEp->MbxHeader.priority = 0x00;
@@ -304,7 +318,8 @@ int ecx_FOEwrite(ecx_contextt *context, uint16 slave, char *filename, uint32 pas
                            memcpy(&FOEp->Data[0], p, segmentdata);
                            p = (uint8 *)p + segmentdata;
                            /* send FoE data to slave */
-                           wkc = ecx_mbxsend(context, slave, (ec_mbxbuft *)&MbxOut, EC_TIMEOUTTXM);
+                           wkc = ecx_mbxsend(context, slave, MbxOut, EC_TIMEOUTTXM);
+                           MbxOut = NULL;
                            if (wkc <= 0)
                            {
                               worktodo = FALSE;
@@ -395,7 +410,8 @@ int ecx_FOEwrite(ecx_contextt *context, uint16 slave, char *filename, uint32 pas
          }
       } while (worktodo);
    }
-
+   if(MbxIn) ecx_dropmbx(context, MbxIn);
+   if(MbxOut) ecx_dropmbx(context, MbxOut);
    return wkc;
 }
 

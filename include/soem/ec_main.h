@@ -339,6 +339,60 @@ typedef struct ec_group
    ec_mbxqueuet mbxtxqueue;
 } ec_groupt;
 
+#define ECT_ESMTRANS_IP 0x0001
+#define ECT_ESMTRANS_PS 0x0002
+#define ECT_ESMTRANS_PI 0x0004
+#define ECT_ESMTRANS_SP 0x0008
+#define ECT_ESMTRANS_SO 0x0010
+#define ECT_ESMTRANS_SI 0x0020
+#define ECT_ESMTRANS_OS 0x0040
+#define ECT_ESMTRANS_OP 0x0080
+#define ECT_ESMTRANS_OI 0x0100
+#define ECT_ESMTRANS_IB 0x0200
+#define ECT_ESMTRANS_BI 0x0400
+#define ECT_ESMTRANS_II 0x0800
+#define ECT_ESMTRANS_PP 0x1000
+#define ECT_ESMTRANS_SS 0x2000
+
+/** ENI CoE command structure */
+typedef struct ec_enicoecmd
+{
+   /** transition(s) during which command should be sent */
+   uint16 Transition;
+   /** complete access flag */
+   boolean CA;
+   /** ccs (1 = read, 2 = write) */
+   uint8 Ccs;
+   /** object index */
+   uint16 Index;
+   /** object subindex */
+   uint8 SubIdx;
+   /** timeout in us */
+   int Timeout;
+   /** size in bytes of parameter buffer */
+   int DataSize;
+   /** pointer to parameter buffer */
+   void *Data;
+} ec_enicoecmdt;
+
+/** ENI slave structure */
+typedef struct ec_enislave
+{
+   uint16 Slave;
+   uint32 VendorId;
+   uint32 ProductCode;
+   uint32 RevisionNo;
+   ec_enicoecmdt *CoECmds;
+   int CoECmdCount;
+} ec_enislavet;
+
+/** ENI structure */
+typedef struct ec_eni
+{
+   ec_enislavet *slave;
+   int slavecount;
+} ec_enit;
+
 /** SII FMMU structure */
 typedef struct ec_eepromFMMU
 {
@@ -487,6 +541,8 @@ struct ecx_context
    ec_eepromFMMUt *eepFMMU;
    /** internal, mailbox pool */
    ec_mbxpoolt *mbxpool;
+   /** network information hook */
+   ec_enit *ENI;
    /** registered FoE hook */
    int (*FOEhook)(uint16 slave, int packetnumber, int datasize);
    /** registered EoE hook */
@@ -522,6 +578,7 @@ int ecx_mbxhandler(ecx_contextt *context, uint8 group, int limit);
 int ecx_mbxempty(ecx_contextt *context, uint16 slave, int timeout);
 int ecx_mbxsend(ecx_contextt *context, uint16 slave, ec_mbxbuft *mbx, int timeout);
 int ecx_mbxreceive(ecx_contextt *context, uint16 slave, ec_mbxbuft **mbx, int timeout);
+int ecx_mbxENIinitcmds(ecx_contextt *context, uint16 slave, uint16_t transition);
 void ecx_esidump(ecx_contextt *context, uint16 slave, uint8 *esibuf);
 uint32 ecx_readeeprom(ecx_contextt *context, uint16 slave, uint16 eeproma, int timeout);
 int ecx_writeeeprom(ecx_contextt *context, uint16 slave, uint16 eeproma, uint16 data, int timeout);

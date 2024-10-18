@@ -1,0 +1,107 @@
+<?xml version="1.0"?>
+<EtherCATConfig xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="EtherCATConfig.xsd" Version="1.3">
+   <Config>
+      <Master>
+         <Info>
+            <Name><![CDATA[SOEM sample master]]></Name>
+            <Destination>ffffffffffff</Destination>
+            <Source>010101010101</Source>
+         </Info>
+      </Master>
+      <Slave>
+         <Info>
+            <Name><![CDATA[Sample device A]]></Name>
+            <VendorId>1</VendorId>
+            <ProductCode>0x1234</ProductCode>
+            <RevisionNo>0</RevisionNo>
+            <SerialNo>0</SerialNo>
+         </Info>
+         <Mailbox>
+            <Send>
+               <Start>0x1000</Start>
+               <Length>128</Length>
+            </Send>
+            <Receive>
+               <Start>0x1100</Start>
+               <Length>128</Length>
+               <PollTime>5</PollTime>
+            </Receive>
+            <Protocol>CoE</Protocol>
+            <CoE>
+               <InitCmds>
+                  <InitCmd>
+                     <Comment><![CDATA[Clear SM3 PDO count]]></Comment>
+                     <Transition>PS</Transition>
+                     <Timeout>3</Timeout>
+                     <Ccs>2</Ccs>
+                     <Index>0x1c13</Index>
+                     <SubIndex>0</SubIndex>
+                     <Data>00</Data>
+                  </InitCmd>
+                  <InitCmd>
+                     <Comment><![CDATA[SM3 RxPDO #1: 0x1A02]]></Comment>
+                     <Transition>PS</Transition>
+                     <Timeout>3</Timeout>
+                     <Ccs>2</Ccs>
+                     <Index>0x1c13</Index>
+                     <SubIndex>1</SubIndex>
+                     <Data>021a</Data>
+                  </InitCmd>
+                  <InitCmd>
+                     <Comment><![CDATA[SM3 RxPDO #2: 0x1A05]]></Comment>
+                     <Transition>PS</Transition>
+                     <Timeout>3</Timeout>
+                     <Ccs>2</Ccs>
+                     <Index>0x1c13</Index>
+                     <SubIndex>2</SubIndex>
+                     <Data>051a</Data>
+                  </InitCmd>
+                  <InitCmd>
+                     <Comment><![CDATA[Set SM3 PDO count]]></Comment>
+                     <Transition>PS</Transition>
+                     <Timeout>3</Timeout>
+                     <Ccs>2</Ccs>
+                     <Index>0x1c13</Index>
+                     <SubIndex>0</SubIndex>
+                     <Data>02</Data>
+                  </InitCmd>
+               </InitCmds>
+            </CoE>
+         </Mailbox>
+      </Slave>
+      <Slave>
+         <Info>
+            <Name><![CDATA[Sample device B]]></Name>
+            <VendorId>1</VendorId>
+            <ProductCode>0x10055aa</ProductCode>
+            <RevisionNo>0</RevisionNo>
+            <SerialNo>0</SerialNo>
+         </Info>
+         <Mailbox>
+            <Send>
+               <Start>0x1000</Start>
+               <Length>256</Length>
+            </Send>
+            <Receive>
+               <Start>0x1200</Start>
+               <Length>256</Length>
+               <PollTime>5</PollTime>
+            </Receive>
+            <Protocol>CoE</Protocol>
+            <CoE>
+               <InitCmds>
+                  <InitCmd CompleteAccess="1">
+                     <Comment><![CDATA[SM2 PDO assignment, using CA]]></Comment>
+                     <Transition>PS</Transition>
+                     <Timeout>3</Timeout>
+                     <Ccs>2</Ccs>
+                     <Index>0x1c12</Index>
+                     <SubIndex>0</SubIndex>
+                     <Data>0300011607161c16</Data>
+                  </InitCmd>
+               </InitCmds>
+            </CoE>
+         </Mailbox>
+      </Slave>
+   </Config>
+</EtherCATConfig>

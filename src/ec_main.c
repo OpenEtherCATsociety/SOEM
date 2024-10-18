@@ -1644,6 +1644,73 @@ int ecx_mbxreceive(ecx_contextt *context, uint16 slave, ec_mbxbuft **mbx, int ti
    return wkc;
 }
 
+/** Send ENI mailbox protocol initcmds to a slave for a given transition.
+ * Currently, only CoE commands are supported.
+ * @param[in]  context    = context struct
+ * @param[in]  slave      = Slave number
+ * @param[in]  transition = transition (ECT_ESMTRANS_*) for which to send commands
+ * @return 1 on success, 0 on failure
+ */
+int ecx_mbxENIinitcmds(ecx_contextt *context, uint16 slave, uint16_t transition)
+{
+   int slavecount = (context->ENI ? context->ENI->slavecount : 0);
+
+   if (slavecount > 0)
+   {
+      int i;
+      ec_enislavet *eni_slave = context->ENI->slave;
+
+      for (i = 0; i < (slavecount - 1); ++i, ++eni_slave)
+      {
+         if (slave <= eni_slave->Slave)
+         {
+            break;
+         }
+      }
+      if (slave == eni_slave->Slave)
+      {
+         if ((eni_slave->VendorId == context->slavelist[slave].eep_man) &&
+             (eni_slave->ProductCode == context->slavelist[slave].eep_id) &&
+             (eni_slave->RevisionNo == context->slavelist[slave].eep_rev))
+         {
+            int wkc;
+
+            if (context->slavelist[slave].mbx_proto & ECT_MBXPROT_COE)
+            {
+               ec_enicoecmdt *cmd = eni_slave->CoECmds;
+               for (i = 0; i < eni_slave->CoECmdCount; ++i, ++cmd)
+               {
+                  if (cmd->Transition & transition)
+                  {
+                     if (cmd->Ccs == 2)
+                     {
+                        wkc = ecx_SDOwrite(context, slave, cmd->Index, cmd->SubIdx,
+                                           cmd->CA, cmd->DataSize, cmd->Data, cmd->Timeout);
+                        if (wkc < 1)
+                        {
+                           return 0;
+                        }
+                     }
+                     else if (cmd->Ccs == 1)
+                     {
+                        int size = cmd->DataSize;
+
+                        wkc = ecx_SDOread(context, slave, cmd->Index, cmd->SubIdx,
+                                          cmd->CA, &size, cmd->Data, cmd->Timeout);
+                        if (wkc < 1)
+                        {
+                           return 0;
+                        }
+                     }
+                  }
+               }
+            }
+         }
+      }
+   }
+   return 1;
+}
+
 /** Dump complete EEPROM data from slave in buffer.
  * @param[in]  context  = context struct
  * @param[in]  slave    = Slave number

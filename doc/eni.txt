@@ -1,0 +1,19 @@
+/** \file
+
+\section eni Basic ENI support
+
+With the supplied Python script "eniconv.py", it is possible to extract the CoE
+initialization commands from an ENI file, and make them available to SOEM, as a
+C file that can be compiled and linked together with the SOEM application.
+The generated C file defines the (extern) variable "ec_eni", which can be used
+to initializethe "ENI" field of the appropriate "ecx_contextt" instance, before
+calling the "ec_config_map" function (or equivalent, depending on the
+application).
+
+Currently, the main goal of this is to support PDO mapping and assignment.
+This means that some information that is mandatory in an ENI file is simply
+ignored by the conversion program. The included "sample-eni.xml" minimal ENI
+file example has been provided, together with the generated "sample-eni.c" file,
+for a quick review of what gets extracted, and how it ends up as C data.
+
+*/

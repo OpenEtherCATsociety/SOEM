@@ -525,6 +525,10 @@ static int ecx_map_coe_soe(ecx_contextt *context, uint16 slave, int thread_n)
    EC_PRINT(" >Slave %d, configadr %x, state %2.2x\n",
             slave, context->slavelist[slave].configadr, context->slavelist[slave].state);
 
+   if (context->ENI)
+   {
+      (void)ecx_mbxENIinitcmds(context, slave, ECT_ESMTRANS_PS);
+   }
    /* execute slave configuration hook Pre-Op to Safe-OP */
    if (context->slavelist[slave].PO2SOconfig) /* only if registered */
    {
@@ -1642,6 +1646,10 @@ int ecx_reconfig_slave(ecx_contextt *context, uint16 slave, int timeout)
       state = ecx_statecheck(context, slave, EC_STATE_PRE_OP, EC_TIMEOUTSTATE); /* check state change pre-op */
       if (state == EC_STATE_PRE_OP)
       {
+         if (context->ENI)
+         {
+            (void)ecx_mbxENIinitcmds(context, slave, ECT_ESMTRANS_PS);
+         }
          /* execute slave configuration hook Pre-Op to Safe-OP */
          if (context->slavelist[slave].PO2SOconfig) /* only if registered */
          {

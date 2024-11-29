@@ -11,6 +11,8 @@ extern "C"
 {
 #endif
 
+#include <minwindef.h>
+
 // define if debug printf is needed
 //#define EC_DEBUG
 

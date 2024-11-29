@@ -12,9 +12,10 @@ static double qpc2usec;
 
 #define USECS_PER_SEC     1000000
 
-int osal_getrelativetime(struct timeval *tv, struct timezone *tz)
+static int osal_getrelativetime(struct timeval *tv, struct timezone *tz)
 {
    int64_t wintime, usecs;
+   (void)tz;
    if(!sysfrequency)
    {
       timeBeginPeriod(1);
@@ -33,7 +34,7 @@ int osal_gettimeofday(struct timeval *tv, struct timezone *tz)
 {
    FILETIME system_time;
    int64 system_time64, usecs;
-
+   (void)tz;
    /* The offset variable is required to switch from Windows epoch (January 1, 1601) to
     * Unix epoch (January 1, 1970). Number of days between both epochs: 134.774
     *

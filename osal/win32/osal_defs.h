@@ -21,9 +21,15 @@ extern "C"
 #endif
 
 #ifndef PACKED
-#define PACKED_BEGIN __pragma(pack(push, 1))
 #define PACKED
+#ifdef __GNUC__
+#define PACKED_BEGIN _Pragma("pack(push,1)")
+#define PACKED_END _Pragma("pack(pop)")
+#else
+#define PACKED_BEGIN __pragma(pack(push, 1))
 #define PACKED_END __pragma(pack(pop))
+#endif
+
 #endif
 
 #define OSAL_THREAD_HANDLE HANDLE

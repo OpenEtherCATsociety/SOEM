@@ -130,9 +130,9 @@ void osal_free(void *ptr)
    free(ptr);
 }
 
-int osal_thread_create(void **thandle, int stacksize, void *func, void *param)
+int osal_thread_create(void *thandle, int stacksize, void *func, void *param)
 {
-   *thandle = CreateThread(NULL, stacksize, func, param, 0, NULL);
+   *(OSAL_THREAD_HANDLE*)thandle = CreateThread(NULL, stacksize, func, param, 0, NULL);
    if(!thandle)
    {
       return 0;
@@ -140,13 +140,13 @@ int osal_thread_create(void **thandle, int stacksize, void *func, void *param)
    return 1;
 }
 
-int osal_thread_create_rt(void **thandle, int stacksize, void *func, void *param)
+int osal_thread_create_rt(void *thandle, int stacksize, void *func, void *param)
 {
    int ret;
    ret = osal_thread_create(thandle, stacksize, func, param);
    if (ret)
    {
-      ret = SetThreadPriority(*thandle, THREAD_PRIORITY_TIME_CRITICAL);
+      ret = SetThreadPriority(thandle, THREAD_PRIORITY_TIME_CRITICAL);
    }
    return ret;
 }

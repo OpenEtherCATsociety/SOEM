@@ -29,6 +29,8 @@
     }                                                                         \
   } while (0)
 
+struct timezone;
+// currently the tz parameter is ignored in the win32 implmentation.
 int osal_gettimeofday (struct timeval *tv, struct timezone *tz);
 
 #endif

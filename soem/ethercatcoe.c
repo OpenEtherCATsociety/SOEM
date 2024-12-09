@@ -133,7 +133,7 @@ int ecx_SDOread(ecx_contextt *context, uint16 slave, uint16 index, uint8 subinde
 
    MbxIn = NULL;
    MbxOut = NULL;
-   wkc = ecx_mbxreceive2(context, slave, &MbxIn, 0);
+   wkc = ecx_mbxreceive(context, slave, &MbxIn, 0);
    MbxOut = ecx_getmbx(context);
    if(!MbxOut) return wkc;
    ec_clearmbx(MbxOut);
@@ -171,8 +171,8 @@ int ecx_SDOread(ecx_contextt *context, uint16 slave, uint16 index, uint8 subinde
       MbxIn = NULL;
       do
       {
-         wkc = ecx_mbxreceive2(context, slave, &MbxIn, timeout);
-      } while ((wkc > 0) && !MbxIn);   
+         wkc = ecx_mbxreceive(context, slave, &MbxIn, timeout);
+      } while ((wkc > 0) && !MbxIn);
       aSDOp = (ec_SDOt *)MbxIn;
       if ((wkc > 0) && MbxIn) /* succeeded to read slave response ? */
       {
@@ -245,7 +245,7 @@ int ecx_SDOread(ecx_contextt *context, uint16 slave, uint16 index, uint8 subinde
                            if(MbxIn) ecx_dropmbx(context, MbxIn);
                            MbxIn = NULL;
                            /* read slave response */
-                           wkc = ecx_mbxreceive2(context, slave, &MbxIn, timeout);
+                           wkc = ecx_mbxreceive(context, slave, &MbxIn, timeout);
                            aSDOp = (ec_SDOt *)MbxIn;
                            /* has slave responded ? */
                            if (wkc > 0)
@@ -357,7 +357,7 @@ int ecx_SDOwrite(ecx_contextt *context, uint16 Slave, uint16 Index, uint8 SubInd
 
    MbxIn = NULL;
    MbxOut = NULL;
-   wkc = ecx_mbxreceive2(context, Slave, &MbxIn, 0);
+   wkc = ecx_mbxreceive(context, Slave, &MbxIn, 0);
    MbxOut = ecx_getmbx(context);
    if(!MbxOut) return wkc;
    ec_clearmbx(MbxOut);
@@ -388,7 +388,7 @@ int ecx_SDOwrite(ecx_contextt *context, uint16 Slave, uint16 Index, uint8 SubInd
          if(MbxIn) ecx_dropmbx(context, MbxIn);
          MbxIn = NULL;
          /* read slave response */
-         wkc = ecx_mbxreceive2(context, Slave, &MbxIn, Timeout);
+         wkc = ecx_mbxreceive(context, Slave, &MbxIn, Timeout);
          if (wkc > 0)
          {
             aSDOp = (ec_SDOt *)MbxIn;
@@ -461,7 +461,7 @@ int ecx_SDOwrite(ecx_contextt *context, uint16 Slave, uint16 Index, uint8 SubInd
          if(MbxIn) ecx_dropmbx(context, MbxIn);
          MbxIn = NULL;
          /* read slave response */
-         wkc = ecx_mbxreceive2(context, Slave, &MbxIn, Timeout);
+         wkc = ecx_mbxreceive(context, Slave, &MbxIn, Timeout);
          if (wkc > 0)
          {
             aSDOp = (ec_SDOt *)MbxIn;
@@ -524,7 +524,7 @@ int ecx_SDOwrite(ecx_contextt *context, uint16 Slave, uint16 Index, uint8 SubInd
                      if(MbxIn) ecx_dropmbx(context, MbxIn);
                      MbxIn = NULL;
                      /* read slave response */
-                     wkc = ecx_mbxreceive2(context, Slave, &MbxIn, Timeout);
+                     wkc = ecx_mbxreceive(context, Slave, &MbxIn, Timeout);
                      if (wkc > 0)
                      {
                         aSDOp = (ec_SDOt *)MbxIn;
@@ -593,8 +593,8 @@ int ecx_RxPDO(ecx_contextt *context, uint16 Slave, uint16 RxPDOnumber, int psize
    
    MbxIn = NULL;
    MbxOut = NULL;
-   wkc = ecx_mbxreceive2(context, Slave, &MbxIn, 0);
-   if (MbxIn) ecx_dropmbx(context, MbxIn);  
+   wkc = ecx_mbxreceive(context, Slave, &MbxIn, 0);
+   if (MbxIn) ecx_dropmbx(context, MbxIn);
    MbxOut = ecx_getmbx(context);
    if(!MbxOut) return wkc;
    ec_clearmbx(MbxOut);
@@ -643,8 +643,8 @@ int ecx_TxPDO(ecx_contextt *context, uint16 slave, uint16 TxPDOnumber , int *psi
 
    MbxIn = NULL;
    MbxOut = NULL;
-   wkc = ecx_mbxreceive2(context, slave, &MbxIn, 0);
-   if (MbxIn) ecx_dropmbx(context, MbxIn);  
+   wkc = ecx_mbxreceive(context, slave, &MbxIn, 0);
+   if (MbxIn) ecx_dropmbx(context, MbxIn);
    MbxOut = ecx_getmbx(context);
    if(!MbxOut) return wkc;
    ec_clearmbx(MbxOut);
@@ -664,7 +664,7 @@ int ecx_TxPDO(ecx_contextt *context, uint16 slave, uint16 TxPDOnumber , int *psi
       if(MbxIn) ecx_dropmbx(context, MbxIn);
       MbxIn = NULL;
       /* read slave response */
-      wkc = ecx_mbxreceive2(context, slave, &MbxIn, timeout);
+      wkc = ecx_mbxreceive(context, slave, &MbxIn, timeout);
       if (wkc > 0) /* succeeded to read slave response ? */
       {
          aSDOp = (ec_SDOt *)MbxIn;
@@ -1054,8 +1054,8 @@ int ecx_readODlist(ecx_contextt *context, uint16 Slave, ec_ODlistt *pODlist)
    MbxIn = NULL;
    MbxOut = NULL;
    /* Empty slave out mailbox if something is in. Timout set to 0 */
-   wkc = ecx_mbxreceive2(context, Slave, &MbxIn, 0);
-   if (MbxIn) ecx_dropmbx(context, MbxIn);  
+   wkc = ecx_mbxreceive(context, Slave, &MbxIn, 0);
+   if (MbxIn) ecx_dropmbx(context, MbxIn);
    MbxOut = ecx_getmbx(context);
    if(!MbxOut) return wkc;
    ec_clearmbx(MbxOut);
@@ -1088,7 +1088,7 @@ int ecx_readODlist(ecx_contextt *context, uint16 Slave, ec_ODlistt *pODlist)
          if(MbxIn) ecx_dropmbx(context, MbxIn);
          MbxIn = NULL;
          /* read slave response */
-         wkc = ecx_mbxreceive2(context, Slave, &MbxIn, EC_TIMEOUTRXM);
+         wkc = ecx_mbxreceive(context, Slave, &MbxIn, EC_TIMEOUTRXM);
          /* got response ? */
          if (wkc > 0)
          {
@@ -1182,7 +1182,7 @@ int ecx_readODdescription(ecx_contextt *context, uint16 Item, ec_ODlistt *pODlis
    MbxIn = NULL;
    MbxOut = NULL;
    /* Empty slave out mailbox if something is in. Timout set to 0 */
-   wkc = ecx_mbxreceive2(context, Slave, &MbxIn, 0);
+   wkc = ecx_mbxreceive(context, Slave, &MbxIn, 0);
    if (MbxIn) ecx_dropmbx(context, MbxIn);  
    MbxOut = ecx_getmbx(context);
    if(!MbxOut) return wkc;
@@ -1206,10 +1206,10 @@ int ecx_readODdescription(ecx_contextt *context, uint16 Item, ec_ODlistt *pODlis
    /* mailbox placed in slave ? */
    if (wkc > 0)
    {
-      if (MbxIn) ecx_dropmbx(context, MbxIn);  
+      if (MbxIn) ecx_dropmbx(context, MbxIn);
       MbxIn = NULL;
       /* read slave response */
-      wkc = ecx_mbxreceive2(context, Slave, &MbxIn, EC_TIMEOUTRXM);
+      wkc = ecx_mbxreceive(context, Slave, &MbxIn, EC_TIMEOUTRXM);
       /* got response ? */
       if (wkc > 0)
       {
@@ -1274,8 +1274,8 @@ int ecx_readOEsingle(ecx_contextt *context, uint16 Item, uint8 SubI, ec_ODlistt 
    MbxIn = NULL;
    MbxOut = NULL;
    /* Empty slave out mailbox if something is in. Timout set to 0 */
-   wkc = ecx_mbxreceive2(context, Slave, &MbxIn, 0);
-   if (MbxIn) ecx_dropmbx(context, MbxIn);  
+   wkc = ecx_mbxreceive(context, Slave, &MbxIn, 0);
+   if (MbxIn) ecx_dropmbx(context, MbxIn);
    MbxOut = ecx_getmbx(context);
    if(!MbxOut) return wkc;
    ec_clearmbx(MbxOut);
@@ -1300,10 +1300,10 @@ int ecx_readOEsingle(ecx_contextt *context, uint16 Item, uint8 SubI, ec_ODlistt 
    /* mailbox placed in slave ? */
    if (wkc > 0)
    {
-      if (MbxIn) ecx_dropmbx(context, MbxIn);  
+      if (MbxIn) ecx_dropmbx(context, MbxIn);
       MbxIn = NULL;
       /* read slave response */
-      wkc = ecx_mbxreceive2(context, Slave, &MbxIn, EC_TIMEOUTRXM);
+      wkc = ecx_mbxreceive(context, Slave, &MbxIn, EC_TIMEOUTRXM);
       /* got response ? */
       if (wkc > 0)
       {

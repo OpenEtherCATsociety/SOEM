@@ -1226,7 +1226,10 @@ int ecx_mbxinhandler(ecx_contextt *context, uint8 group, int limit)
          /* handle robust mailbox protocol state machine */
          if(slaveitem->mbxrmpstate)
          {
-            if(slaveitem->islost) slaveitem->mbxrmpstate = 0;   
+            if(slaveitem->islost)
+            {
+                slaveitem->mbxrmpstate = 0;
+            }
             else
             {
                switch(slaveitem->mbxrmpstate)
@@ -1247,6 +1250,7 @@ int ecx_mbxinhandler(ecx_contextt *context, uint8 group, int limit)
                      break; 
                   case 3 :
                      /* wait for repeat ack */
+                     SMstatex = htoes(slaveitem->mbxinstateex);
                      wkc2 = ecx_FPRD(context->port, configadr, ECT_REG_SM1CONTR, sizeof(SMcontr), &SMcontr, EC_TIMEOUTRET);
                      if((wkc2 > 0) && ((SMcontr & 0x02) == (HI_BYTE(SMstatex) & 0x02)))
                      {
@@ -1313,7 +1317,24 @@ int ecx_mbxinhandler(ecx_contextt *context, uint8 group, int limit)
                   }
                   else if ((mbxh->mbxtype & 0x0f) == ECT_MBXT_EOE) /* EoE response? */
                   {
-                     if(slaveitem->eoembxin && (slaveitem->eoembxinfull == FALSE))
+                     ec_EOEt *eoembx = (ec_EOEt*)mbx;
+                     uint16 frameinfo1 = etohs(eoembx->frameinfo1);
+                     /* All non fragment data frame types are expected to be handled by
+                      * slave send/receive API if the EoE hook is set
+                      */
+                     if (EOE_HDR_FRAME_TYPE_GET(frameinfo1) == EOE_FRAG_DATA)
+                     {
+                        if (context->EOEhook)
+                        {
+                           if (context->EOEhook(context, slave, eoembx) > 0)
+                           {
+                              /* Fragment handled by EoE hook */
+                              wkc = 0;
+                            }
+                        }
+                     }
+                     /* Not handled by hook */
+                     if((wkc > 0) && slaveitem->eoembxin && (slaveitem->eoembxinfull == FALSE))
                      {
                         slaveitem->eoembxin = (uint8 *)mbx;
                         mbx = NULL;
@@ -1372,7 +1393,7 @@ int ecx_mbxinhandler(ecx_contextt *context, uint8 group, int limit)
                /* release mailbox to pool if still owner */
                if (mbx)
                {
-                  ecx_dropmbx(context, mbx);  
+                  ecx_dropmbx(context, mbx);
                }
             }
          }
@@ -1510,158 +1531,7 @@ int ecx_mbxsend(ecx_contextt *context, uint16 slave,ec_mbxbuft *mbx, int timeout
       }
       if(wkc < 0 ) wkc = 0;
    }
-   if (mbx) ecx_dropmbx(context, mbx);  
-   return wkc;
-}
-
-/** Read OUT mailbox from slave.
- * Supports Mailbox Link Layer with repeat requests.
- * @param[in]  context    = context struct
- * @param[in]  slave      = Slave number
- * @param[out] mbx        = Mailbox data
- * @param[in]  timeout    = Timeout in us
- * @return Work counter (>0 is success)
- */
-int ecx_mbxreceive(ecx_contextt *context, uint16 slave, ec_mbxbuft *mbx, int timeout)
-{
-   uint16 mbxro,mbxl,configadr;
-   int wkc=0;
-   int wkc2;
-   uint8 SMstat;
-   uint16 SMstatex;
-   uint8 SMcontr;
-   ec_mbxheadert *mbxh;
-   ec_emcyt *EMp;
-   ec_mbxerrort *MBXEp;
-   osal_timert timer;
-   ec_slavet *slavelist = &(context->slavelist[slave]);
-
-   configadr = slavelist->configadr;
-   mbxl = slavelist->mbx_rl;
-   if (slavelist->mbxhandlerstate == ECT_MBXH_CYCLIC)
-   {
-      osal_timer_start(&timer, timeout);
-      wkc = 0;
-      do
-      {
-         if (slavelist->coembxinfull == TRUE)
-         {
-            memcpy(mbx, slavelist->coembxin, mbxl);
-            ecx_dropmbx(context, (ec_mbxbuft *)slavelist->coembxin);
-            slavelist->coembxin = EC_MBXINENABLE;
-            slavelist->coembxinfull = FALSE;
-            wkc = 1;
-         }
-         else if (slavelist->soembxinfull == TRUE)
-         {
-            memcpy(mbx, slavelist->soembxin, mbxl);
-            slavelist->soembxinfull = FALSE;
-            wkc = 1;
-         }
-         else if (slavelist->foembxinfull == TRUE)
-         {
-            memcpy(mbx, slavelist->foembxin, mbxl);
-            slavelist->foembxinfull = FALSE;
-            wkc = 1;
-         }
-         if (!wkc && (timeout > EC_LOCALDELAY))
-         {
-            osal_usleep(EC_LOCALDELAY);
-         }
-      }
-      while ((wkc <= 0) && (osal_timer_is_expired(&timer) == FALSE));
-   }
-   else if ((mbxl > 0) && (mbxl <= EC_MAXMBX))
-   {
-      osal_timer_start(&timer, timeout);
-      wkc = 0;
-      do /* wait for read mailbox available */
-      {
-         SMstat = 0;
-         wkc = ecx_readmbxstatus(context, slave, &SMstat);
-         if (((SMstat & 0x08) == 0) && (timeout > EC_LOCALDELAY))
-         {
-            osal_usleep(EC_LOCALDELAY);
-         }
-      }
-      while (((wkc <= 0) || ((SMstat & 0x08) == 0)) && (osal_timer_is_expired(&timer) == FALSE));
-
-      if ((wkc > 0) && ((SMstat & 0x08) > 0)) /* read mailbox available ? */
-      {
-         mbxro = slavelist->mbx_ro;
-         mbxh = (ec_mbxheadert *)mbx;
-         do
-         {
-            wkc = ecx_FPRD(context->port, configadr, mbxro, mbxl, mbx, EC_TIMEOUTRET); /* get mailbox */
-            if ((wkc > 0) && ((mbxh->mbxtype & 0x0f) == 0x00)) /* Mailbox error response? */
-            {
-               MBXEp = (ec_mbxerrort *)mbx;
-               ecx_mbxerror(context, slave, etohs(MBXEp->Detail));
-               wkc = 0; /* prevent emergency to cascade up, it is already handled. */
-            }
-            else if ((wkc > 0) && ((mbxh->mbxtype & 0x0f) == ECT_MBXT_COE)) /* CoE response? */
-            {
-               EMp = (ec_emcyt *)mbx;
-               if ((etohs(EMp->CANOpen) >> 12) == 0x01) /* Emergency request? */
-               {
-                  ecx_mbxemergencyerror(context, slave, etohs(EMp->ErrorCode), EMp->ErrorReg,
-                          EMp->bData, etohs(EMp->w1), etohs(EMp->w2));
-                  wkc = 0; /* prevent emergency to cascade up, it is already handled. */
-               }
-            }
-            else if ((wkc > 0) && ((mbxh->mbxtype & 0x0f) == ECT_MBXT_EOE)) /* EoE response? */
-            {
-               ec_EOEt * eoembx = (ec_EOEt *)mbx;
-               uint16 frameinfo1 = etohs(eoembx->frameinfo1);
-               /* All non fragment data frame types are expected to be handled by
-               * slave send/receive API if the EoE hook is set
-               */
-               if (EOE_HDR_FRAME_TYPE_GET(frameinfo1) == EOE_FRAG_DATA)
-               {
-                  if (context->EOEhook)
-                  {
-                     if (context->EOEhook(context, slave, eoembx) > 0)
-                     {
-                        /* Fragment handled by EoE hook */
-                        wkc = 0;
-                     }
-                  }
-               }
-            }
-            else
-            {
-               if (wkc <= 0) /* read mailbox lost */
-               {
-                  do /* read extended mailbox status */
-                  {
-                     wkc2 = ecx_readmbxstatusex(context, slave, &SMstatex);
-                  } while ((wkc2 <= 0) && (osal_timer_is_expired(&timer) == FALSE));
-                  SMstatex ^= 0x0200; /* toggle repeat request */
-                  SMstatex = htoes(SMstatex);
-                  wkc2 = ecx_FPWR(context->port, configadr, ECT_REG_SM1STAT, sizeof(SMstatex), &SMstatex, EC_TIMEOUTRET);
-                  SMstatex = etohs(SMstatex);
-                  do /* wait for toggle ack */
-                  {
-                     wkc2 = ecx_FPRD(context->port, configadr, ECT_REG_SM1CONTR, sizeof(SMcontr), &SMcontr, EC_TIMEOUTRET);
-                   } while (((wkc2 <= 0) || ((SMcontr & 0x02) != (HI_BYTE(SMstatex) & 0x02))) && (osal_timer_is_expired(&timer) == FALSE));
-                  do /* wait for read mailbox available */
-                  {
-                     wkc2 = ecx_readmbxstatusex(context, slave, &SMstatex);
-                     if (((SMstatex & 0x08) == 0) && (timeout > EC_LOCALDELAY))
-                     {
-                        osal_usleep(EC_LOCALDELAY);
-                     }
-                  } while (((wkc2 <= 0) || ((SMstatex & 0x08) == 0)) && (osal_timer_is_expired(&timer) == FALSE));
-               }
-            }
-         } while ((wkc <= 0) && (osal_timer_is_expired(&timer) == FALSE)); /* if WKC<=0 repeat */
-      }
-      else /* no read mailbox available */
-      {
-          wkc = 0;
-      }
-   }
-
+   if (mbx) ecx_dropmbx(context, mbx);
    return wkc;
 }
 
@@ -1675,7 +1545,7 @@ int ecx_mbxreceive(ecx_contextt *context, uint16 slave, ec_mbxbuft *mbx, int tim
  * @param[in]  timeout    = Timeout in us
  * @return Work counter (>0 is success)
  */
-int ecx_mbxreceive2(ecx_contextt *context, uint16 slave, ec_mbxbuft **mbx, int timeout)
+int ecx_mbxreceive(ecx_contextt *context, uint16 slave, ec_mbxbuft **mbx, int timeout)
 {
    uint16 mbxro,mbxl,configadr;
    int wkc=0;
@@ -1719,6 +1589,13 @@ int ecx_mbxreceive2(ecx_contextt *context, uint16 slave, ec_mbxbuft **mbx, int t
             slavelist->foembxinfull = FALSE;
             wkc = 1;
          }
+         else if (slavelist->eoembxinfull == TRUE)
+         {
+             *mbx = (ec_mbxbuft*)slavelist->eoembxin;
+             slavelist->eoembxin = EC_MBXINENABLE;
+             slavelist->eoembxinfull = FALSE;
+             wkc = 1;
+         }
          if (!wkc && (timeout > EC_LOCALDELAY))
          {
             osal_usleep(EC_LOCALDELAY);
@@ -1757,7 +1634,7 @@ int ecx_mbxreceive2(ecx_contextt *context, uint16 slave, ec_mbxbuft **mbx, int t
                mbxin = NULL;
                wkc = 0; /* prevent emergency to cascade up, it is already handled. */
             }
-            else if ((wkc > 0) && ((mbxh->mbxtype & 0x0f) == 0x03)) /* CoE response? */
+            else if ((wkc > 0) && ((mbxh->mbxtype & 0x0f) == ECT_MBXT_COE)) /* CoE response? */
             {
                EMp = (ec_emcyt *)mbx;
                if ((etohs(EMp->CANOpen) >> 12) == 0x01) /* Emergency request? */
@@ -1773,6 +1650,33 @@ int ecx_mbxreceive2(ecx_contextt *context, uint16 slave, ec_mbxbuft **mbx, int t
                   *mbx = mbxin;
                   mbxin = NULL;
                }
+            }
+            else if ((wkc > 0) && ((mbxh->mbxtype & 0x0f) == ECT_MBXT_EOE)) /* EoE response? */
+            {
+                ec_EOEt* eoembx = (ec_EOEt*)mbx;
+                uint16 frameinfo1 = etohs(eoembx->frameinfo1);
+                /* All non fragment data frame types are expected to be handled by
+                * slave send/receive API if the EoE hook is set
+                */
+                if (EOE_HDR_FRAME_TYPE_GET(frameinfo1) == EOE_FRAG_DATA)
+                {
+                    if (context->EOEhook)
+                    {
+                        if (context->EOEhook(context, slave, eoembx) > 0)
+                        {
+                            /* Fragment handled by EoE hook */
+                            ecx_dropmbx(context, mbxin);
+                            mbxin = NULL;
+                            wkc = 0;
+                        }
+                    }
+                }
+                /* Not handled by EoE hook*/
+                if(wkc > 0)
+                {
+                    *mbx = mbxin;
+                    mbxin = NULL;
+                }
             }
             else
             {
@@ -2432,12 +2336,15 @@ static int ecx_main_send_processdata(ecx_contextt *context, uint8 group, boolean
       /* For overlap IOmap make the frame EQ big to biggest part */
       length = (context->grouplist[group].Obytes > context->grouplist[group].Ibytes) ?
          context->grouplist[group].Obytes : context->grouplist[group].Ibytes;
+      length += context->grouplist[group].mbxstatuslength;
       /* Save the offset used to compensate where to save inputs when frame returns */
       iomapinputoffset = context->grouplist[group].Obytes;
    }
    else
    {
-      length = context->grouplist[group].Obytes + context->grouplist[group].Ibytes;
+       length = context->grouplist[group].Obytes +
+           context->grouplist[group].Ibytes +
+           context->grouplist[group].mbxstatuslength;
       iomapinputoffset = 0;
    }
    

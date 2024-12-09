@@ -68,19 +68,20 @@ int ecx_EOEdefinehook(ecx_contextt *context, void *hook)
 */
 int ecx_EOEsetIp(ecx_contextt *context, uint16 slave, uint8 port, eoe_param_t * ipparam, int timeout)
 {
-   ec_EOEt *EOEp, *aEOEp;  
-   ec_mbxbuft MbxIn, MbxOut;  
+   ec_EOEt *EOEp, *aEOEp;
+   ec_mbxbuft *MbxIn, *MbxOut;
    uint16 frameinfo1, result;
    uint8 cnt, data_offset;
    uint8 flags = 0;
    int wkc;
 
-   ec_clearmbx(&MbxIn);
+   MbxIn = NULL;
+   MbxOut = NULL;
    /* Empty slave out mailbox if something is in. Timout set to 0 */
-   wkc = ecx_mbxreceive(context,  slave, (ec_mbxbuft *)&MbxIn, 0);
-   ec_clearmbx(&MbxOut);
-   aEOEp = (ec_EOEt *)&MbxIn;
-   EOEp = (ec_EOEt *)&MbxOut;  
+   wkc = ecx_mbxreceive(context,  slave, &MbxIn, 0);
+   MbxOut = ecx_getmbx(context);
+   ec_clearmbx(MbxOut);
+   EOEp = (ec_EOEt *)MbxOut;
    EOEp->mbxheader.address = htoes(0x0000);
    EOEp->mbxheader.priority = 0x00;
    data_offset = EOE_PARAM_OFFSET;
@@ -138,17 +139,19 @@ int ecx_EOEsetIp(ecx_contextt *context, uint16 slave, uint8 port, eoe_param_t * 
    EOEp->data[0] = flags;
 
    /* send EoE request to slave */
-   wkc = ecx_mbxsend(context, slave, (ec_mbxbuft *)&MbxOut, EC_TIMEOUTTXM);
+   wkc = ecx_mbxsend(context, slave, MbxOut, EC_TIMEOUTTXM);
+   MbxOut = NULL;
 
    if (wkc > 0) /* succeeded to place mailbox in slave ? */
    {
-      /* clean mailboxbuffer */
-      ec_clearmbx(&MbxIn);
+       if (MbxIn) ecx_dropmbx(context, MbxIn);
+       MbxIn = NULL;
       /* read slave response */
-      wkc = ecx_mbxreceive(context, slave, (ec_mbxbuft *)&MbxIn, timeout);
+      wkc = ecx_mbxreceive(context, slave, &MbxIn, timeout);
       if (wkc > 0) /* succeeded to read slave response ? */
       {
-         /* slave response should be FoE */
+          aEOEp = (ec_EOEt*)MbxIn;
+         /* slave response should be EoE */
          if ((aEOEp->mbxheader.mbxtype & 0x0f) == ECT_MBXT_EOE)
          {
             frameinfo1 = etohs(aEOEp->frameinfo1);
@@ -166,6 +169,10 @@ int ecx_EOEsetIp(ecx_contextt *context, uint16 slave, uint8 port, eoe_param_t * 
          }
       }
    }
+
+   if (MbxIn) ecx_dropmbx(context, MbxIn);
+   if (MbxOut) ecx_dropmbx(context, MbxOut);
+
    return wkc;
 }
 
@@ -181,17 +188,19 @@ int ecx_EOEsetIp(ecx_contextt *context, uint16 slave, uint8 port, eoe_param_t * 
 int ecx_EOEgetIp(ecx_contextt *context, uint16 slave, uint8 port, eoe_param_t * ipparam, int timeout)
 {
    ec_EOEt *EOEp, *aEOEp;
-   ec_mbxbuft MbxIn, MbxOut;
+   ec_mbxbuft *MbxIn, *MbxOut;
    uint16 frameinfo1, eoedatasize;
    uint8 cnt, data_offset;
    uint8 flags = 0;
    int wkc;
 
+   MbxIn = NULL;
+   MbxOut = NULL;
    /* Empty slave out mailbox if something is in. Timout set to 0 */
-   wkc = ecx_mbxreceive(context, slave, (ec_mbxbuft *)&MbxIn, 0);
-   ec_clearmbx(&MbxOut);
-   aEOEp = (ec_EOEt *)&MbxIn;
-   EOEp = (ec_EOEt *)&MbxOut;
+   wkc = ecx_mbxreceive(context, slave, &MbxIn, 0);
+   MbxOut = ecx_getmbx(context);
+   ec_clearmbx(MbxOut);
+   EOEp = (ec_EOEt *)MbxOut;
    EOEp->mbxheader.address = htoes(0x0000);
    EOEp->mbxheader.priority = 0x00;
    data_offset = EOE_PARAM_OFFSET;
@@ -211,15 +220,17 @@ int ecx_EOEgetIp(ecx_contextt *context, uint16 slave, uint8 port, eoe_param_t * 
    EOEp->data[0] = flags;
 
    /* send EoE request to slave */
-   wkc = ecx_mbxsend(context, slave, (ec_mbxbuft *)&MbxOut, EC_TIMEOUTTXM);
+   wkc = ecx_mbxsend(context, slave, MbxOut, EC_TIMEOUTTXM);
+   MbxOut = NULL;
    if (wkc > 0) /* succeeded to place mailbox in slave ? */
    {
-      /* clean mailboxbuffer */
-      ec_clearmbx(&MbxIn);
+       if (MbxIn) ecx_dropmbx(context, MbxIn);
+       MbxIn = NULL;
       /* read slave response */
-      wkc = ecx_mbxreceive(context, slave, (ec_mbxbuft *)&MbxIn, timeout);
+      wkc = ecx_mbxreceive(context, slave, &MbxIn, timeout);
       if (wkc > 0) /* succeeded to read slave response ? */
       {
+          aEOEp = (ec_EOEt*)MbxIn;
          /* slave response should be FoE */
          if ((aEOEp->mbxheader.mbxtype & 0x0f) == ECT_MBXT_EOE)
          {
@@ -298,6 +309,10 @@ int ecx_EOEgetIp(ecx_contextt *context, uint16 slave, uint8 port, eoe_param_t * 
          }
       }
    }
+
+   if (MbxIn) ecx_dropmbx(context, MbxIn);
+   if (MbxOut) ecx_dropmbx(context, MbxOut);
+
    return wkc;
 }
 
@@ -318,7 +333,7 @@ int ecx_EOEgetIp(ecx_contextt *context, uint16 slave, uint8 port, eoe_param_t * 
 int ecx_EOEsend(ecx_contextt *context, uint16 slave, uint8 port, int psize, void *p, int timeout)
 {
    ec_EOEt *EOEp;
-   ec_mbxbuft MbxOut;
+   ec_mbxbuft *MbxOut;
    uint16 frameinfo1, frameinfo2;
    uint8 cnt, txfragmentno;  
    boolean  NotLast;
@@ -326,10 +341,7 @@ int ecx_EOEsend(ecx_contextt *context, uint16 slave, uint8 port, int psize, void
    const uint8 * buf = p;
    static uint8_t txframeno = 0;
 
-   ec_clearmbx(&MbxOut);
-   EOEp = (ec_EOEt *)&MbxOut;
-   EOEp->mbxheader.address = htoes(0x0000);
-   EOEp->mbxheader.priority = 0x00;
+   MbxOut = NULL;
    /* data section=mailbox size - 6 mbx - 4 EoEh */
    maxdata = context->slavelist[slave].mbx_l - 0x0A; 
    txframesize = psize;
@@ -339,6 +351,12 @@ int ecx_EOEsend(ecx_contextt *context, uint16 slave, uint8 port, int psize, void
 
    do
    {
+      MbxOut = ecx_getmbx(context);
+      ec_clearmbx(MbxOut);
+      EOEp = (ec_EOEt*)MbxOut;
+      EOEp->mbxheader.address = htoes(0x0000);
+      EOEp->mbxheader.priority = 0x00;
+
       txframesize = psize - txframeoffset;
       if (txframesize > maxdata)
       {
@@ -381,14 +399,17 @@ int ecx_EOEsend(ecx_contextt *context, uint16 slave, uint8 port, int psize, void
       memcpy(EOEp->data, &buf[txframeoffset], txframesize);
 
       /* send EoE request to slave */
-      wkc = ecx_mbxsend(context, slave, (ec_mbxbuft *)&MbxOut, timeout);
+      wkc = ecx_mbxsend(context, slave, MbxOut, timeout);
+      MbxOut = NULL;
       if ((NotLast == TRUE)  && (wkc > 0))
       {
          txframeoffset += txframesize;
          txfragmentno++;
       }
    } while ((NotLast == TRUE) && (wkc > 0));
-   
+
+   if (MbxOut) ecx_dropmbx(context, MbxOut);
+
    return wkc;
 }
 
@@ -410,15 +431,14 @@ int ecx_EOEsend(ecx_contextt *context, uint16 slave, uint8 port, int psize, void
 int ecx_EOErecv(ecx_contextt *context, uint16 slave, uint8 port, int * psize, void *p, int timeout)
 {
    ec_EOEt *aEOEp;
-   ec_mbxbuft MbxIn;
+   ec_mbxbuft *MbxIn;
    uint16 frameinfo1, frameinfo2;
    uint8 rxfragmentno, rxframeno;
    boolean NotLast;
    int wkc, buffersize, rxframesize, rxframeoffset, eoedatasize;
    uint8 * buf = p;
-   
-   ec_clearmbx(&MbxIn);
-   aEOEp = (ec_EOEt *)&MbxIn;
+
+   MbxIn = NULL;
    NotLast = TRUE;
    buffersize = *psize;
    rxfragmentno = 0;
@@ -426,14 +446,14 @@ int ecx_EOErecv(ecx_contextt *context, uint16 slave, uint8 port, int * psize, vo
    rxframeoffset = 0;
    
    /* Hang for a while if nothing is in */
-   wkc = ecx_mbxreceive(context, slave, (ec_mbxbuft *)&MbxIn, timeout);
+   wkc = ecx_mbxreceive(context, slave, &MbxIn, timeout);
 
    while ((wkc > 0) && (NotLast == TRUE))
    {
+      aEOEp = (ec_EOEt*)MbxIn;
       /* slave response should be FoE */
       if ((aEOEp->mbxheader.mbxtype & 0x0f) == ECT_MBXT_EOE)
       {
-        
          eoedatasize = etohs(aEOEp->mbxheader.length) - 0x00004;
          frameinfo1 = etohs(aEOEp->frameinfo1);
          frameinfo2 = etohs(aEOEp->frameinfo2);
@@ -500,8 +520,10 @@ int ecx_EOErecv(ecx_contextt *context, uint16 slave, uint8 port, int * psize, vo
          }
          else
          {
+             if (MbxIn) ecx_dropmbx(context, MbxIn);
+             MbxIn = NULL;
             /* Hang for a while if nothing is in */
-            wkc = ecx_mbxreceive(context, slave, (ec_mbxbuft *)&MbxIn, timeout);
+            wkc = ecx_mbxreceive(context, slave, &MbxIn, timeout);
          }
       }
       else
@@ -510,6 +532,7 @@ int ecx_EOErecv(ecx_contextt *context, uint16 slave, uint8 port, int * psize, vo
          wkc = -EC_ERR_TYPE_PACKET_ERROR;
       }
    }
+   if (MbxIn) ecx_dropmbx(context, MbxIn);
    return wkc;
 }
 
@@ -528,12 +551,12 @@ int ecx_EOErecv(ecx_contextt *context, uint16 slave, uint8 port, int * psize, vo
 * @return 0= if fragment OK, >0 if last fragment, <0 on error
 */
 int ecx_EOEreadfragment(
-   ec_mbxbuft * MbxIn,
-   uint8 * rxfragmentno,
-   uint16 * rxframesize, 
-   uint16 * rxframeoffset, 
-   uint16 * rxframeno,
-   int * psize, 
+   ec_mbxbuft *MbxIn,
+   uint8 *rxfragmentno,
+   uint16 *rxframesize,
+   uint16 *rxframeoffset,
+   uint16 *rxframeno,
+   int *psize,
    void *p)
 {  
    uint16 frameinfo1, frameinfo2,  eoedatasize;

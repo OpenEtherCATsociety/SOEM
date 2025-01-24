@@ -4,6 +4,7 @@
  */
 
 #include "oshw.h"
+#include <stdlib.h>
 
 /**
  * Host to Network byte order (i.e. to big endian).

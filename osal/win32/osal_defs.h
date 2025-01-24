@@ -11,8 +11,8 @@ extern "C"
 {
 #endif
 
-#include <minwindef.h>
-
+#define WIN32_LEAN_AND_MEAN // Exclude some conflicting definitions in windows header
+#include <windows.h>
 // define if debug printf is needed
 //#define EC_DEBUG
 

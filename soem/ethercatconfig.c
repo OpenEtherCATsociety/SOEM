@@ -733,7 +733,7 @@ static int ecx_map_sii(ecx_contextt *context, uint16 slave)
    }
    context->slavelist[slave].Obits = (uint16)Osize;
    context->slavelist[slave].Ibits = (uint16)Isize;
-   EC_PRINT("     ISIZE:%d %d OSIZE:%d\n",
+   EC_PRINT("  SII ISIZE:%d %d OSIZE:%d\n",
       context->slavelist[slave].Ibits, Isize,context->slavelist[slave].Obits);
 
    return 1;
@@ -907,7 +907,7 @@ static void ecx_config_create_input_mappings(ecx_contextt *context, void *pIOmap
    uint16 configadr;
    uint8 FMMUc;
 
-   EC_PRINT(" =Slave %d, INPUT MAPPING\n", slave);
+   EC_PRINT("  INPUT MAPPING\n");
 
    configadr = context->slavelist[slave].configadr;
    FMMUc = context->slavelist[slave].FMMUunused;
@@ -1024,7 +1024,8 @@ static void ecx_config_create_input_mappings(ecx_contextt *context, void *pIOmap
          }
          context->slavelist[slave].Istartbit =
             context->slavelist[slave].FMMU[FMMUc].LogStartbit;
-         EC_PRINT("    Inputs %p startbit %d\n",
+         EC_PRINT("    slave %d Inputs %p startbit %d\n",
+            slave,
             context->slavelist[slave].inputs,
             context->slavelist[slave].Istartbit);
       }

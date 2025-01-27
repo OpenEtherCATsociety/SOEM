@@ -10,9 +10,9 @@
 #include <string.h>
 #include <osal.h>
 
-#define USECS_PER_SEC     1000000
+#define USECS_PER_SEC (1000000)
 
-int osal_usleep (uint32 usec)
+int osal_usleep(uint32 usec)
 {
    struct timespec ts;
    ts.tv_sec = usec / USECS_PER_SEC;
@@ -25,7 +25,7 @@ int osal_gettimeofday(struct timeval *tv, struct timezone *tz)
 {
    struct timespec ts;
    int return_value;
-   (void)tz;       /* Not used */
+   (void)tz; /* Not used */
 
    /* Use clock_gettime to prevent possible live-lock.
     * Gettimeofday uses CLOCK_REALTIME that can get NTP timeadjust.
@@ -50,17 +50,19 @@ ec_timet osal_current_time(void)
 
 void osal_time_diff(ec_timet *start, ec_timet *end, ec_timet *diff)
 {
-   if (end->usec < start->usec) {
+   if (end->usec < start->usec)
+   {
       diff->sec = end->sec - start->sec - 1;
       diff->usec = end->usec + 1000000 - start->usec;
    }
-   else {
+   else
+   {
       diff->sec = end->sec - start->sec;
       diff->usec = end->usec - start->usec;
    }
 }
 
-void osal_timer_start(osal_timert * self, uint32 timeout_usec)
+void osal_timer_start(osal_timert *self, uint32 timeout_usec)
 {
    struct timeval start_time;
    struct timeval timeout;
@@ -75,7 +77,7 @@ void osal_timer_start(osal_timert * self, uint32 timeout_usec)
    self->stop_time.usec = stop_time.tv_usec;
 }
 
-boolean osal_timer_is_expired (osal_timert * self)
+boolean osal_timer_is_expired(osal_timert *self)
 {
    struct timeval current_time;
    struct timeval stop_time;
@@ -101,15 +103,15 @@ void osal_free(void *ptr)
 
 int osal_thread_create(void *thandle, int stacksize, void *func, void *param)
 {
-   int                  ret;
-   pthread_attr_t       attr;
-   pthread_t            *threadp;
+   int ret;
+   pthread_attr_t attr;
+   pthread_t *threadp;
 
    threadp = thandle;
    pthread_attr_init(&attr);
    pthread_attr_setstacksize(&attr, stacksize);
    ret = pthread_create(threadp, &attr, func, param);
-   if(ret < 0)
+   if (ret < 0)
    {
       return 0;
    }
@@ -118,24 +120,24 @@ int osal_thread_create(void *thandle, int stacksize, void *func, void *param)
 
 int osal_thread_create_rt(void *thandle, int stacksize, void *func, void *param)
 {
-   int                  ret;
-   pthread_attr_t       attr;
-   struct sched_param   schparam;
-   pthread_t            *threadp;
+   int ret;
+   pthread_attr_t attr;
+   struct sched_param schparam;
+   pthread_t *threadp;
 
    threadp = thandle;
    pthread_attr_init(&attr);
    pthread_attr_setstacksize(&attr, stacksize);
    ret = pthread_create(threadp, &attr, func, param);
    pthread_attr_destroy(&attr);
-   if(ret < 0)
+   if (ret < 0)
    {
       return 0;
    }
    memset(&schparam, 0, sizeof(schparam));
    schparam.sched_priority = 40;
    ret = pthread_setschedparam(*threadp, SCHED_FIFO, &schparam);
-   if(ret < 0)
+   if (ret < 0)
    {
       return 0;
    }

@@ -11,6 +11,8 @@ extern "C"
 {
 #endif
 
+#define WIN32_LEAN_AND_MEAN // Exclude some conflicting definitions in windows header
+#include <windows.h>
 // define if debug printf is needed
 //#define EC_DEBUG
 
@@ -21,9 +23,15 @@ extern "C"
 #endif
 
 #ifndef PACKED
-#define PACKED_BEGIN __pragma(pack(push, 1))
 #define PACKED
+#ifdef __GNUC__
+#define PACKED_BEGIN _Pragma("pack(push,1)")
+#define PACKED_END _Pragma("pack(pop)")
+#else
+#define PACKED_BEGIN __pragma(pack(push, 1))
 #define PACKED_END __pragma(pack(pop))
+#endif
+
 #endif
 
 #define OSAL_THREAD_HANDLE HANDLE

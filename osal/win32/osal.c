@@ -12,9 +12,10 @@ static double qpc2usec;
 
 #define USECS_PER_SEC     1000000
 
-int osal_getrelativetime(struct timeval *tv, struct timezone *tz)
+static int osal_getrelativetime(struct timeval *tv, struct timezone *tz)
 {
    int64_t wintime, usecs;
+   (void)tz;
    if(!sysfrequency)
    {
       timeBeginPeriod(1);
@@ -33,7 +34,7 @@ int osal_gettimeofday(struct timeval *tv, struct timezone *tz)
 {
    FILETIME system_time;
    int64 system_time64, usecs;
-
+   (void)tz;
    /* The offset variable is required to switch from Windows epoch (January 1, 1601) to
     * Unix epoch (January 1, 1970). Number of days between both epochs: 134.774
     *
@@ -130,9 +131,9 @@ void osal_free(void *ptr)
    free(ptr);
 }
 
-int osal_thread_create(void **thandle, int stacksize, void *func, void *param)
+int osal_thread_create(void *thandle, int stacksize, void *func, void *param)
 {
-   *thandle = CreateThread(NULL, stacksize, func, param, 0, NULL);
+   *(OSAL_THREAD_HANDLE*)thandle = CreateThread(NULL, stacksize, func, param, 0, NULL);
    if(!thandle)
    {
       return 0;
@@ -140,13 +141,13 @@ int osal_thread_create(void **thandle, int stacksize, void *func, void *param)
    return 1;
 }
 
-int osal_thread_create_rt(void **thandle, int stacksize, void *func, void *param)
+int osal_thread_create_rt(void *thandle, int stacksize, void *func, void *param)
 {
    int ret;
    ret = osal_thread_create(thandle, stacksize, func, param);
    if (ret)
    {
-      ret = SetThreadPriority(*thandle, THREAD_PRIORITY_TIME_CRITICAL);
+      ret = SetThreadPriority(thandle, THREAD_PRIORITY_TIME_CRITICAL);
    }
    return ret;
 }

@@ -337,7 +337,7 @@ OSAL_THREAD_FUNC ecatcheck(void *lpParam)
         osal_usleep(10000);
     }
 
-    return 0;
+    return;
 }
 
 char ifbuf[1024];

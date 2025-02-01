@@ -238,7 +238,8 @@ int ecx_SDOread(ecx_contextt *context, uint16 slave, uint16 index, uint8 subinde
                               /* slave response should be CoE, SDO response */
                               if ((((aSDOp->MbxHeader.mbxtype & 0x0f) == ECT_MBXT_COE) &&
                                    ((etohs(aSDOp->CANOpen) >> 12) == ECT_COES_SDORES) &&
-                                   ((aSDOp->Command & 0xe0) == 0x00)))
+                                   ((aSDOp->Command & 0xe0) == 0x00) &&
+                                   (etohs(aSDOp->MbxHeader.length) >= 3)))
                                         {
                                  /* calculate mailbox transfer size */
                                  Framedatasize = etohs(aSDOp->MbxHeader.length) - 3;

@@ -923,6 +923,11 @@ int ecx_readPDOmapCA(ecx_contextt *context, uint16 Slave, int Thread_n, uint32 *
    /* read SyncManager Communication Type object count Complete Access*/
    wkc = ecx_SDOread(context, Slave, ECT_SDO_SMCOMMTYPE, 0x00, TRUE, &rdl,
          &(context->SMcommtype[Thread_n]), EC_TIMEOUTRXM);
+
+   /* check of fully reading */
+   if ((wkc > 0) && (rdl!=sizeof(ec_SMcommtypet)))
+      wkc = 0;
+
    /* positive result from slave ? */
    if ((wkc > 0) && (context->SMcommtype[Thread_n].n > 2))
    {

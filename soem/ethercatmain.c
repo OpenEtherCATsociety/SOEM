@@ -2824,7 +2824,7 @@ int ec_mbxsend(uint16 slave,ec_mbxbuft *mbx, int timeout)
  * @return Work counter (>0 is success)
  * @see ecx_mbxreceive
  */
-int ec_mbxreceive(uint16 slave, ec_mbxbuft *mbx, int timeout)
+int ec_mbxreceive(uint16 slave, ec_mbxbuft **mbx, int timeout)
 {
    return ecx_mbxreceive (&ecx_context, slave, mbx, timeout);
 }

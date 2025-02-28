@@ -558,7 +558,7 @@ int ec_writestate(uint16 slave);
 uint16 ec_statecheck(uint16 slave, uint16 reqstate, int timeout);
 int ec_mbxempty(uint16 slave, int timeout);
 int ec_mbxsend(uint16 slave,ec_mbxbuft *mbx, int timeout);
-int ec_mbxreceive(uint16 slave, ec_mbxbuft *mbx, int timeout);
+int ec_mbxreceive(uint16 slave, ec_mbxbuft **mbx, int timeout);
 void ec_esidump(uint16 slave, uint8 *esibuf);
 uint32 ec_readeeprom(uint16 slave, uint16 eeproma, int timeout);
 int ec_writeeeprom(uint16 slave, uint16 eeproma, uint16 data, int timeout);

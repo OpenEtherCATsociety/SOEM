@@ -126,10 +126,10 @@ int ecx_detect_slaves(ecx_contextt *context)
     * setting for old netX100 slaves */
    b = 0x00;
    ecx_BWR(context->port, 0x0000, ECT_REG_DLALIAS, sizeof(b), &b, EC_TIMEOUTRET3);     /* Ignore Alias register */
-   b = EC_STATE_INIT | EC_STATE_ACK;
-   ecx_BWR(context->port, 0x0000, ECT_REG_ALCTL, sizeof(b), &b, EC_TIMEOUTRET3);       /* Reset all slaves to Init */
+   w = htoes(EC_STATE_INIT | EC_STATE_ACK);
+   ecx_BWR(context->port, 0x0000, ECT_REG_ALCTL, sizeof(w), &w, EC_TIMEOUTRET3);       /* Reset all slaves to Init */
    /* netX100 should now be happy */
-   ecx_BWR(context->port, 0x0000, ECT_REG_ALCTL, sizeof(b), &b, EC_TIMEOUTRET3);       /* Reset all slaves to Init */
+   ecx_BWR(context->port, 0x0000, ECT_REG_ALCTL, sizeof(w), &w, EC_TIMEOUTRET3);       /* Reset all slaves to Init */
    wkc = ecx_BRD(context->port, 0x0000, ECT_REG_TYPE, sizeof(w), &w, EC_TIMEOUTSAFE);  /* detect number of slaves */
    if (wkc > 0)
    {
@@ -170,8 +170,8 @@ static void ecx_set_slaves_to_default(ecx_contextt *context)
    ecx_BWR(context->port, 0x0000, ECT_REG_DCTIMEFILT  , sizeof(w) , &w, EC_TIMEOUTRET3);     /* DC filt expr */
    b = 0x00;
    ecx_BWR(context->port, 0x0000, ECT_REG_DLALIAS     , sizeof(b) , &b, EC_TIMEOUTRET3);     /* Ignore Alias register */
-   b = EC_STATE_INIT | EC_STATE_ACK;
-   ecx_BWR(context->port, 0x0000, ECT_REG_ALCTL       , sizeof(b) , &b, EC_TIMEOUTRET3);     /* Reset all slaves to Init */
+   w = htoes(EC_STATE_INIT | EC_STATE_ACK);
+   ecx_BWR(context->port, 0x0000, ECT_REG_ALCTL       , sizeof(w) , &w, EC_TIMEOUTRET3);     /* Reset all slaves to Init */
    b = 2;
    ecx_BWR(context->port, 0x0000, ECT_REG_EEPCFG      , sizeof(b) , &b, EC_TIMEOUTRET3);     /* force Eeprom from PDI */
    b = 0;

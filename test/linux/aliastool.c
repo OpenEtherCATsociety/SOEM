@@ -368,7 +368,7 @@ void eepromtool(char *ifname, int slave, int mode, char *fname)
             if (mode == MODE_WRITEALIAS)
 			{
 			  if(eeprom_writealias(slave, alias))
-			    printf("Alias %4.4X written successfully to slave %d\n");
+			    printf("Alias %4.4X written successfully to slave %d\n", alias, slave);
 			  else
                 printf("Alias not written\n");
 			}

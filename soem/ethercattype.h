@@ -301,6 +301,7 @@ enum
    ECT_SII_MANUF       = 0x0008,
    ECT_SII_ID          = 0x000a,
    ECT_SII_REV         = 0x000c,
+   ECT_SII_SN          = 0x000e,
    ECT_SII_BOOTRXMBX   = 0x0014,
    ECT_SII_BOOTTXMBX   = 0x0016,
    ECT_SII_MBXSIZE     = 0x0019,

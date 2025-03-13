@@ -287,17 +287,18 @@ main(int argc, char *argv[])
 
     if (argc != 2) {
         ec_adaptert * adapter = NULL;
+        ec_adaptert * head = NULL;
         printf("Usage: simple_ng IFNAME1\n"
                "IFNAME1 is the NIC interface name, e.g. 'eth0'\n");
 
         printf("\nAvailable adapters:\n");
-        adapter = ec_find_adapters();
+        head = adapter = ec_find_adapters();
         while (adapter != NULL)
         {
             printf("    - %s  (%s)\n", adapter->name, adapter->desc);
             adapter = adapter->next;
         }
-        ec_free_adapters(adapter);
+        ec_free_adapters(head);
         return 1;
     }
 

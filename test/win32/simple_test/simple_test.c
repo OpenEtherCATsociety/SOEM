@@ -345,6 +345,7 @@ char ifbuf[1024];
 int main(int argc, char *argv[])
 {
    ec_adaptert * adapter = NULL;
+   ec_adaptert * head = NULL;
    printf("SOEM (Simple Open EtherCAT Master)\nSimple test\n");
 
    if (argc > 1)
@@ -360,12 +361,13 @@ int main(int argc, char *argv[])
       printf("Usage: simple_test ifname1\n");
    	/* Print the list */
       printf ("Available adapters\n");
-      adapter = ec_find_adapters ();
+      head = adapter = ec_find_adapters ();
       while (adapter != NULL)
       {
          printf ("Description : %s, Device to use for wpcap: %s\n", adapter->desc,adapter->name);
          adapter = adapter->next;
       }
+      ec_free_adapters(adapter);
    }
 
    printf("End program\n");

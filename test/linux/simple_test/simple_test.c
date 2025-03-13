@@ -242,16 +242,17 @@ int main(int argc, char *argv[])
    else
    {
       ec_adaptert * adapter = NULL;
+      ec_adaptert * head = NULL;
       printf("Usage: simple_test ifname1\nifname = eth0 for example\n");
 
       printf ("\nAvailable adapters:\n");
-      adapter = ec_find_adapters ();
+      head = adapter = ec_find_adapters ();
       while (adapter != NULL)
       {
          printf ("    - %s  (%s)\n", adapter->name, adapter->desc);
          adapter = adapter->next;
       }
-      ec_free_adapters(adapter);
+      ec_free_adapters(head);
    }
 
    printf("End program\n");

@@ -323,7 +323,35 @@ int ecx_FOEwrite(ecx_contextt *context, uint16 slave, char *filename, uint32 pas
                         }
                         psize += segmentdata;
                         p = (uint8 *)p - segmentdata;
-                        --sendpacket;
+                        sendpacket--;
+                        worktodo = TRUE;
+                        dofinalzero = FALSE;
+                        segmentdata = tsize;
+                        psize -= segmentdata;
+                        /* if last packet was full size, add a zero size packet as final */
+                        /* EOF is defined as packetsize < full packetsize */
+                        if (!psize && (segmentdata == maxdata))
+                        {
+                            dofinalzero = TRUE;
+                        }
+                        FOEp->MbxHeader.length = htoes((uint16)(0x0006 + segmentdata));
+                        FOEp->MbxHeader.address = htoes(0x0000);
+                        FOEp->MbxHeader.priority = 0x00;
+                        /* get new mailbox count value */
+                        cnt = ec_nextmbxcnt(context->slavelist[slave].mbx_cnt);
+                        context->slavelist[slave].mbx_cnt = cnt;
+                        FOEp->MbxHeader.mbxtype = ECT_MBXT_FOE + MBX_HDR_SET_CNT(cnt); /* FoE */
+                        FOEp->OpCode = ECT_FOE_DATA;
+                        sendpacket++;
+                        FOEp->PacketNumber = htoel(sendpacket);
+                        memcpy(&FOEp->Data[0], p, segmentdata);
+                        p = (uint8 *)p + segmentdata;
+                        /* send FoE data to slave */
+                        wkc = ecx_mbxsend(context, slave, (ec_mbxbuft *)&MbxOut, EC_TIMEOUTTXM);
+                        if (wkc <= 0)
+                        {
+                            worktodo = FALSE;
+                        }
                      }
                      break;
                   }

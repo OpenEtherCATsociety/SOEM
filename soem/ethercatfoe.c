@@ -19,7 +19,13 @@
 #include "ethercatmain.h"
 #include "ethercatfoe.h"
 
-#define EC_MAXFOEDATA 512
+/* use maximum size for FOE mailbox data - header and metadata */
+#define EC_MAXFOEDATA                           \
+   (EC_MAXMBX -                                 \
+    (sizeof(ec_mbxheadert) +                    \
+     sizeof(uint8_t) +                          \
+     sizeof(uint8_t) +                          \
+     sizeof(uint32_t)))
 
 /** FOE structure.
  * Used for Read, Write, Data, Ack and Error mailbox packets.

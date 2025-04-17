@@ -14,7 +14,6 @@
  * Read incoming EoE fragment to Ethernet Frame
  */
 
-#include <stdio.h>
 #include <string.h>
 #include "osal.h"
 #include "oshw.h"

@@ -9,7 +9,6 @@
  * Servo over EtherCAT (SoE) Module.
  */
 
-#include <stdio.h>
 #include <string.h>
 #include "osal.h"
 #include "oshw.h"

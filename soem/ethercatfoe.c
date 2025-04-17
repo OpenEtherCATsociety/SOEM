@@ -11,7 +11,6 @@
  * SDO read / write and SDO service functions
  */
 
-#include <stdio.h>
 #include <string.h>
 #include "osal.h"
 #include "oshw.h"

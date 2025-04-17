@@ -15,7 +15,6 @@
  * not acceptable build your own datagrams and use the functions from nicdrv.c.
  */
 
-#include <stdio.h>
 #include <string.h>
 #include "oshw.h"
 #include "osal.h"

@@ -16,7 +16,6 @@
  * Needed for most user interaction with slaves.
  */
 
-#include <stdio.h>
 #include <string.h>
 #include "osal.h"
 #include "oshw.h"

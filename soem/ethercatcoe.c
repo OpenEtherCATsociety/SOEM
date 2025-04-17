@@ -1226,7 +1226,7 @@ int ecx_readODdescription(ecx_contextt *context, uint16 Item, ec_ODlistt *pODlis
             pODlist->ObjectCode[Item] = aSDOp->bdata[5];
             pODlist->MaxSub[Item] = aSDOp->bdata[4];
 
-            strncpy(pODlist->Name[Item] , (char *)&aSDOp->bdata[6], n);
+            memcpy(pODlist->Name[Item] , (char *)&aSDOp->bdata[6], n);
             pODlist->Name[Item][n] = 0x00; /* String terminator */
          }
          /* got unexpected response from slave */
@@ -1326,7 +1326,7 @@ int ecx_readOEsingle(ecx_contextt *context, uint16 Item, uint8 SubI, ec_ODlistt 
             pOElist->BitLength[SubI] = etohs(aSDOp->wdata[3]);
             pOElist->ObjAccess[SubI] = etohs(aSDOp->wdata[4]);
 
-            strncpy(pOElist->Name[SubI] , (char *)&aSDOp->wdata[5], n);
+            memcpy(pOElist->Name[SubI] , (char *)&aSDOp->wdata[5], n);
             pOElist->Name[SubI][n] = 0x00; /* string terminator */
          }
          /* got unexpected response from slave */

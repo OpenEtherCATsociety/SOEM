@@ -1,32 +1,24 @@
-/******************************************************************************
- *                *          ***                    ***
- *              ***          ***                    ***
- * ***  ****  **********     ***        *****       ***  ****          *****
- * *********  **********     ***      *********     ************     *********
- * ****         ***          ***              ***   ***       ****   ***
- * ***          ***  ******  ***      ***********   ***        ****   *****
- * ***          ***  ******  ***    *************   ***        ****      *****
- * ***          ****         ****   ***       ***   ***       ****          ***
- * ***           *******      ***** **************  *************    *********
- * ***             *****        ***   *******   **  **  ******         *****
- *                           t h e  r e a l t i m e  t a r g e t  e x p e r t s
+/*********************************************************************
+ *        _       _         _
+ *  _ __ | |_  _ | |  __ _ | |__   ___
+ * | '__|| __|(_)| | / _` || '_ \ / __|
+ * | |   | |_  _ | || (_| || |_) |\__ \
+ * |_|    \__|(_)|_| \__,_||_.__/ |___/
  *
  * http://www.rt-labs.com
- * Copyright (C) 2006. rt-labs AB, Sweden. All rights reserved.
- *------------------------------------------------------------------------------
- * $Id: lw_emac.c 348 2012-10-18 16:41:14Z rtlfrm $
- *
- *
- *------------------------------------------------------------------------------
- */
+ * Copyright 2010 rt-labs AB, Sweden.
+ * See LICENSE file in the project root for full license information.
+ ********************************************************************/
+
+#if defined (stamp537)
 
 #include <bsp.h>
-#include <kern.h>
+#include <kern/kern.h>
 #include <config.h>
 #include <bfin_dma.h>
 #include <string.h>
 
-#include "lw_emac.h"
+#include "oshw.h"
 
 /* MII standard registers.
    See IEEE Std 802.3-2005 clause 22:
@@ -187,7 +179,7 @@ static uint32_t lw_emac_read_phy_reg(uint8_t phy_addr, uint8_t reg_addr) {
 }
 
 /* Internal function that sets the MAC address */
-static void lw_emac_set_mac_addr(uint8_t * ethAddr)
+static void lw_emac_set_mac_addr(const uint8_t * ethAddr)
 {
    pEth->addrlo =
       ethAddr[0] |
@@ -199,7 +191,7 @@ static void lw_emac_set_mac_addr(uint8_t * ethAddr)
       ethAddr[5] << 8;
 }
 
-static uint8_t lw_emac_init_registers(uint8_t * ethAddr) {
+static uint8_t lw_emac_init_registers(const uint8_t * ethAddr) {
    uint32_t clock_divisor, sysctl_mdcdiv, phy_stadat, counter;
 
    /* CONFIGURE MAC MII PINS */
@@ -285,7 +277,7 @@ static uint8_t lw_emac_init_registers(uint8_t * ethAddr) {
    return 0;
 }
 
-int bfin_EMAC_init (uint8_t *ethAddr)
+int oshw_mac_init (const uint8_t * ethAddr)
 {
    rxIdx = txIdx = 0;
 
@@ -351,7 +343,8 @@ int bfin_EMAC_init (uint8_t *ethAddr)
 
    return 0;
 }
-int bfin_EMAC_send (void *packet, int length)
+
+int oshw_mac_send (const void *packet, size_t length)
 {
    UASSERT(length > 0, EARG);
    UASSERT(length < ETH_FRAME_SIZE, EARG);
@@ -381,7 +374,7 @@ int bfin_EMAC_send (void *packet, int length)
    return 0;
 }
 
-int bfin_EMAC_recv (uint8_t * packet, size_t size)
+int oshw_mac_recv (void * packet, size_t size)
 {
    uint32_t length;
    uint32_t status = rxStatusWord[rxIdx];
@@ -421,3 +414,4 @@ int bfin_EMAC_recv (uint8_t * packet, size_t size)
    return length;
 }
 
+#endif

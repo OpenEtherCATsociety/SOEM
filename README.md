@@ -28,6 +28,17 @@ Linux & macOS
    * `cmake ..`
    * `make`
 
+rt-kernel
+---------
+
+   * `mkdir build`
+   * `cd build`
+   * `export COMPILERS=/opt/rt-tools/compilers`
+   * `export RTK=/path/to/rt-kernel`
+   * `export BSP=<bsp>`
+   * `cmake .. -DCMAKE_TOOLCHAIN_FILE=../cmake/toolchain/rt-kernel-<arch>.cmake -G "Unix Makefiles"`
+   * `make`
+
 ERIKA Enterprise RTOS
 ---------------------
 

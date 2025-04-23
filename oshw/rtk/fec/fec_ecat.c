@@ -1,24 +1,19 @@
-/******************************************************************************
-*                *          ***                    ***
-*              ***          ***                    ***
-* ***  ****  **********     ***        *****       ***  ****          *****
-* *********  **********     ***      *********     ************     *********
-* ****         ***          ***              ***   ***       ****   ***
-* ***          ***  ******  ***      ***********   ***        ****   *****
-* ***          ***  ******  ***    *************   ***        ****      *****
-* ***          ****         ****   ***       ***   ***       ****          ***
-* ***           *******      ***** **************  *************    *********
-* ***             *****        ***   *******   **  **  ******         *****
-*                           t h e  r e a l t i m e  t a r g e t  e x p e r t s
-*
-* http://www.rt-labs.com
-* Copyright (C) 2007. rt-labs AB, Sweden. All rights reserved.
-*------------------------------------------------------------------------------
-* $Id: fec_ecat.c 138 2014-04-11 09:11:48Z rtlfrm $
-*------------------------------------------------------------------------------
-*/
+/*********************************************************************
+ *        _       _         _
+ *  _ __ | |_  _ | |  __ _ | |__   ___
+ * | '__|| __|(_)| | / _` || '_ \ / __|
+ * | |   | |_  _ | || (_| || |_) |\__ \
+ * |_|    \__|(_)|_| \__,_||_.__/ |___/
+ *
+ * http://www.rt-labs.com
+ * Copyright 2011 rt-labs AB, Sweden.
+ * See LICENSE file in the project root for full license information.
+ ********************************************************************/
+
+#if defined (sabresd) || defined (twrk60f)
 
 #include "fec_ecat.h"
+#include "oshw.h"
 
 #include <dev.h>
 #include <kern.h>
@@ -64,6 +59,20 @@
 
 /* Note that the core clock and the system clock has the same clock frequency */
 #define FEC_MODULE_CLOCK_Hz CFG_IPG_CLOCK
+
+
+#if defined (sabresd)
+extern phy_t * ar8031_init (const phy_cfg_t * cfg);
+
+#define PHY_INIT      ar8031_init
+#define PHY_INTERFACE FEC_PHY_RGMII
+#endif
+
+#if defined (twrk60f)
+#define PHY_INIT      mii_init
+#define PHY_INTERFACE FEC_PHY_RMII
+#endif
+
 
 //----------------------------------------------------------------------------//
 
@@ -223,6 +232,7 @@ COMPILETIME_ASSERT (offsetof (reg_fec_t, smac[3]) == 0x518);
 
 /* Bit definitions and macros for FEC_ECR */
 #define FEC_ECR_DBSWP         (0x00000100)
+#define FEC_ECR_SPEED         (0x00000020)
 #define FEC_ECR_ETHER_EN      (0x00000002)
 #define FEC_ECR_RESET         (0x00000001)
 
@@ -258,7 +268,7 @@ COMPILETIME_ASSERT (offsetof (reg_fec_t, smac[3]) == 0x518);
 #define FEC_RCR_RMII_10T      (0x00000200)
 #define FEC_RCR_RMII_MODE     (0x00000100)
 #define FEC_RCR_SGMII_ENA     (0x00000080)
-#define FEC_RCR_RGMII_ENA     (0x00000040)
+#define FEC_RCR_RGMII_EN      (0x00000040)
 #define FEC_RCR_FCE           (0x00000020)
 #define FEC_RCR_BC_REJ        (0x00000010)
 #define FEC_RCR_PROM          (0x00000008)
@@ -514,17 +524,19 @@ static void fec_ecat_init_hw (const fec_mac_address_t * mac_address)
    fec->base->mscr = (fec->base->mscr & (~0x7E)) | (mii_speed << 1);
 
    // Receive control register
-   fec->base->rcr = FEC_RCR_MAX_FL(PKT_MAXBUF_SIZE) | FEC_RCR_MII_MODE;
+   fec->base->rcr = FEC_RCR_MAX_FL(PKT_MAXBUF_SIZE);
 
-   // set RMII mode in RCR register.
-   if (fec->phy_interface == FEC_PHY_RMII)
+   switch(fec->phy_interface)
    {
-      fec->base->rcr |= FEC_RCR_RMII_MODE;
-   }
-   else if(fec->phy_interface == FEC_PHY_RGMII)
-   {
-      fec->base->rcr &= ~(FEC_RCR_RMII_MODE | FEC_RCR_MII_MODE );
-      fec->base->rcr  |= (FEC_RCR_RGMII_ENA | FEC_RCR_MII_MODE);
+   case FEC_PHY_MII:
+      fec->base->rcr |= FEC_RCR_MII_MODE;
+      break;
+   case FEC_PHY_RMII:
+      fec->base->rcr |= (FEC_RCR_MII_MODE | FEC_RCR_RMII_MODE);
+      break;
+   case FEC_PHY_RGMII:
+      fec->base->rcr |= (FEC_RCR_MII_MODE | FEC_RCR_RGMII_EN);
+      break;
    }
 
    // Reset phy
@@ -556,7 +568,7 @@ static void fec_ecat_init_hw (const fec_mac_address_t * mac_address)
    fec->phy->ops->start (fec->phy);
 }
 
-int fec_ecat_send (const void *payload, size_t tot_len)
+int oshw_mac_send (const void *payload, size_t tot_len)
 {
    fec_buffer_bd_t * bd;
 
@@ -587,6 +599,7 @@ int fec_ecat_send (const void *payload, size_t tot_len)
 
    fec_buffer_produce_tx (bd);
 
+#if defined (twrk60f)
    /* Wait for previous transmissions to complete.
     *
     * This is a workaround for Freescale Kinetis errata e6358.
@@ -596,6 +609,7 @@ int fec_ecat_send (const void *payload, size_t tot_len)
    {
       ;
    }
+#endif
 
    /* Transmit frame */
    fec->base->tdar = 1;
@@ -603,7 +617,7 @@ int fec_ecat_send (const void *payload, size_t tot_len)
    return tot_len;
 }
 
-int fec_ecat_recv (void * buffer, size_t buffer_length)
+int oshw_mac_recv (void * buffer, size_t buffer_length)
 {
    fec_buffer_bd_t * bd;
    int return_value;
@@ -686,7 +700,7 @@ static void fec_ecat_hotplug (void)
       fec->base->rcr |= FEC_RCR_DRT;
    }
 
-   /* Set RMII 10-Mbps mode. */
+   /* Set link speed */
    if (link_state & PHY_LINK_10MBIT)
    {
       fec->base->rcr |= FEC_RCR_RMII_10T;
@@ -750,8 +764,7 @@ static dev_state_t fec_ecat_probe (void)
 
 COMPILETIME_ASSERT (FEC_MODULE_CLOCK_Hz >= FEC_MIN_MODULE_CLOCK_Hz);
 
-int fec_ecat_init (const fec_mac_address_t * mac_address,
-      bool phy_loopback_mode)
+int oshw_mac_init (const uint8_t * mac_address)
 {
    dev_state_t state;
    static const fec_cfg_t eth_cfg =
@@ -760,16 +773,15 @@ int fec_ecat_init (const fec_mac_address_t * mac_address,
       .clock         = FEC_MODULE_CLOCK_Hz,
       .tx_bd_base    = fec_tx_bd,
       .rx_bd_base    = fec_rx_bd,
-      .phy_interface = FEC_PHY_RMII,
+      .phy_interface = PHY_INTERFACE,
    };
    static phy_cfg_t phy_cfg =
    {
       .address       = ETH_PHY_ADDRESS,
       .read          = NULL, /* Set by MAC driver */
       .write         = NULL, /* Set by MAC driver */
+      .loopback_mode = false,
    };
-
-   phy_cfg.loopback_mode = phy_loopback_mode;
 
    /* Initialise buffers and buffer descriptors.*/
    fec_buffer_init_tx (fec_tx_bd, fec_tx_data, NUM_BUFFERS);
@@ -778,19 +790,25 @@ int fec_ecat_init (const fec_mac_address_t * mac_address,
    fec = malloc (sizeof (fec_t));
    UASSERT (fec != NULL, EMEM);
 
+#if defined (sabresd)
+   gpio_set (GPIO_RGMII_nRST, 0);
+   task_delay (500);
+   gpio_set (GPIO_RGMII_nRST, 1);
+#endif
+
    /* Initialise driver state */
    fec->rx_bd_base        = eth_cfg.rx_bd_base;
    fec->tx_bd_base        = eth_cfg.tx_bd_base;
    fec->clock             = eth_cfg.clock;
    fec->base              = (reg_fec_t *)eth_cfg.base;
    fec->phy_interface     = eth_cfg.phy_interface;
-   fec->phy               = mii_init (&phy_cfg);
+   fec->phy               = PHY_INIT (&phy_cfg);
    fec->phy->arg          = fec;
    fec->phy->read         = fec_ecat_read_phy;
    fec->phy->write        = fec_ecat_write_phy;
 
    /* Initialize hardware */
-   fec_ecat_init_hw (mac_address);
+   fec_ecat_init_hw ((fec_mac_address_t *)mac_address);
    state = StateDetached;
    while (state == StateDetached)
    {
@@ -800,3 +818,5 @@ int fec_ecat_init (const fec_mac_address_t * mac_address,
 
    return 0;
 }
+
+#endif

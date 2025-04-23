@@ -31,16 +31,12 @@
  * This layer is fully transparent for the higher layers.
  */
 
-#include <kern.h>
-#include <ioctl.h>
-#include <stdio.h>
+#include <kern/kern.h>
+#include <drivers/ioctl.h>
 #include <string.h>
 
 #include "osal.h"
 #include "oshw.h"
-
-
-#include "lw_mac/lw_emac.h"
 
 #ifndef MAX
 #define MAX(a,b) (((a) > (b)) ? (a) : (b))
@@ -96,7 +92,7 @@ int ecx_setupnic(ecx_portt *port, const char *ifname, int secondary)
    port->tx_mutex = mtx_create();
    port->rx_mutex = mtx_create();
 
-   rVal = bfin_EMAC_init((uint8_t *)priMAC);
+   rVal = oshw_mac_init((uint8_t *)priMAC);
    if (rVal != 0)
       return 0;
 
@@ -264,7 +260,7 @@ int ecx_outframe(ecx_portt *port, uint8 idx, int stacknumber)
    }
    lp = (*stack->txbuflength)[idx];
    (*stack->rxbufstat)[idx] = EC_BUF_TX;
-   rval = bfin_EMAC_send((*stack->txbuf)[idx], lp);
+   rval = oshw_mac_send((*stack->txbuf)[idx], lp);
 
    return rval;
 }
@@ -300,7 +296,7 @@ int ecx_outframe_red(ecx_portt *port, uint8 idx)
       // OBS! redundant not ACTIVE for BFIN, just added to compile
       ASSERT (0);
       port->redport->rxbufstat[idx] = EC_BUF_TX;
-      bfin_EMAC_send(&(port->txbuf2), port->txbuflength2);
+      oshw_mac_send(&(port->txbuf2), port->txbuflength2);
       mtx_unlock (port->tx_mutex);
    }
 
@@ -326,7 +322,7 @@ static int ecx_recvpkt(ecx_portt *port, int stacknumber)
       stack = &(port->redport->stack);
    }
    lp = sizeof(port->tempinbuf);
-   bytesrx = bfin_EMAC_recv((*stack->tempbuf), lp);
+   bytesrx = oshw_mac_recv((*stack->tempbuf), lp);
    port->tempinbufs = bytesrx;
 
    return (bytesrx > 0);

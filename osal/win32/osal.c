@@ -152,3 +152,23 @@ int osal_thread_create_rt(void *thandle, int stacksize, void *func, void *param)
    }
    return ret;
 }
+
+void *osal_mutex_create(void)
+{
+   return CreateMutex (NULL, FALSE, NULL);
+}
+
+void osal_mutex_destroy(void *mutex)
+{
+   CloseHandle (mutex);
+}
+
+void osal_mutex_lock(void *mutex)
+{
+   WaitForSingleObject (mutex, INFINITE);
+}
+
+void osal_mutex_unlock(void *mutex)
+{
+   ReleaseMutex (mutex);
+}

@@ -2,130 +2,93 @@
 # license. See the file LICENSE.md distributed with this software for
 # full license information.
 
-cmake_minimum_required(VERSION 3.9)
-set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_LIST_DIR}/cmake/Modules")
-project(SOEM
-    DESCRIPTION "Simple Open EtherCAT Master"
-    VERSION 2.0.0
-    LANGUAGES C)
+cmake_minimum_required(VERSION 3.28)
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
+project(SOEM VERSION 2.0.0 LANGUAGES C)
 
-if (CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
-  # Default to installing in SOEM source directory
-  set(CMAKE_INSTALL_PREFIX ${CMAKE_CURRENT_LIST_DIR}/install)
-endif()
+if(PROJECT_IS_TOP_LEVEL)
+  # Make option visible in ccmake, cmake-gui
+  option(BUILD_SHARED_LIBS "Build shared library" OFF)
+  option(SOEM_BUILD_UTILS "Build utitilities" ON)
 
-option(BUILD_SHARED_LIBS "Build using shared libraries" OFF)
+  # Default to release build with debug info
+  if(NOT CMAKE_BUILD_TYPE)
+    set(CMAKE_BUILD_TYPE RelWithDebInfo CACHE STRING
+      "Choose the type of build, options are: None Debug Release RelWithDebInfo MinSizeRel."
+      FORCE)
+  endif(NOT CMAKE_BUILD_TYPE)
 
-set(SOEM_INCLUDE_INSTALL_DIR include/soem)
-set(SOEM_LIB_INSTALL_DIR lib)
-
-if(CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
-  set(BUILD_TESTS TRUE)
-else()
-  message(STATUS "SOEM: not building tests when built as dependency")
-  set(BUILD_TESTS FALSE)
-endif()
-
-if(WIN32)
-  set(OS "win32")
-  include_directories(oshw/win32/wpcap/Include)
-  if(CMAKE_SIZEOF_VOID_P EQUAL 8)
-    link_directories(${CMAKE_CURRENT_LIST_DIR}/oshw/win32/wpcap/Lib/x64)
-  elseif(CMAKE_SIZEOF_VOID_P EQUAL 4)
-    link_directories(${CMAKE_CURRENT_LIST_DIR}/oshw/win32/wpcap/Lib)
+  # Default to installing in build directory
+  if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
+    set(CMAKE_INSTALL_PREFIX ${CMAKE_CURRENT_BINARY_DIR}/install
+      CACHE PATH "Default install path" FORCE)
   endif()
-  if(MSVC)  
-    message(STATUS "Win32 MSVC")
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /D _CRT_SECURE_NO_WARNINGS")
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS}  /WX")
-  else()
-    message(STATUS "Win32 non-MSVC")
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Wextra -Werror")
-  endif()
-  set(OS_LIBS wpcap.lib Packet.lib Ws2_32.lib Winmm.lib)
-elseif(UNIX AND NOT APPLE)
-  set(OS "linux")
-  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Wextra -Werror")
-  set(OS_LIBS pthread rt)
-elseif(APPLE)
-  # This must come *before* linux or MacOSX will identify as Unix.
-  set(OS "macosx")
-  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Wextra -Werror")
-  set(OS_LIBS pthread pcap)
-elseif(${CMAKE_SYSTEM_NAME} MATCHES "rt-kernel")
-  set(OS "rtk")
-  message(STATUS "ARCH is ${ARCH}")
-  message(STATUS "BSP is ${BSP}")
-  include_directories(oshw/${OS}/${ARCH})
-  file(GLOB OSHW_EXTRA_SOURCES oshw/${OS}/${ARCH}/*.c)
-  set(OSHW_SOURCES "${OS_HW_SOURCES} ${OSHW_ARCHSOURCES}")
-  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Wextra -Werror")
-  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wno-unused-but-set-variable")
-  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wno-unused-function")
-  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wno-format")
-  set(OS_LIBS "-Wl,--start-group -l${BSP} -l${ARCH} -lkern -ldev -lsio -lblock -lfs -lusb -llwip -leth -li2c -lrtc -lcan -lnand -lspi -lnor -lpwm -ladc -ltrace -lc -lm -Wl,--end-group")
-elseif(${CMAKE_SYSTEM_NAME} MATCHES "rtems")
-  message(STATUS "Building for RTEMS")
-  set(OS "rtems")
-  set(SOEM_LIB_INSTALL_DIR ${LIB_DIR})
-  set(BUILD_TESTS FALSE)
+
+  message(STATUS "Current build type is: ${CMAKE_BUILD_TYPE}")
+  message(STATUS "Current install path is: ${CMAKE_INSTALL_PREFIX}")
+  message(STATUS "Building for ${CMAKE_SYSTEM_NAME}")
 endif()
 
-message(STATUS "OS is ${OS}")
-
-file(GLOB SOEM_SOURCES soem/*.c)
-file(GLOB OSAL_SOURCES osal/${OS}/*.c)
-file(GLOB OSHW_SOURCES oshw/${OS}/*.c)
-
-file(GLOB SOEM_HEADERS soem/*.h)
-file(GLOB OSAL_HEADERS osal/osal.h osal/${OS}/*.h)
-file(GLOB OSHW_HEADERS oshw/${OS}/*.h)
+# Always use standard .o suffix
+set(CMAKE_C_OUTPUT_EXTENSION_REPLACE 1)
+set(CMAKE_CXX_OUTPUT_EXTENSION_REPLACE 1)
 
 add_library(soem
-  ${SOEM_SOURCES}
-  ${OSAL_SOURCES}
-  ${OSHW_SOURCES}
-  ${OSHW_EXTRA_SOURCES})
-
-if (BUILD_SHARED_LIBS)
-  set_target_properties(soem PROPERTIES VERSION ${PROJECT_VERSION} SOVERSION ${PROJECT_VERSION_MAJOR})
-endif(BUILD_SHARED_LIBS)
-
-target_link_libraries(soem ${OS_LIBS})
-
-target_include_directories(soem PUBLIC
-  $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/soem>
-  $<INSTALL_INTERFACE:include/soem>)
+  soem/ethercatbase.c
+  soem/ethercatcoe.c
+  soem/ethercatconfig.c
+  soem/ethercatdc.c
+  soem/ethercateoe.c
+  soem/ethercatfoe.c
+  soem/ethercatmain.c
+  soem/ethercatprint.c
+  soem/ethercatsoe.c
+)
 
 target_include_directories(soem PUBLIC
-  $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/osal>
-  $<INSTALL_INTERFACE:include/soem>)
-
-target_include_directories(soem PUBLIC
-  $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/osal/${OS}>
-  $<INSTALL_INTERFACE:include/soem>)
-
-target_include_directories(soem
-  PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/oshw/${OS}>
+  $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/soem>
   $<INSTALL_INTERFACE:include/soem>
-  )
+)
+target_include_directories(soem PUBLIC
+  $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/osal>
+  $<INSTALL_INTERFACE:include/soem>
+)
 
-message(STATUS "LIB_DIR: ${SOEM_LIB_INSTALL_DIR}")
+# Platform configuration
+include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/${CMAKE_SYSTEM_NAME}.cmake)
 
-install(TARGETS soem EXPORT soemConfig DESTINATION ${SOEM_LIB_INSTALL_DIR})
+install(
+  TARGETS soem
+  EXPORT soemConfig
+  DESTINATION lib
+)
 
-install(EXPORT soemConfig DESTINATION share/soem/cmake)
+install(
+  EXPORT soemConfig
+  DESTINATION cmake
+)
 
 install(FILES
-  ${SOEM_HEADERS}
-  ${OSAL_HEADERS}
-  ${OSHW_HEADERS}
-  DESTINATION ${SOEM_INCLUDE_INSTALL_DIR})
+  soem/ethercatbase.h
+  soem/ethercatcoe.h
+  soem/ethercatconfig.h
+  soem/ethercatconfiglist.h
+  soem/ethercatdc.h
+  soem/ethercateoe.h
+  soem/ethercatfoe.h
+  soem/ethercat.h
+  soem/ethercatmain.h
+  soem/ethercatprint.h
+  soem/ethercatsoe.h
+  soem/ethercattype.h
+  osal/osal.h
+  DESTINATION include/soem
+)
 
-if(BUILD_TESTS) 
+if(SOEM_BUILD_UTILS)
   add_subdirectory(test/simple_ng)
   add_subdirectory(test/linux/slaveinfo)
   add_subdirectory(test/linux/eepromtool)
   add_subdirectory(test/linux/simple_test)
-  add_subdirectory(test/linux/coetest)
+  # add_subdirectory(test/linux/coetest)
 endif()

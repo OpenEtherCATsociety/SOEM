@@ -898,7 +898,6 @@ static void ecx_config_create_input_mappings(ecx_contextt *context, void *pIOmap
 {
    int BitCount = 0;
    int FMMUdone = 0;
-   int AddToInputsWKC = 0;
    uint16 ByteCount = 0;
    uint16 FMMUsize = 0;
    uint8 SMc = 0;
@@ -1003,9 +1002,6 @@ static void ecx_config_create_input_mappings(ecx_contextt *context, void *pIOmap
          /* program FMMU for input */
          ecx_FPWR(context->port, configadr, ECT_REG_FMMU0 + (sizeof(ec_fmmut) * FMMUc),
             sizeof(ec_fmmut), &(context->slavelist[slave].FMMU[FMMUc]), EC_TIMEOUTRET3);
-         /* Set flag to add one for an input FMMU,
-            a single ESC can only contribute once */
-         AddToInputsWKC = 1;
       }
       if (!context->slavelist[slave].inputs)
       {
@@ -1031,10 +1027,6 @@ static void ecx_config_create_input_mappings(ecx_contextt *context, void *pIOmap
       FMMUc++;
    }
    context->slavelist[slave].FMMUunused = FMMUc;
-
-   /* Add one WKC for each input segment if flag is true */
-   if (AddToInputsWKC)
-      context->grouplist[group].inputsWKC += 1 + (FMMUsize / (EC_MAXLRWDATA - EC_FIRSTDCDATAGRAM));
 }
 
 static void ecx_config_create_output_mappings(ecx_contextt *context, void *pIOmap,
@@ -1042,7 +1034,6 @@ static void ecx_config_create_output_mappings(ecx_contextt *context, void *pIOma
 {
    int BitCount = 0;
    int FMMUdone = 0;
-   int AddToOutputsWKC = 0;
    uint16 ByteCount = 0;
    uint16 FMMUsize = 0;
    uint8 SMc = 0;
@@ -1141,9 +1132,6 @@ static void ecx_config_create_output_mappings(ecx_contextt *context, void *pIOma
          /* program FMMU for output */
          ecx_FPWR(context->port, configadr, ECT_REG_FMMU0 + (sizeof(ec_fmmut) * FMMUc),
             sizeof(ec_fmmut), &(context->slavelist[slave].FMMU[FMMUc]), EC_TIMEOUTRET3);
-         /* Set flag to add one for an output FMMU,
-            a single ESC can only contribute once */
-         AddToOutputsWKC = 1;
       }
       if (!context->slavelist[slave].outputs)
       {
@@ -1170,9 +1158,6 @@ static void ecx_config_create_output_mappings(ecx_contextt *context, void *pIOma
       FMMUc++;
    }
    context->slavelist[slave].FMMUunused = FMMUc;
-   /* Add one WKC for each output segment if flag is true */
-   if (AddToOutputsWKC)
-      context->grouplist[group].outputsWKC += 1 + (FMMUsize / (EC_MAXLRWDATA - EC_FIRSTDCDATAGRAM));
 }
 
 static int ecx_main_config_map_group(ecx_contextt *context, void *pIOmap, uint8 group, boolean forceByteAlignment)
@@ -1184,6 +1169,7 @@ static int ecx_main_config_map_group(ecx_contextt *context, void *pIOmap, uint8 
    uint32 diff;
    uint16 currentsegment = 0;
    uint32 segmentsize = 0;
+   uint32 segmentmaxsize = (EC_MAXLRWDATA - EC_FIRSTDCDATAGRAM); /* first segment must account for DC overhead */
 
    if ((*(context->slavecount) > 0) && (group < context->maxgroup))
    {
@@ -1222,24 +1208,17 @@ static int ecx_main_config_map_group(ecx_contextt *context, void *pIOmap, uint8 
 
                diff = LogAddr - oLogAddr;
                oLogAddr = LogAddr;
-               if ((segmentsize + diff) > (EC_MAXLRWDATA - EC_FIRSTDCDATAGRAM))
+               segmentsize += diff;
+               while (segmentsize > segmentmaxsize && currentsegment < EC_MAXIOSEGMENTS)
                {
-                  context->grouplist[group].IOsegment[currentsegment] = segmentsize;
-                  if (currentsegment < (EC_MAXIOSEGMENTS - 1))
-                  {
-                     currentsegment++;
-                  }
-                  while (diff > (EC_MAXLRWDATA - EC_FIRSTDCDATAGRAM) && currentsegment < (EC_MAXIOSEGMENTS - 1))
-                  {
-                    context->grouplist[group].IOsegment[currentsegment++] = (EC_MAXLRWDATA - EC_FIRSTDCDATAGRAM);
-                    diff -= (EC_MAXLRWDATA - EC_FIRSTDCDATAGRAM);
-                  }
-                  segmentsize = diff;
+                  context->grouplist[group].IOsegment[currentsegment++] = segmentmaxsize;
+                  segmentsize -= segmentmaxsize;
+                  context->grouplist[group].outputsWKC++;
+                  segmentmaxsize = EC_MAXLRWDATA; /* can ignore DC overhead after first segment */
                }
-               else
-               {
-                  segmentsize += diff;
-               }
+               /* if this slave added output data and there is a partial segment still outstanding increment the outputwkc */
+               if (segmentsize && diff)
+                  context->grouplist[group].outputsWKC++;
             }
          }
       }
@@ -1248,18 +1227,13 @@ static int ecx_main_config_map_group(ecx_contextt *context, void *pIOmap, uint8 
          LogAddr++;
          oLogAddr = LogAddr;
          BitPos = 0;
-         if ((segmentsize + 1) > (EC_MAXLRWDATA - EC_FIRSTDCDATAGRAM))
+         segmentsize += 1;
+         while (segmentsize > segmentmaxsize && currentsegment < EC_MAXIOSEGMENTS)
          {
-            context->grouplist[group].IOsegment[currentsegment] = segmentsize;
-            if (currentsegment < (EC_MAXIOSEGMENTS - 1))
-            {
-               currentsegment++;
-               segmentsize = 1;
-            }
-         }
-         else
-         {
-            segmentsize += 1;
+            context->grouplist[group].IOsegment[currentsegment++] = segmentmaxsize;
+            segmentsize -= segmentmaxsize;
+            context->grouplist[group].outputsWKC++;
+            segmentmaxsize = EC_MAXLRWDATA; /* can ignore DC overhead after first segment */
          }
       }
       context->grouplist[group].outputs = pIOmap;
@@ -1298,24 +1272,17 @@ static int ecx_main_config_map_group(ecx_contextt *context, void *pIOmap, uint8 
 
                diff = LogAddr - oLogAddr;
                oLogAddr = LogAddr;
-               if ((segmentsize + diff) > (EC_MAXLRWDATA - EC_FIRSTDCDATAGRAM))
+               segmentsize += diff;
+               while (segmentsize > segmentmaxsize && currentsegment < EC_MAXIOSEGMENTS)
                {
-                  context->grouplist[group].IOsegment[currentsegment] = segmentsize;
-                  if (currentsegment < (EC_MAXIOSEGMENTS - 1))
-                  {
-                     currentsegment++;
-                  }
-                  while (diff > (EC_MAXLRWDATA - EC_FIRSTDCDATAGRAM) && currentsegment < (EC_MAXIOSEGMENTS - 1))
-                  {
-                    context->grouplist[group].IOsegment[currentsegment++] = (EC_MAXLRWDATA - EC_FIRSTDCDATAGRAM);
-                    diff -= (EC_MAXLRWDATA - EC_FIRSTDCDATAGRAM);
-                  }
-                  segmentsize = diff;
+                  context->grouplist[group].IOsegment[currentsegment++] = segmentmaxsize;
+                  segmentsize -= segmentmaxsize;
+                  context->grouplist[group].inputsWKC++;
+                  segmentmaxsize = EC_MAXLRWDATA; /* can ignore DC overhead after first segment */
                }
-               else
-               {
-                  segmentsize += diff;
-               }
+               /* if this slave added input data and there is a partial segment still outstanding increment the inputwkc */
+               if (segmentsize && diff)
+                  context->grouplist[group].inputsWKC++;
             }
 
             ecx_eeprom2pdi(context, slave); /* set Eeprom control to PDI */
@@ -1341,18 +1308,12 @@ static int ecx_main_config_map_group(ecx_contextt *context, void *pIOmap, uint8 
          LogAddr++;
          oLogAddr = LogAddr;
          BitPos = 0;
-         if ((segmentsize + 1) > (EC_MAXLRWDATA - EC_FIRSTDCDATAGRAM))
+         segmentsize += 1;
+         while (segmentsize > segmentmaxsize && currentsegment < EC_MAXIOSEGMENTS)
          {
-            context->grouplist[group].IOsegment[currentsegment] = segmentsize;
-            if (currentsegment < (EC_MAXIOSEGMENTS - 1))
-            {
-               currentsegment++;
-               segmentsize = 1;
-            }
-         }
-         else
-         {
-            segmentsize += 1;
+            context->grouplist[group].IOsegment[currentsegment++] = segmentmaxsize;
+            segmentsize -= segmentmaxsize;
+            context->grouplist[group].inputsWKC++;
          }
       }
       context->grouplist[group].IOsegment[currentsegment] = segmentsize;
@@ -1424,6 +1385,7 @@ int ecx_config_overlap_map_group(ecx_contextt *context, void *pIOmap, uint8 grou
    uint32 diff;
    uint16 currentsegment = 0;
    uint32 segmentsize = 0;
+   uint32 segmentmaxsize = (EC_MAXLRWDATA - EC_FIRSTDCDATAGRAM);
 
    if ((*(context->slavecount) > 0) && (group < context->maxgroup))
    {
@@ -1474,25 +1436,25 @@ int ecx_config_overlap_map_group(ecx_contextt *context, void *pIOmap, uint8 grou
 
             tempLogAddr = (siLogAddr > soLogAddr) ?  siLogAddr : soLogAddr;
             diff = tempLogAddr - mLogAddr;
+            int soLength = soLogAddr - mLogAddr;
+            int siLength = siLogAddr - mLogAddr;
             mLogAddr = tempLogAddr;
-
-            if ((segmentsize + diff) > (EC_MAXLRWDATA - EC_FIRSTDCDATAGRAM))
+            segmentsize += diff;
+            while (segmentsize > segmentmaxsize && currentsegment < EC_MAXIOSEGMENTS)
             {
-               context->grouplist[group].IOsegment[currentsegment] = segmentsize;
-               if (currentsegment < (EC_MAXIOSEGMENTS - 1))
-               {
-                  currentsegment++;
-               }
-               while (diff > (EC_MAXLRWDATA - EC_FIRSTDCDATAGRAM) && currentsegment < (EC_MAXIOSEGMENTS - 1))
-               {
-                 context->grouplist[group].IOsegment[currentsegment++] = (EC_MAXLRWDATA - EC_FIRSTDCDATAGRAM);
-                 diff -= (EC_MAXLRWDATA - EC_FIRSTDCDATAGRAM);
-               }
-               segmentsize = diff;
+               context->grouplist[group].IOsegment[currentsegment++] = segmentmaxsize;
+               segmentsize -= segmentmaxsize;
+               context->grouplist[group].inputsWKC += (siLength > 0);
+               context->grouplist[group].outputsWKC += (soLength > 0);
+               siLength -= segmentmaxsize;
+               soLength -= segmentmaxsize;
+               segmentmaxsize = EC_MAXLRWDATA; /* can ignore DC overhead after first segment */
             }
-            else
+            /* if this slave added data and there is a partial segment still outstanding increment the relevant wkc */
+            if (segmentsize && diff)
             {
-               segmentsize += diff;
+               context->grouplist[group].inputsWKC += (siLength > 0);
+               context->grouplist[group].outputsWKC += (soLength > 0);
             }
 
             ecx_eeprom2pdi(context, slave); /* set Eeprom control to PDI */

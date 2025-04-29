@@ -1212,7 +1212,6 @@ static int ecx_main_config_map_group(ecx_contextt *context, void *pIOmap, uint8 
                {
                   context->grouplist[group].IOsegment[currentsegment++] = segmentsize;
                   segmentsize = 0;
-                  context->grouplist[group].outputsWKC++;
                   segmentmaxsize = EC_MAXLRWDATA; /* can ignore DC overhead after first segment */
                }
                segmentsize += diff;
@@ -1283,7 +1282,6 @@ static int ecx_main_config_map_group(ecx_contextt *context, void *pIOmap, uint8 
                {
                   context->grouplist[group].IOsegment[currentsegment++] = segmentsize;
                   segmentsize = 0;
-                  context->grouplist[group].inputsWKC++;
                   segmentmaxsize = EC_MAXLRWDATA; /* can ignore DC overhead after first segment */
                }
                segmentsize += diff;
@@ -1457,8 +1455,6 @@ int ecx_config_overlap_map_group(ecx_contextt *context, void *pIOmap, uint8 grou
             {
                context->grouplist[group].IOsegment[currentsegment++] = segmentsize;
                segmentsize = 0;
-               context->grouplist[group].inputsWKC += (siLength > 0);
-               context->grouplist[group].outputsWKC += (soLength > 0);
                segmentmaxsize = EC_MAXLRWDATA; /* can ignore DC overhead after first segment */
             }
             segmentsize += diff;

@@ -1208,6 +1208,13 @@ static int ecx_main_config_map_group(ecx_contextt *context, void *pIOmap, uint8 
 
                diff = LogAddr - oLogAddr;
                oLogAddr = LogAddr;
+               if ((segmentsize + diff) > segmentmaxsize && diff <= segmentmaxsize && currentsegment < EC_MAXIOSEGMENTS)
+               {
+                  context->grouplist[group].IOsegment[currentsegment++] = segmentsize;
+                  segmentsize = 0;
+                  context->grouplist[group].outputsWKC++;
+                  segmentmaxsize = EC_MAXLRWDATA; /* can ignore DC overhead after first segment */
+               }
                segmentsize += diff;
                while (segmentsize > segmentmaxsize && currentsegment < EC_MAXIOSEGMENTS)
                {
@@ -1227,14 +1234,14 @@ static int ecx_main_config_map_group(ecx_contextt *context, void *pIOmap, uint8 
          LogAddr++;
          oLogAddr = LogAddr;
          BitPos = 0;
-         segmentsize += 1;
-         while (segmentsize > segmentmaxsize && currentsegment < EC_MAXIOSEGMENTS)
+         if ((segmentsize + 1) > segmentmaxsize && currentsegment < EC_MAXIOSEGMENTS)
          {
-            context->grouplist[group].IOsegment[currentsegment++] = segmentmaxsize;
-            segmentsize -= segmentmaxsize;
+            context->grouplist[group].IOsegment[currentsegment++] = segmentsize;
+            segmentsize = 0;
             context->grouplist[group].outputsWKC++;
             segmentmaxsize = EC_MAXLRWDATA; /* can ignore DC overhead after first segment */
          }
+         segmentsize += 1;
       }
       context->grouplist[group].outputs = pIOmap;
       context->grouplist[group].Obytes = LogAddr - context->grouplist[group].logstartaddr;
@@ -1272,6 +1279,13 @@ static int ecx_main_config_map_group(ecx_contextt *context, void *pIOmap, uint8 
 
                diff = LogAddr - oLogAddr;
                oLogAddr = LogAddr;
+               if ((segmentsize + diff) > segmentmaxsize && diff <= segmentmaxsize && currentsegment < EC_MAXIOSEGMENTS)
+               {
+                  context->grouplist[group].IOsegment[currentsegment++] = segmentsize;
+                  segmentsize = 0;
+                  context->grouplist[group].inputsWKC++;
+                  segmentmaxsize = EC_MAXLRWDATA; /* can ignore DC overhead after first segment */
+               }
                segmentsize += diff;
                while (segmentsize > segmentmaxsize && currentsegment < EC_MAXIOSEGMENTS)
                {
@@ -1308,13 +1322,13 @@ static int ecx_main_config_map_group(ecx_contextt *context, void *pIOmap, uint8 
          LogAddr++;
          oLogAddr = LogAddr;
          BitPos = 0;
-         segmentsize += 1;
-         while (segmentsize > segmentmaxsize && currentsegment < EC_MAXIOSEGMENTS)
+         if ((segmentsize + 1) > segmentmaxsize && currentsegment < EC_MAXIOSEGMENTS)
          {
-            context->grouplist[group].IOsegment[currentsegment++] = segmentmaxsize;
-            segmentsize -= segmentmaxsize;
+            context->grouplist[group].IOsegment[currentsegment++] = segmentsize;
+            segmentsize = 0;
             context->grouplist[group].inputsWKC++;
          }
+         segmentsize += 1;
       }
       context->grouplist[group].IOsegment[currentsegment] = segmentsize;
       context->grouplist[group].nsegments = currentsegment + 1;
@@ -1439,6 +1453,14 @@ int ecx_config_overlap_map_group(ecx_contextt *context, void *pIOmap, uint8 grou
             int soLength = soLogAddr - mLogAddr;
             int siLength = siLogAddr - mLogAddr;
             mLogAddr = tempLogAddr;
+            if ((segmentsize + diff) > segmentmaxsize && diff <= segmentmaxsize && currentsegment < EC_MAXIOSEGMENTS)
+            {
+               context->grouplist[group].IOsegment[currentsegment++] = segmentsize;
+               segmentsize = 0;
+               context->grouplist[group].inputsWKC += (siLength > 0);
+               context->grouplist[group].outputsWKC += (soLength > 0);
+               segmentmaxsize = EC_MAXLRWDATA; /* can ignore DC overhead after first segment */
+            }
             segmentsize += diff;
             while (segmentsize > segmentmaxsize && currentsegment < EC_MAXIOSEGMENTS)
             {

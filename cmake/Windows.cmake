@@ -18,9 +18,17 @@ target_include_directories(soem PUBLIC
 )
 
 target_compile_options(soem PRIVATE
-  /D _CRT_SECURE_NO_WARNINGS
-  /WX
-)
+  $<$<C_COMPILER_ID:MSVC>:
+    /D _CRT_SECURE_NO_WARNINGS
+    /WX
+  >
+  $<$<C_COMPILER_ID:GNU>:
+    -Wall
+    -Wextra
+    -Werror
+    -Wno-unused-parameter
+  >
+  )
 
 if(CMAKE_SIZEOF_VOID_P EQUAL 8)
   set(WPCAP_LIB_PATH ${SOEM_SOURCE_DIR}/oshw/win32/wpcap/Lib/x64)
@@ -31,8 +39,8 @@ endif()
 target_link_libraries(soem PUBLIC
   ${WPCAP_LIB_PATH}/wpcap.lib
   ${WPCAP_LIB_PATH}/Packet.lib
-  Ws2_32.lib
-  Winmm.lib
+  ws2_32.lib
+  winmm.lib
 )
 
 install(FILES

@@ -118,9 +118,10 @@ install(FILES
   ${OSHW_HEADERS}
   DESTINATION ${SOEM_INCLUDE_INSTALL_DIR})
 
-if(BUILD_TESTS) 
+if(BUILD_TESTS)
   add_subdirectory(test/simple_ng)
   add_subdirectory(test/linux/slaveinfo)
+  add_subdirectory(test/linux/firm_update)
   add_subdirectory(test/linux/eepromtool)
   add_subdirectory(test/linux/simple_test)
 endif()

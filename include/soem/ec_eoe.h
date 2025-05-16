@@ -6,18 +6,18 @@
 
 /** \file
  * \brief
- * Headerfile for ethercatfoe.c
+ * Headerfile for ec_foe.c
  */
 
-#ifndef _ethercateoe_
-#define _ethercateoe_
+#ifndef _ec_eoe_
+#define _ec_eoe_
 
 #ifdef __cplusplus
 extern "C"
 {
 #endif
 
-#include "ethercat.h"
+#include "soem/soem.h"
 
 /* use maximum size for EOE mailbox data - mbxheader and 2x frameinfo */
 #define EC_MAXEOEDATA (EC_MAXMBX - (sizeof(ec_mbxheadert) +\

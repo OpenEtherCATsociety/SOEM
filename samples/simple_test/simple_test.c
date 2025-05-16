@@ -13,7 +13,7 @@
 #include <string.h>
 #include <inttypes.h>
 
-#include "ethercat.h"
+#include "soem/soem.h"
 
 #define EC_TIMEOUTMON 500
 

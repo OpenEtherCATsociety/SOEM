@@ -7,7 +7,7 @@
  * This is a minimal test.
  */
 
-#include "ethercat.h"
+#include "soem/soem.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>

@@ -38,9 +38,8 @@
 #include <traceapi.h>
 #include "hpeif2.h"
 
-#include "ethercattype.h"
+#include "soem/soem.h"
 #include "nicdrv.h"
-#include "oshw.h"
 
 /** Redundancy modes */
 enum

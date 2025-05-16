@@ -6,18 +6,18 @@
 
 /** \file
  * \brief
- * Headerfile for ethercatprint.c
+ * Headerfile for ec_print.c
  */
 
-#ifndef _ethercatprint_
-#define _ethercatprint_
+#ifndef _ec_print_
+#define _ec_print_
 
 #ifdef __cplusplus
 extern "C"
 {
 #endif
 
-char* ec_sdoerror2string( uint32 sdoerrorcode);
+const char* ec_sdoerror2string( uint32 sdoerrorcode);
 char* ec_ALstatuscode2string( uint16 ALstatuscode);
 char* ec_soeerror2string( uint16 errorcode);
 char* ec_mbxerror2string( uint16 errorcode);

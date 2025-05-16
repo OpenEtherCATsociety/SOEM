@@ -13,10 +13,9 @@
  * For the defined error codes see the EtherCAT protocol documentation.
  */
 
+#include "soem/soem.h"
 #include <stdio.h>
 #include "oshw.h"
-#include "ethercattype.h"
-#include "ethercatmain.h"
 
 #define EC_MAXERRORNAME 127
 

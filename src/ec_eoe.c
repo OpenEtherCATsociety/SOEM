@@ -14,10 +14,10 @@
  * Read incoming EoE fragment to Ethernet Frame
  */
 
+#include "soem/soem.h"
 #include <string.h>
 #include "osal.h"
 #include "oshw.h"
-#include "ethercat.h"
 
  /** EoE utility function to convert uint32 to eoe ip bytes.
  * @param[in] ip       = ip in uint32

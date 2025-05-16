@@ -34,24 +34,24 @@ set(CMAKE_C_OUTPUT_EXTENSION_REPLACE 1)
 set(CMAKE_CXX_OUTPUT_EXTENSION_REPLACE 1)
 
 add_library(soem
-  src/ethercatbase.c
-  src/ethercatcoe.c
-  src/ethercatconfig.c
-  src/ethercatdc.c
-  src/ethercateoe.c
-  src/ethercatfoe.c
-  src/ethercatmain.c
-  src/ethercatprint.c
-  src/ethercatsoe.c
+  src/ec_base.c
+  src/ec_coe.c
+  src/ec_config.c
+  src/ec_dc.c
+  src/ec_eoe.c
+  src/ec_foe.c
+  src/ec_main.c
+  src/ec_print.c
+  src/ec_soe.c
 )
 
 target_include_directories(soem PUBLIC
-  $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/include/soem>
-  $<INSTALL_INTERFACE:include/soem>
+  $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/include>
+  $<INSTALL_INTERFACE:include>
 )
 target_include_directories(soem PUBLIC
   $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/osal>
-  $<INSTALL_INTERFACE:include/soem>
+  $<INSTALL_INTERFACE:include>
 )
 
 install(
@@ -66,17 +66,17 @@ install(
 )
 
 install(FILES
-  include/soem/ethercatbase.h
-  include/soem/ethercatcoe.h
-  include/soem/ethercatconfig.h
-  include/soem/ethercatdc.h
-  include/soem/ethercateoe.h
-  include/soem/ethercatfoe.h
-  include/soem/ethercat.h
-  include/soem/ethercatmain.h
-  include/soem/ethercatprint.h
-  include/soem/ethercatsoe.h
-  include/soem/ethercattype.h
+  include/soem/ec_base.h
+  include/soem/ec_coe.h
+  include/soem/ec_config.h
+  include/soem/ec_dc.h
+  include/soem/ec_eoe.h
+  include/soem/ec_foe.h
+  include/soem/ec_main.h
+  include/soem/ec_print.h
+  include/soem/ec_soe.h
+  include/soem/ec_type.h
+  include/soem/soem.h
   osal/osal.h
   DESTINATION include/soem
 )

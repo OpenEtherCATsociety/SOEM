@@ -18,9 +18,8 @@ extern "C"
 #endif
 
 #include <kern/kern.h>
-#include "ethercattype.h"
+#include "soem/soem.h"
 #include "nicdrv.h"
-#include "ethercatmain.h"
 
 int oshw_mac_init (const uint8_t * mac_address);
 int oshw_mac_send (const void *payload, size_t tot_len);

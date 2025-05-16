@@ -6,11 +6,11 @@
 
 /** \file
  * \brief
- * Headerfile for ethercatfoe.c
+ * Headerfile for ec_foe.c
  */
 
-#ifndef _ethercatfoe_
-#define _ethercatfoe_
+#ifndef _ec_foe_
+#define _ec_foe_
 
 #ifdef __cplusplus
 extern "C"

@@ -38,9 +38,8 @@
 #include <fcntl.h>
 #include <string.h>
 
-#include "ethercattype.h"
+#include "soem/soem.h"
 #include "nicdrv.h"
-#include "osal.h"
 
 /** Redundancy modes */
 enum

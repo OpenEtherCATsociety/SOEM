@@ -11,13 +11,10 @@
  * SDO read / write and SDO service functions
  */
 
+#include "soem/soem.h"
 #include <string.h>
 #include "osal.h"
 #include "oshw.h"
-#include "ethercattype.h"
-#include "ethercatbase.h"
-#include "ethercatmain.h"
-#include "ethercatfoe.h"
 
 /* use maximum size for FOE mailbox data - header and metadata */
 #define EC_MAXFOEDATA                           \

@@ -6,7 +6,7 @@
 
 /** \file
  * \brief
- * Headerfile for ethercatdc.c
+ * Headerfile for ec_dc.c
  */
 
 #ifndef _EC_ECATDC_H

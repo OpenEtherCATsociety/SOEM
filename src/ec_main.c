@@ -16,10 +16,10 @@
  * Needed for most user interaction with slaves.
  */
 
+#include "soem/soem.h"
 #include <string.h>
 #include "osal.h"
 #include "oshw.h"
-#include "ethercat.h"
 
 
 /** delay in us for eeprom ready loop */

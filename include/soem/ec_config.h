@@ -6,11 +6,11 @@
 
 /** \file
  * \brief
- * Headerfile for ethercatconfig.c
+ * Headerfile for ec_config.c
  */
 
-#ifndef _ethercatconfig_
-#define _ethercatconfig_
+#ifndef _ec_config_
+#define _ec_config_
 
 #ifdef __cplusplus
 extern "C"

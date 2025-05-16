@@ -39,7 +39,7 @@
 #include <string.h>
 
 #include <winsock2.h>
-#include "ethercattype.h"
+#include "soem/soem.h"
 #include "nicdrv.h"
 #include "osal_win32.h"
 

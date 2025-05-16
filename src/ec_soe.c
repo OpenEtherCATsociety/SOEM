@@ -9,13 +9,10 @@
  * Servo over EtherCAT (SoE) Module.
  */
 
+#include "soem/soem.h"
 #include <string.h>
 #include "osal.h"
 #include "oshw.h"
-#include "ethercattype.h"
-#include "ethercatbase.h"
-#include "ethercatmain.h"
-#include "ethercatsoe.h"
 
 #define EC_SOE_MAX_DRIVES 8
 

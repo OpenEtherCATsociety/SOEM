@@ -12,16 +12,11 @@
  * the slaves can be auto configured with this module.
  */
 
+#include "soem/soem.h"
 #include <stdio.h>
 #include <string.h>
 #include "osal.h"
 #include "oshw.h"
-#include "ethercattype.h"
-#include "ethercatbase.h"
-#include "ethercatmain.h"
-#include "ethercatcoe.h"
-#include "ethercatsoe.h"
-#include "ethercatconfig.h"
 
 
 typedef struct

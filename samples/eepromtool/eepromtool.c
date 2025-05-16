@@ -18,7 +18,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "ethercat.h"
+#include "soem/soem.h"
 
 #define MAXBUF 524288
 #define STDBUF 2048

@@ -25,9 +25,6 @@ extern "C" {
 #define EC_SOE_VALUE_B     0x40
 #define EC_SOE_DEFAULT_B   0x80
 
-#define EC_SOE_MAXNAME     60
-#define EC_SOE_MAXMAPPING  64
-
 #define EC_IDN_MDTCONFIG   24
 #define EC_IDN_ATCONFIG    16
 

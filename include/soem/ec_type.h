@@ -24,11 +24,16 @@ extern "C" {
 #endif
 
 #include "osal.h"
+#include "soem/ec_options.h"
+
+/* Endianness */
 
 /** Define little endian target by default if no endian is set */
 #if !defined(EC_LITTLE_ENDIAN) && !defined(EC_BIG_ENDIAN)
 #define EC_LITTLE_ENDIAN
 #endif
+
+/* Error codes */
 
 /** return value no frame returned */
 #define EC_NOFRAME            -1
@@ -40,41 +45,18 @@ extern "C" {
 #define EC_SLAVECOUNTEXCEEDED -4
 /** return value request timeout */
 #define EC_TIMEOUT            -5
+
+/* Constants */
+
 /** maximum EtherCAT frame length in bytes */
 #define EC_MAXECATFRAME       1518
+/** size of DC datagram used in first LRW frame */
+#define EC_FIRSTDCDATAGRAM    20
+/** datagram type EtherCAT */
+#define EC_ECATTYPE           0x1000
 /** maximum EtherCAT LRW frame length in bytes */
 /* MTU - Ethernet header - length - datagram header - WCK - FCS */
 #define EC_MAXLRWDATA         (EC_MAXECATFRAME - 14 - 2 - 10 - 2 - 4)
-/** size of DC datagram used in first LRW frame */
-#define EC_FIRSTDCDATAGRAM    20
-/** standard frame buffer size in bytes */
-#define EC_BUFSIZE            EC_MAXECATFRAME
-/** datagram type EtherCAT */
-#define EC_ECATTYPE           0x1000
-/** number of frame buffers per channel (tx, rx1 rx2) */
-#define EC_MAXBUF             16
-/** timeout value in us for tx frame to return to rx */
-#define EC_TIMEOUTRET         2000
-/** timeout value in us for safe data transfer, max. triple retry */
-#define EC_TIMEOUTRET3        (EC_TIMEOUTRET * 3)
-/** timeout value in us for return "safe" variant (f.e. wireless) */
-#define EC_TIMEOUTSAFE        20000
-/** timeout value in us for EEPROM access */
-#define EC_TIMEOUTEEP         20000
-/** timeout value in us for tx mailbox cycle */
-#define EC_TIMEOUTTXM         20000
-/** timeout value in us for rx mailbox cycle */
-#define EC_TIMEOUTRXM         700000
-/** timeout value in us for check statechange */
-#define EC_TIMEOUTSTATE       2000000
-/** size of EEPROM bitmap cache */
-#define EC_MAXEEPBITMAP       128
-/** size of EEPROM cache buffer */
-#define EC_MAXEEPBUF          EC_MAXEEPBITMAP << 5
-/** default number of retries if wkc <= 0 */
-#define EC_DEFAULTRETRIES     3
-/** default group size in 2^x */
-#define EC_LOGGROUPOFFSET     16
 
 /** definition for frame buffers */
 typedef uint8 ec_bufT[EC_BUFSIZE];

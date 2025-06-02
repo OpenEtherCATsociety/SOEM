@@ -16,28 +16,7 @@
 extern "C" {
 #endif
 
-/** max. entries in EtherCAT error list */
-#define EC_MAXELIST           64
-/** max. length of readable name in slavelist and Object Description List */
-#define EC_MAXNAME            40
-/** max. number of slaves in array */
-#define EC_MAXSLAVE           200
-/** max. number of groups */
-#define EC_MAXGROUP           2
-/** max. number of IO segments per group */
-#define EC_MAXIOSEGMENTS      64
-/** max. mailbox size */
-#define EC_MAXMBX             1486
-/** max. eeprom PDO entries */
-#define EC_MAXEEPDO           0x200
-/** max. SM used */
-#define EC_MAXSM              8
-/** max. FMMU used */
-#define EC_MAXFMMU            4
-/** max. Adapter */
-#define EC_MAXLEN_ADAPTERNAME 128
-/** define maximum number of concurrent threads in mapping */
-#define EC_MAX_MAPT           1
+#include "soem/ec_options.h"
 
 typedef struct ec_adapter ec_adaptert;
 struct ec_adapter
@@ -86,7 +65,6 @@ PACKED_END
 /** mailbox buffer array */
 typedef uint8 ec_mbxbuft[EC_MAXMBX + 1];
 
-#define EC_MBXPOOLSIZE 32
 #define EC_MBXINENABLE (uint8 *)1
 
 typedef struct

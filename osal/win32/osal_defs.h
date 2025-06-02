@@ -14,8 +14,6 @@ extern "C" {
 #define WIN32_LEAN_AND_MEAN // Exclude some conflicting definitions in windows header
 #include <windows.h>
 // define if debug printf is needed
-// #define EC_DEBUG
-
 #ifdef EC_DEBUG
 #define EC_PRINT printf
 #else

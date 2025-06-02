@@ -16,8 +16,6 @@ extern "C" {
 #include <ee.h>
 
 // define if debug print is needed
-#define EC_DEBUG
-
 #ifdef EC_DEBUG
 #define EC_PRINT OSEE_PRINT
 #else

@@ -16,12 +16,6 @@
 extern "C" {
 #endif
 
-/** max entries in Object Description list */
-#define EC_MAXODLIST 1024
-
-/** max entries in Object Entry list */
-#define EC_MAXOELIST 256
-
 /* Storage for object description list */
 typedef struct
 {

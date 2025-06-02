@@ -11,6 +11,7 @@
 #ifndef _SOEM_H
 #define _SOEM_H
 
+#include "soem/ec_options.h"
 #include "soem/ec_type.h"
 #include "nicdrv.h"
 #include "soem/ec_base.h"

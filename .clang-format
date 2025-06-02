@@ -1,0 +1,26 @@
+---
+Language: Cpp
+AllowShortIfStatementsOnASingleLine: WithoutElse
+AlignConsecutiveMacros: AcrossEmptyLinesAndComments
+SortIncludes: false
+IndentWidth: 3
+UseTab: Never
+PointerAlignment: Right
+ColumnLimit: 0
+BreakBeforeBraces: Custom
+BraceWrapping:
+  AfterCaseLabel: true
+  AfterClass: true
+  AfterControlStatement: true
+  AfterEnum: true
+  AfterFunction: true
+  AfterNamespace: true
+  AfterStruct: true
+  AfterUnion: true
+  BeforeCatch: true
+  BeforeElse: true
+  IndentBraces: false
+  SplitEmptyFunction: true
+  SplitEmptyRecord: true
+  SplitEmptyNamespace: false
+  AfterExternBlock: false

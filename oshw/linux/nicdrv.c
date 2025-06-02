@@ -93,7 +93,6 @@ int ecx_setupnic(ecx_portt *port, const char *ifname, int secondary)
 {
    int i;
    int r, rval, ifindex;
-   //  struct timeval timeout;
    struct ifreq ifr;
    struct sockaddr_ll sll;
    int *psock;
@@ -150,12 +149,6 @@ int ecx_setupnic(ecx_portt *port, const char *ifname, int secondary)
       return 0;
 
    r = 0;
-   /*
-      timeout.tv_sec =  0;
-      timeout.tv_usec = 1;
-      r |= setsockopt(*psock, SOL_SOCKET, SO_RCVTIMEO, &timeout, sizeof(timeout));
-      r |= setsockopt(*psock, SOL_SOCKET, SO_SNDTIMEO, &timeout, sizeof(timeout));
-   */
    i = 1;
    r |= setsockopt(*psock, SOL_SOCKET, SO_DONTROUTE, &i, sizeof(i));
    /* connect socket to NIC by name */
@@ -355,7 +348,7 @@ static int ecx_recvpkt(ecx_portt *port, int stacknumber)
       stack = &(port->redport->stack);
    }
    lp = sizeof(port->tempinbuf);
-   bytesrx = recv(*stack->sock, (*stack->tempbuf), lp, 0);
+   bytesrx = recv(*stack->sock, (*stack->tempbuf), lp, MSG_DONTWAIT);
    port->tempinbufs = bytesrx;
 
    return (bytesrx > 0);

@@ -16,29 +16,24 @@ target_include_directories(soem PUBLIC
   $<INSTALL_INTERFACE:include/soem>
 )
 
-target_compile_options(soem PRIVATE
-  -Wall
-  -Wextra
-  -Werror
-)
-
-target_compile_options(slaveinfo PRIVATE
-  -Wall
-  -Wextra
-  -Werror
-)
-
-target_compile_options(simple_test PRIVATE
-  -Wall
-  -Wextra
-  -Werror
-)
-
-target_compile_options(eepromtool PRIVATE
-  -Wall
-  -Wextra
-  -Werror
-)
+foreach(target IN ITEMS
+    soem
+    coetest
+    eepromtool
+    eni_test
+    eoe_test
+    firm_update
+    red_test
+    simple_ng
+    simple_test
+    slaveinfo)
+  if (TARGET ${target})
+    target_compile_options(${target} PRIVATE
+      -Wall
+      -Wextra
+    )
+  endif()
+endforeach()
 
 target_link_libraries(soem PUBLIC pthread rt)
 

@@ -360,7 +360,7 @@ void eepromtool(char *ifname, int slave, int mode, char *fname)
    /* initialise SOEM, bind socket to ifname */
    if (ecx_init(&ctx, ifname))
    {
-      printf("ec_init on %s succeeded.\n", ifname);
+      printf("ecx_init on %s succeeded.\n", ifname);
 
       w = 0x0000;
       wkc = ecx_BRD(&ctx.port[0], 0x0000, ECT_REG_TYPE, sizeof(w), &w, EC_TIMEOUTSAFE); /* detect number of slaves */

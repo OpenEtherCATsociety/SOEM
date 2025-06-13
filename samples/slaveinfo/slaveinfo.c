@@ -646,13 +646,11 @@ void slaveinfo(char *ifname)
    /* initialise SOEM, bind socket to ifname */
    if (ecx_init(&ctx, ifname))
    {
-      printf("ec_init on %s succeeded.\n", ifname);
+      printf("ecx_init on %s succeeded.\n", ifname);
 
       /* find and auto-config slaves */
       if (ecx_config_init(&ctx, FALSE) > 0)
       {
-         printf("%d slaves found and configured.\n",ec_slavecount);
-
          if (forceByteAlignment)
          {
             ecx_config_map_group_aligned(&ctx, &IOmap, 0);
@@ -779,11 +777,11 @@ int main(int argc, char *argv[])
    {
       printf("Usage: slaveinfo ifname [options]\nifname = eth0 for example\nOptions :\n -sdo : print SDO info\n -map : print mapping\n");
 
-      printf("Available adapters\n");
+      printf("\nAvailable adapters:\n");
       head = adapter = ec_find_adapters();
       while (adapter != NULL)
       {
-         printf("Description : %s, Device to use for wpcap: %s\n", adapter->desc, adapter->name);
+         printf("    - %s  (%s)\n", adapter->name, adapter->desc);
          adapter = adapter->next;
       }
       ec_free_adapters(head);

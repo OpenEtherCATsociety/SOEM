@@ -26,13 +26,26 @@ target_include_directories(soem PUBLIC
   $<INSTALL_INTERFACE:include/soem>
 )
 
-target_compile_options(soem PRIVATE
-  -Wall
-  -Wextra
-  -Werror
-  -Wno-unused-parameter
-  -Wno-format
-)
+foreach(target IN ITEMS
+    soem
+    coetest
+    eepromtool
+    eni_test
+    eoe_test
+    firm_update
+    red_test
+    simple_ng
+    simple_test
+    slaveinfo)
+  if (TARGET ${target})
+    target_compile_options(${target} PRIVATE
+      -Wall
+      -Wextra
+      -Wno-unused-parameter
+      -Wno-format
+    )
+  endif()
+endforeach()
 
 install(FILES
   osal/rtk/osal_defs.h

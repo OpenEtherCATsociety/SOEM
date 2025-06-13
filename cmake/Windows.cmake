@@ -17,18 +17,32 @@ target_include_directories(soem PUBLIC
   $<INSTALL_INTERFACE:include/soem>
 )
 
-target_compile_options(soem PRIVATE
-  $<$<C_COMPILER_ID:MSVC>:
-    /D _CRT_SECURE_NO_WARNINGS
-    /WX
-  >
-  $<$<C_COMPILER_ID:GNU>:
-    -Wall
-    -Wextra
-    -Werror
-    -Wno-unused-parameter
-  >
-  )
+foreach(target IN ITEMS
+    soem
+    coetest
+    eepromtool
+    eni_test
+    eoe_test
+    firm_update
+    red_test
+    simple_ng
+    simple_test
+    slaveinfo)
+  if (TARGET ${target})
+    target_compile_options(${target} PRIVATE
+      $<$<C_COMPILER_ID:MSVC>:
+      /D _CRT_SECURE_NO_WARNINGS
+      /W3
+      >
+      $<$<C_COMPILER_ID:GNU>:
+      -Wall
+      -Wextra
+      -Wno-unused-parameter
+      >
+    )
+  endif()
+endforeach()
+
 
 if(CMAKE_SIZEOF_VOID_P EQUAL 8)
   set(WPCAP_LIB_PATH ${SOEM_SOURCE_DIR}/oshw/win32/wpcap/Lib/x64)

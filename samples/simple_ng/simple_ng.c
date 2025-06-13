@@ -36,6 +36,7 @@ typedef struct
    ec_PDOdesct PDOdesc[EC_MAX_MAPT];
    ec_eepromSMt eepSM;
    ec_eepromFMMUt eepFMMU;
+   ec_mbxpoolt mbxpool;
 } Fieldbus;
 
 static void
@@ -71,6 +72,7 @@ fieldbus_initialize(Fieldbus *fieldbus, char *iface)
    context->PDOdesc = fieldbus->PDOdesc;
    context->eepSM = &fieldbus->eepSM;
    context->eepFMMU = &fieldbus->eepFMMU;
+   context->mbxpool = &fieldbus->mbxpool;
    context->FOEhook = NULL;
    context->EOEhook = NULL;
    context->manualstatechange = 0;

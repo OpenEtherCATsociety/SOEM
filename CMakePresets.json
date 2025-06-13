@@ -7,6 +7,7 @@
     "binaryDir": "build/${presetName}",
     "cacheVariables": {
       "CMAKE_EXPORT_COMPILE_COMMANDS": true,
+      "CMAKE_COMPILE_WARNING_AS_ERROR": true,
       "CMAKE_FIND_NO_INSTALL_PREFIX": true
     }
   }, {

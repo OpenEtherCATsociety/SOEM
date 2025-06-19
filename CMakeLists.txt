@@ -147,6 +147,16 @@ install(FILES
   DESTINATION include/soem
 )
 
+install(FILES
+  scripts/eniconv.py
+  DESTINATION scripts
+)
+
+install(FILES
+  cmake/AddENI.cmake
+  DESTINATION cmake
+)
+
 if(SOEM_BUILD_UTILS)
   add_subdirectory(samples/eepromtool)
   add_subdirectory(samples/firm_update)
@@ -158,6 +168,11 @@ if(SOEM_BUILD_UTILS)
     add_subdirectory(samples/coetest)
     add_subdirectory(samples/eoe_test)
     add_subdirectory(samples/red_test)
+  endif()
+
+  find_package (Python3 QUIET)
+  if (Python3_FOUND)
+    add_subdirectory(samples/eni_test)
   endif()
 endif()
 

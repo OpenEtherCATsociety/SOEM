@@ -1675,6 +1675,8 @@ int ecx_mbxENIinitcmds(ecx_contextt *context, uint16 slave, uint16_t transition)
          {
             int wkc;
 
+            EC_PRINT("Apply ENI config for slave %d\n", slave);
+
             if (context->slavelist[slave].mbx_proto & ECT_MBXPROT_COE)
             {
                ec_enicoecmdt *cmd = eni_slave->CoECmds;

@@ -17,6 +17,18 @@ target_include_directories(soem PUBLIC
   $<INSTALL_INTERFACE:include/soem>
 )
 
+target_compile_options(soem PUBLIC
+  $<$<C_COMPILER_ID:GNU>:-std=c11>
+)
+
+target_compile_definitions(soem PUBLIC
+  $<$<C_COMPILER_ID:GNU>:_UCRT>
+)
+
+target_link_libraries(soem PUBLIC
+  $<$<C_COMPILER_ID:GNU>:ucrt>
+)
+
 foreach(target IN ITEMS
     soem
     coetest

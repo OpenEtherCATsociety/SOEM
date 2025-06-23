@@ -92,7 +92,7 @@ fieldbus_roundtrip(Fieldbus *fieldbus)
    wkc = ecx_receive_processdata(context, EC_TIMEOUTRET);
    end = osal_current_time();
    osal_time_diff(&start, &end, &diff);
-   fieldbus->roundtrip_time = diff.sec * 1000000 + diff.usec;
+   fieldbus->roundtrip_time = (int)(diff.tv_sec * 1000000 + diff.tv_nsec / 1000);
 
    return wkc;
 }

@@ -11,6 +11,8 @@
 extern "C" {
 #endif
 
+#include <sys/time.h>
+
 // define if debug printf is needed
 #ifdef EC_DEBUG
 #define EC_PRINT printf
@@ -26,6 +28,8 @@ extern "C" {
 #define PACKED __attribute__((__packed__))
 #define PACKED_END
 #endif
+
+#define ec_timet            struct timespec
 
 #define OSAL_THREAD_HANDLE  task_t *
 #define OSAL_THREAD_FUNC    void

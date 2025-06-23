@@ -13,6 +13,7 @@ extern "C" {
 
 #define WIN32_LEAN_AND_MEAN // Exclude some conflicting definitions in windows header
 #include <windows.h>
+#include <time.h>
 // define if debug printf is needed
 #ifdef EC_DEBUG
 #define EC_PRINT printf
@@ -32,8 +33,9 @@ extern "C" {
 #define PACKED_BEGIN __pragma(pack(push, 1))
 #define PACKED_END   __pragma(pack(pop))
 #endif
-
 #endif
+
+#define ec_timet            struct timespec
 
 #define OSAL_THREAD_HANDLE  HANDLE
 #define OSAL_THREAD_FUNC    void

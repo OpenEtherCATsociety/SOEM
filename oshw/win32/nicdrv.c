@@ -38,7 +38,6 @@
 #include <winsock2.h>
 #include "soem/soem.h"
 #include "nicdrv.h"
-#include "osal_win32.h"
 
 /** Redundancy modes */
 enum

@@ -309,7 +309,7 @@ char *ec_mbxerror2string(uint16 errorcode)
 char *ecx_err2string(const ec_errort Ec)
 {
    char timestr[20];
-   sprintf(timestr, "Time:%12.3f", Ec.Time.sec + (Ec.Time.usec / 1000000.0));
+   sprintf(timestr, "Time:%12.3f", Ec.Time.tv_sec + (Ec.Time.tv_nsec / 1000000000.0));
    switch (Ec.Etype)
    {
    case EC_ERR_TYPE_SDO_ERROR:

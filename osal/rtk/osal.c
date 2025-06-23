@@ -6,93 +6,56 @@
 
 #include <osal.h>
 #include <kern/kern.h>
-#include <time.h>
-#include <sys/time.h>
-#include <config.h>
 
-#define USECS_PER_SEC  1000000
-#define USECS_PER_TICK (USECS_PER_SEC / CFG_TICKS_PER_SECOND)
-
-int gettimeofday(struct timeval *tp, void *tzp)
+void osal_get_monotonic_time(ec_timet *tv)
 {
    tick_t tick = tick_get();
-   tick_t ticks_left;
+   uint64_t usec = (uint64_t)(tick_to_ms(tick)) * 1000;
 
-   ASSERT(tp != NULL);
-
-   tp->tv_sec = tick / CFG_TICKS_PER_SECOND;
-
-   ticks_left = tick % CFG_TICKS_PER_SECOND;
-   tp->tv_usec = ticks_left * USECS_PER_TICK;
-   ASSERT(tp->tv_usec < USECS_PER_SEC);
-
-   return 0;
-}
-
-int osal_usleep(uint32 usec)
-{
-   tick_t ticks = (usec / USECS_PER_TICK) + 1;
-   task_delay(ticks);
-   return 0;
-}
-
-int osal_gettimeofday(struct timeval *tv, struct timezone *tz)
-{
-   return gettimeofday(tv, tz);
+   osal_timespec_from_usec(usec, tv);
 }
 
 ec_timet osal_current_time(void)
 {
-   struct timeval current_time;
-   ec_timet return_value;
+   struct timeval tv;
+   struct timespec ts;
 
-   gettimeofday(&current_time, 0);
-   return_value.sec = current_time.tv_sec;
-   return_value.usec = current_time.tv_usec;
-   return return_value;
+   gettimeofday(&tv, NULL);
+   TIMEVAL_TO_TIMESPEC(&tv, &ts);
+   return ts;
 }
 
 void osal_time_diff(ec_timet *start, ec_timet *end, ec_timet *diff)
 {
-   if (end->usec < start->usec)
-   {
-      diff->sec = end->sec - start->sec - 1;
-      diff->usec = end->usec + 1000000 - start->usec;
-   }
-   else
-   {
-      diff->sec = end->sec - start->sec;
-      diff->usec = end->usec - start->usec;
-   }
+   osal_timespecsub(end, start, diff);
 }
 
 void osal_timer_start(osal_timert *self, uint32 timeout_usec)
 {
-   struct timeval start_time;
-   struct timeval timeout;
-   struct timeval stop_time;
+   struct timespec start_time;
+   struct timespec timeout;
 
-   gettimeofday(&start_time, 0);
-   timeout.tv_sec = timeout_usec / USECS_PER_SEC;
-   timeout.tv_usec = timeout_usec % USECS_PER_SEC;
-   timeradd(&start_time, &timeout, &stop_time);
-
-   self->stop_time.sec = stop_time.tv_sec;
-   self->stop_time.usec = stop_time.tv_usec;
+   osal_get_monotonic_time(&start_time);
+   osal_timespec_from_usec(timeout_usec, &timeout);
+   osal_timespecadd(&start_time, &timeout, &self->stop_time);
 }
 
 boolean osal_timer_is_expired(osal_timert *self)
 {
-   struct timeval current_time;
-   struct timeval stop_time;
+   struct timespec current_time;
    int is_not_yet_expired;
 
-   gettimeofday(&current_time, 0);
-   stop_time.tv_sec = self->stop_time.sec;
-   stop_time.tv_usec = self->stop_time.usec;
-   is_not_yet_expired = timercmp(&current_time, &stop_time, <);
+   osal_get_monotonic_time(&current_time);
+   is_not_yet_expired = osal_timespeccmp(&current_time, &self->stop_time, <);
 
-   return is_not_yet_expired == false;
+   return is_not_yet_expired == FALSE;
+}
+
+int osal_usleep(uint32 usec)
+{
+   tick_t ticks = tick_from_ms(usec / 1000) + 1;
+   task_delay(ticks);
+   return 0;
 }
 
 void *osal_malloc(size_t size)

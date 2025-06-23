@@ -403,7 +403,7 @@ void eepromtool(char *ifname, int slave, int mode, char *fname)
                if (mode == MODE_READINTEL) output_intelhex(fname, esize);
                if (mode == MODE_READBIN) output_bin(fname, esize);
 
-               printf("\nTotal EEPROM read time :%ldms\n", (tdif.usec + (tdif.sec * 1000000L)) / 1000);
+               printf("\nTotal EEPROM read time :%dms\n", (int)(tdif.tv_sec * 1000 + tdif.tv_nsec / 1000000));
             }
             if ((mode == MODE_WRITEBIN) || (mode == MODE_WRITEINTEL))
             {
@@ -427,7 +427,7 @@ void eepromtool(char *ifname, int slave, int mode, char *fname)
                   tend = osal_current_time();
                   osal_time_diff(&tstart, &tend, &tdif);
 
-                  printf("\nTotal EEPROM write time :%ldms\n", (tdif.usec + (tdif.sec * 1000000L)) / 1000);
+                  printf("\nTotal EEPROM write time :%dms\n", (int)(tdif.tv_sec * 1000 + tdif.tv_nsec / 1000000));
                }
                else
                   printf("Error reading file, abort.\n");

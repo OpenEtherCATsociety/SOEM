@@ -34,16 +34,15 @@ typedef uint64_t uint64;
 typedef float float32;
 typedef double float64;
 
-typedef struct
-{
-   uint32 sec;  /*< Seconds elapsed since the Epoch (Jan 1, 1970) */
-   uint32 usec; /*< Microseconds elapsed since last second boundary */
-} ec_timet;
-
 typedef struct osal_timer
 {
    ec_timet stop_time;
 } osal_timert;
+
+/* Returns time from some unspecified moment in past,
+ * strictly increasing, used for time intervals measurement. */
+void osal_get_monotonic_time(ec_timet *tv);
+int osal_monotonic_sleep(ec_timet *ts);
 
 void osal_timer_start(osal_timert *self, uint32 timeout_us);
 boolean osal_timer_is_expired(osal_timert *self);
@@ -58,6 +57,50 @@ void *osal_mutex_create(void);
 void osal_mutex_destroy(void *mutex);
 void osal_mutex_lock(void *mutex);
 void osal_mutex_unlock(void *mutex);
+
+#ifndef osal_timespec_from_usec
+#define osal_timespec_from_usec(usec, result)      \
+   do                                              \
+   {                                               \
+      (result)->tv_sec = usec / 1000000;           \
+      (result)->tv_nsec = (usec % 1000000) * 1000; \
+   } while (0)
+#endif
+
+#ifndef osal_timespeccmp
+#define osal_timespeccmp(a, b, CMP)      \
+   (((a)->tv_sec == (b)->tv_sec)         \
+        ? ((a)->tv_nsec CMP(b)->tv_nsec) \
+        : ((a)->tv_sec CMP(b)->tv_sec))
+#endif
+
+#ifndef osal_timespecadd
+#define osal_timespecadd(a, b, result)                 \
+   do                                                  \
+   {                                                   \
+      (result)->tv_sec = (a)->tv_sec + (b)->tv_sec;    \
+      (result)->tv_nsec = (a)->tv_nsec + (b)->tv_nsec; \
+      if ((result)->tv_nsec >= 1000000000)             \
+      {                                                \
+         ++(result)->tv_sec;                           \
+         (result)->tv_nsec -= 1000000000;              \
+      }                                                \
+   } while (0)
+#endif
+
+#ifndef osal_timespecsub
+#define osal_timespecsub(a, b, result)                 \
+   do                                                  \
+   {                                                   \
+      (result)->tv_sec = (a)->tv_sec - (b)->tv_sec;    \
+      (result)->tv_nsec = (a)->tv_nsec - (b)->tv_nsec; \
+      if ((result)->tv_nsec < 0)                       \
+      {                                                \
+         --(result)->tv_sec;                           \
+         (result)->tv_nsec += 1000000000;              \
+      }                                                \
+   } while (0)
+#endif
 
 #ifdef __cplusplus
 }

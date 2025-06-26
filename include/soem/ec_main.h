@@ -12,40 +12,38 @@
 #ifndef _ec_main_
 #define _ec_main_
 
-
 #ifdef __cplusplus
-extern "C"
-{
+extern "C" {
 #endif
 
 /** max. entries in EtherCAT error list */
-#define EC_MAXELIST       64
+#define EC_MAXELIST           64
 /** max. length of readable name in slavelist and Object Description List */
-#define EC_MAXNAME        40
+#define EC_MAXNAME            40
 /** max. number of slaves in array */
-#define EC_MAXSLAVE       200
+#define EC_MAXSLAVE           200
 /** max. number of groups */
-#define EC_MAXGROUP       2
+#define EC_MAXGROUP           2
 /** max. number of IO segments per group */
-#define EC_MAXIOSEGMENTS  64
+#define EC_MAXIOSEGMENTS      64
 /** max. mailbox size */
-#define EC_MAXMBX         1486
+#define EC_MAXMBX             1486
 /** max. eeprom PDO entries */
-#define EC_MAXEEPDO       0x200
+#define EC_MAXEEPDO           0x200
 /** max. SM used */
-#define EC_MAXSM          8
+#define EC_MAXSM              8
 /** max. FMMU used */
-#define EC_MAXFMMU        4
+#define EC_MAXFMMU            4
 /** max. Adapter */
-#define EC_MAXLEN_ADAPTERNAME    128
+#define EC_MAXLEN_ADAPTERNAME 128
 /** define maximum number of concurrent threads in mapping */
 #define EC_MAX_MAPT           1
 
 typedef struct ec_adapter ec_adaptert;
 struct ec_adapter
 {
-   char   name[EC_MAXLEN_ADAPTERNAME];
-   char   desc[EC_MAXLEN_ADAPTERNAME];
+   char name[EC_MAXLEN_ADAPTERNAME];
+   char desc[EC_MAXLEN_ADAPTERNAME];
    ec_adaptert *next;
 };
 
@@ -53,65 +51,65 @@ struct ec_adapter
 PACKED_BEGIN
 typedef struct PACKED ec_fmmu
 {
-   uint32  LogStart;
-   uint16  LogLength;
-   uint8   LogStartbit;
-   uint8   LogEndbit;
-   uint16  PhysStart;
-   uint8   PhysStartBit;
-   uint8   FMMUtype;
-   uint8   FMMUactive;
-   uint8   unused1;
-   uint16  unused2;
-}  ec_fmmut;
+   uint32 LogStart;
+   uint16 LogLength;
+   uint8 LogStartbit;
+   uint8 LogEndbit;
+   uint16 PhysStart;
+   uint8 PhysStartBit;
+   uint8 FMMUtype;
+   uint8 FMMUactive;
+   uint8 unused1;
+   uint16 unused2;
+} ec_fmmut;
 PACKED_END
 
 /** record for sync manager */
 PACKED_BEGIN
 typedef struct PACKED ec_sm
 {
-   uint16  StartAddr;
-   uint16  SMlength;
-   uint32  SMflags;
+   uint16 StartAddr;
+   uint16 SMlength;
+   uint32 SMflags;
 } ec_smt;
 PACKED_END
 
 PACKED_BEGIN
 typedef struct PACKED ec_state_status
 {
-   uint16  State;
-   uint16  Unused;
-   uint16  ALstatuscode;
+   uint16 State;
+   uint16 Unused;
+   uint16 ALstatuscode;
 } ec_state_status;
 PACKED_END
 
 /** mailbox buffer array */
 typedef uint8 ec_mbxbuft[EC_MAXMBX + 1];
 
-#define EC_MBXPOOLSIZE  32
-#define EC_MBXINENABLE  (uint8 *)1
+#define EC_MBXPOOLSIZE 32
+#define EC_MBXINENABLE (uint8 *)1
 
 typedef struct
 {
-   int         listhead, listtail, listcount;
-   int         mbxemptylist[EC_MBXPOOLSIZE];
+   int listhead, listtail, listcount;
+   int mbxemptylist[EC_MBXPOOLSIZE];
    osal_mutext *mbxmutex;
-   ec_mbxbuft  mbx[EC_MBXPOOLSIZE];
+   ec_mbxbuft mbx[EC_MBXPOOLSIZE];
 } ec_mbxpoolt;
 
-#define EC_MBXQUEUESTATE_NONE       0
-#define EC_MBXQUEUESTATE_REQ        1
-#define EC_MBXQUEUESTATE_FAIL       2
-#define EC_MBXQUEUESTATE_DONE       3
+#define EC_MBXQUEUESTATE_NONE 0
+#define EC_MBXQUEUESTATE_REQ  1
+#define EC_MBXQUEUESTATE_FAIL 2
+#define EC_MBXQUEUESTATE_DONE 3
 
 typedef struct
 {
-   int         listhead, listtail, listcount;
-   ec_mbxbuft  *mbx[EC_MBXPOOLSIZE];
-   int         mbxstate[EC_MBXPOOLSIZE];
-   int         mbxremove[EC_MBXPOOLSIZE];
-   int         mbxticket[EC_MBXPOOLSIZE];
-   uint16      mbxslave[EC_MBXPOOLSIZE];
+   int listhead, listtail, listcount;
+   ec_mbxbuft *mbx[EC_MBXPOOLSIZE];
+   int mbxstate[EC_MBXPOOLSIZE];
+   int mbxremove[EC_MBXPOOLSIZE];
+   int mbxticket[EC_MBXPOOLSIZE];
+   uint16 mbxslave[EC_MBXPOOLSIZE];
    osal_mutext *mbxmutex;
 } ec_mbxqueuet;
 
@@ -133,280 +131,280 @@ typedef struct
 
 typedef struct ecx_context ecx_contextt;
 
-#define ECT_MBXH_NONE         0
-#define ECT_MBXH_CYCLIC       1
-#define ECT_MBXH_LOST         2
+#define ECT_MBXH_NONE   0
+#define ECT_MBXH_CYCLIC 1
+#define ECT_MBXH_LOST   2
 
 /** for list of ethercat slaves detected */
 typedef struct ec_slave
 {
    /** state of slave */
-   uint16           state;
+   uint16 state;
    /** AL status code */
-   uint16           ALstatuscode;
+   uint16 ALstatuscode;
    /** Configured address */
-   uint16           configadr;
+   uint16 configadr;
    /** Alias address */
-   uint16           aliasadr;
+   uint16 aliasadr;
    /** Manufacturer from EEprom */
-   uint32           eep_man;
+   uint32 eep_man;
    /** ID from EEprom */
-   uint32           eep_id;
+   uint32 eep_id;
    /** revision from EEprom */
-   uint32           eep_rev;
+   uint32 eep_rev;
    /** serial number from EEprom */
-   uint32           eep_ser;
+   uint32 eep_ser;
    /** Interface type */
-   uint16           Itype;
+   uint16 Itype;
    /** Device type */
-   uint16           Dtype;
+   uint16 Dtype;
    /** output bits */
-   uint16           Obits;
+   uint16 Obits;
    /** output bytes, if Obits < 8 then Obytes = 0 */
-   uint32           Obytes;
+   uint32 Obytes;
    /** output pointer in IOmap buffer */
-   uint8            *outputs;
+   uint8 *outputs;
    /** output offset in IOmap buffer */
-   uint32           Ooffset;
+   uint32 Ooffset;
    /** startbit in first output byte */
-   uint8            Ostartbit;
+   uint8 Ostartbit;
    /** input bits */
-   uint16           Ibits;
+   uint16 Ibits;
    /** input bytes, if Ibits < 8 then Ibytes = 0 */
-   uint32           Ibytes;
+   uint32 Ibytes;
    /** input pointer in IOmap buffer */
-   uint8            *inputs;
+   uint8 *inputs;
    /** input offset in IOmap buffer */
-   uint32           Ioffset;
+   uint32 Ioffset;
    /** startbit in first input byte */
-   uint8            Istartbit;
+   uint8 Istartbit;
    /** SM structure */
-   ec_smt           SM[EC_MAXSM];
+   ec_smt SM[EC_MAXSM];
    /** SM type 0=unused 1=MbxWr 2=MbxRd 3=Outputs 4=Inputs */
-   uint8            SMtype[EC_MAXSM];
+   uint8 SMtype[EC_MAXSM];
    /** FMMU structure */
-   ec_fmmut         FMMU[EC_MAXFMMU];
+   ec_fmmut FMMU[EC_MAXFMMU];
    /** FMMU0 function 0=unused 1=outputs 2=inputs 3=SM status*/
-   uint8            FMMU0func;
+   uint8 FMMU0func;
    /** FMMU1 function */
-   uint8            FMMU1func;
+   uint8 FMMU1func;
    /** FMMU2 function */
-   uint8            FMMU2func;
+   uint8 FMMU2func;
    /** FMMU3 function */
-   uint8            FMMU3func;
+   uint8 FMMU3func;
    /** length of write mailbox in bytes, if no mailbox then 0 */
-   uint16           mbx_l;
+   uint16 mbx_l;
    /** mailbox write offset */
-   uint16           mbx_wo;
+   uint16 mbx_wo;
    /** length of read mailbox in bytes */
-   uint16           mbx_rl;
+   uint16 mbx_rl;
    /** mailbox read offset */
-   uint16           mbx_ro;
+   uint16 mbx_ro;
    /** mailbox supported protocols */
-   uint16           mbx_proto;
+   uint16 mbx_proto;
    /** Counter value of mailbox link layer protocol 1..7 */
-   uint8            mbx_cnt;
+   uint8 mbx_cnt;
    /** has DC capability */
-   boolean          hasdc;
+   boolean hasdc;
    /** Physical type; Ebus, EtherNet combinations */
-   uint8            ptype;
+   uint8 ptype;
    /** topology: 1 to 3 links */
-   uint8            topology;
+   uint8 topology;
    /** active ports bitmap : ....3210 , set if respective port is active **/
-   uint8            activeports;
+   uint8 activeports;
    /** consumed ports bitmap : ....3210, used for internal delay measurement **/
-   uint8            consumedports;
+   uint8 consumedports;
    /** slave number for parent, 0=master */
-   uint16           parent;
+   uint16 parent;
    /** port number on parent this slave is connected to **/
-   uint8            parentport;
+   uint8 parentport;
    /** port number on this slave the parent is connected to **/
-   uint8            entryport;
+   uint8 entryport;
    /** DC receivetimes on port A */
-   int32            DCrtA;
+   int32 DCrtA;
    /** DC receivetimes on port B */
-   int32            DCrtB;
+   int32 DCrtB;
    /** DC receivetimes on port C */
-   int32            DCrtC;
+   int32 DCrtC;
    /** DC receivetimes on port D */
-   int32            DCrtD;
+   int32 DCrtD;
    /** propagation delay */
-   int32            pdelay;
+   int32 pdelay;
    /** next DC slave */
-   uint16           DCnext;
+   uint16 DCnext;
    /** previous DC slave */
-   uint16           DCprevious;
+   uint16 DCprevious;
    /** DC cycle time in ns */
-   int32            DCcycle;
+   int32 DCcycle;
    /** DC shift from clock modulus boundary */
-   int32            DCshift;
+   int32 DCshift;
    /** DC sync activation, 0=off, 1=on */
    uint8 DCactive;
    /** link to SII config */
-   uint16           SIIindex;
+   uint16 SIIindex;
    /** 1 = 8 bytes per read, 0 = 4 bytes per read */
-   uint8            eep_8byte;
+   uint8 eep_8byte;
    /** 0 = eeprom to master , 1 = eeprom to PDI */
-   uint8            eep_pdi;
+   uint8 eep_pdi;
    /** CoE details */
-   uint8            CoEdetails;
+   uint8 CoEdetails;
    /** FoE details */
-   uint8            FoEdetails;
+   uint8 FoEdetails;
    /** EoE details */
-   uint8            EoEdetails;
+   uint8 EoEdetails;
    /** SoE details */
-   uint8            SoEdetails;
+   uint8 SoEdetails;
    /** E-bus current */
-   int16            Ebuscurrent;
+   int16 Ebuscurrent;
    /** if >0 block use of LRW in processdata */
-   uint8            blockLRW;
+   uint8 blockLRW;
    /** group */
-   uint8            group;
+   uint8 group;
    /** first unused FMMU */
-   uint8            FMMUunused;
+   uint8 FMMUunused;
    /** Boolean for tracking whether the slave is (not) responding, not used/set by the SOEM library */
-   boolean          islost;
+   boolean islost;
    /** registered configuration function PO->SO */
    int (*PO2SOconfig)(ecx_contextt *context, uint16 slave);
    /** mailbox handler state, 0 = no handler, 1 = cyclic task mbx handler, 2 = slave lost */
-   int              mbxhandlerstate;
+   int mbxhandlerstate;
    /** mailbox handler robust mailbox protocol state */
-   int              mbxrmpstate;
+   int mbxrmpstate;
    /** mailbox handler RMP extended mbx in state */
-   uint16           mbxinstateex;
+   uint16 mbxinstateex;
    /** pointer to CoE mailbox in buffer */
-   uint8            *coembxin;
+   uint8 *coembxin;
    /** CoE mailbox in flag, true = mailbox full */
-   boolean          coembxinfull;
+   boolean coembxinfull;
    /** CoE mailbox in overrun counter */
-   int              coembxoverrun;
+   int coembxoverrun;
    /** pointer to SoE mailbox in buffer */
-   uint8            *soembxin;
+   uint8 *soembxin;
    /** SoE mailbox in flag, true = mailbox full */
-   boolean          soembxinfull;
+   boolean soembxinfull;
    /** SoE mailbox in overrun counter */
-   int              soembxoverrun;
+   int soembxoverrun;
    /** pointer to FoE mailbox in buffer */
-   uint8            *foembxin;
+   uint8 *foembxin;
    /** FoE mailbox in flag, true = mailbox full */
-   boolean          foembxinfull;
+   boolean foembxinfull;
    /** FoE mailbox in overrun counter */
-   int              foembxoverrun;
+   int foembxoverrun;
    /** pointer to EoE mailbox in buffer */
-   uint8            *eoembxin;
+   uint8 *eoembxin;
    /** EoE mailbox in flag, true = mailbox full */
-   boolean          eoembxinfull;
+   boolean eoembxinfull;
    /** EoE mailbox in overrun counter */
-   int              eoembxoverrun;
+   int eoembxoverrun;
    /** pointer to VoE mailbox in buffer */
-   uint8            *voembxin;
+   uint8 *voembxin;
    /** VoE mailbox in flag, true = mailbox full */
-   boolean          voembxinfull;
+   boolean voembxinfull;
    /** VoE mailbox in overrun counter */
-   int              voembxoverrun;
+   int voembxoverrun;
    /** pointer to AoE mailbox in buffer */
-   uint8            *aoembxin;
+   uint8 *aoembxin;
    /** AoE mailbox in flag, true = mailbox full */
-   boolean          aoembxinfull;
+   boolean aoembxinfull;
    /** AoE mailbox in overrun counter */
-   int              aoembxoverrun;
+   int aoembxoverrun;
    /** pointer to out mailbox status register buffer */
-   uint8            *mbxstatus;
+   uint8 *mbxstatus;
    /** readable name */
-   char             name[EC_MAXNAME + 1];
+   char name[EC_MAXNAME + 1];
 } ec_slavet;
 
 /** for list of ethercat slave groups */
 typedef struct ec_group
 {
    /** logical start address for this group */
-   uint32           logstartaddr;
+   uint32 logstartaddr;
    /** output bytes, if Obits < 8 then Obytes = 0 */
-   uint32           Obytes;
+   uint32 Obytes;
    /** output pointer in IOmap buffer */
-   uint8            *outputs;
+   uint8 *outputs;
    /** input bytes, if Ibits < 8 then Ibytes = 0 */
-   uint32           Ibytes;
+   uint32 Ibytes;
    /** input pointer in IOmap buffer */
-   uint8            *inputs;
+   uint8 *inputs;
    /** has DC capabillity */
-   boolean          hasdc;
+   boolean hasdc;
    /** next DC slave */
-   uint16           DCnext;
+   uint16 DCnext;
    /** E-bus current */
-   int16            Ebuscurrent;
+   int16 Ebuscurrent;
    /** if >0 block use of LRW in processdata */
-   uint8            blockLRW;
+   uint8 blockLRW;
    /** IO segments used */
-   uint16           nsegments;
+   uint16 nsegments;
    /** 1st input segment */
-   uint16           Isegment;
+   uint16 Isegment;
    /** Offset in input segment */
-   uint16           Ioffset;
+   uint16 Ioffset;
    /** Expected workcounter outputs */
-   uint16           outputsWKC;
+   uint16 outputsWKC;
    /** Expected workcounter inputs */
-   uint16           inputsWKC;
+   uint16 inputsWKC;
    /** check slave states */
-   boolean          docheckstate;
+   boolean docheckstate;
    /** IO segmentation list. Datagrams must not break SM in two. */
-   uint32           IOsegment[EC_MAXIOSEGMENTS];
+   uint32 IOsegment[EC_MAXIOSEGMENTS];
    /** pointer to out mailbox status register buffer */
-   uint8            *mbxstatus;
+   uint8 *mbxstatus;
    /** mailbox status register buffer length */
-   int32            mbxstatuslength;
+   int32 mbxstatuslength;
    /** mailbox status lookup table */
-   uint16           mbxstatuslookup[EC_MAXSLAVE];
+   uint16 mbxstatuslookup[EC_MAXSLAVE];
    /** mailbox last handled in mxbhandler */
-   uint16           lastmbxpos;
+   uint16 lastmbxpos;
    /** mailbox  transmit queue struct */
-   ec_mbxqueuet     mbxtxqueue;
+   ec_mbxqueuet mbxtxqueue;
 } ec_groupt;
 
 /** SII FMMU structure */
 typedef struct ec_eepromFMMU
 {
-   uint16  Startpos;
-   uint8   nFMMU;
-   uint8   FMMU0;
-   uint8   FMMU1;
-   uint8   FMMU2;
-   uint8   FMMU3;
+   uint16 Startpos;
+   uint8 nFMMU;
+   uint8 FMMU0;
+   uint8 FMMU1;
+   uint8 FMMU2;
+   uint8 FMMU3;
 } ec_eepromFMMUt;
 
 /** SII SM structure */
 typedef struct ec_eepromSM
 {
-   uint16  Startpos;
-   uint8   nSM;
-   uint16  PhStart;
-   uint16  Plength;
-   uint8   Creg;
-   uint8   Sreg;       /* don't care */
-   uint8   Activate;
-   uint8   PDIctrl;      /* don't care */
+   uint16 Startpos;
+   uint8 nSM;
+   uint16 PhStart;
+   uint16 Plength;
+   uint8 Creg;
+   uint8 Sreg; /* don't care */
+   uint8 Activate;
+   uint8 PDIctrl; /* don't care */
 } ec_eepromSMt;
 
 /** record to store rxPDO and txPDO table from eeprom */
 typedef struct ec_eepromPDO
 {
-   uint16  Startpos;
-   uint16  Length;
-   uint16  nPDO;
-   uint16  Index[EC_MAXEEPDO];
-   uint16  SyncM[EC_MAXEEPDO];
-   uint16  BitSize[EC_MAXEEPDO];
-   uint16  SMbitsize[EC_MAXSM];
+   uint16 Startpos;
+   uint16 Length;
+   uint16 nPDO;
+   uint16 Index[EC_MAXEEPDO];
+   uint16 SyncM[EC_MAXEEPDO];
+   uint16 BitSize[EC_MAXEEPDO];
+   uint16 SMbitsize[EC_MAXSM];
 } ec_eepromPDOt;
 
 /** standard ethercat mailbox header */
 PACKED_BEGIN
 typedef struct PACKED ec_mbxheader
 {
-   uint16  length;
-   uint16  address;
-   uint8   priority;
-   uint8   mbxtype;
+   uint16 length;
+   uint16 address;
+   uint8 priority;
+   uint8 mbxtype;
 } ec_mbxheadert;
 PACKED_END
 
@@ -414,29 +412,29 @@ PACKED_END
 PACKED_BEGIN
 typedef struct PACKED ec_alstatus
 {
-   uint16  alstatus;
-   uint16  unused;
-   uint16  alstatuscode;
+   uint16 alstatus;
+   uint16 unused;
+   uint16 alstatuscode;
 } ec_alstatust;
 PACKED_END
 
 /** stack structure to store segmented LRD/LWR/LRW constructs */
 typedef struct ec_idxstack
 {
-   uint8   pushed;
-   uint8   pulled;
-   uint8   idx[EC_MAXBUF];
-   void    *data[EC_MAXBUF];
-   uint16  length[EC_MAXBUF];
-   uint16  dcoffset[EC_MAXBUF];
-   uint8   type[EC_MAXBUF];
+   uint8 pushed;
+   uint8 pulled;
+   uint8 idx[EC_MAXBUF];
+   void *data[EC_MAXBUF];
+   uint16 length[EC_MAXBUF];
+   uint16 dcoffset[EC_MAXBUF];
+   uint8 type[EC_MAXBUF];
 } ec_idxstackT;
 
 /** ringbuf for error storage */
 typedef struct ec_ering
 {
-   int16     head;
-   int16     tail;
+   int16 head;
+   int16 tail;
    ec_errort Error[EC_MAXELIST + 1];
 } ec_eringt;
 
@@ -444,9 +442,9 @@ typedef struct ec_ering
 PACKED_BEGIN
 typedef struct PACKED ec_SMcommtype
 {
-   uint8   n;
-   uint8   nu1;
-   uint8   SMtype[EC_MAXSM];
+   uint8 n;
+   uint8 nu1;
+   uint8 SMtype[EC_MAXSM];
 } ec_SMcommtypet;
 PACKED_END
 
@@ -454,9 +452,9 @@ PACKED_END
 PACKED_BEGIN
 typedef struct PACKED ec_PDOassign
 {
-   uint8   n;
-   uint8   nu1;
-   uint16  index[256];
+   uint8 n;
+   uint8 nu1;
+   uint16 index[256];
 } ec_PDOassignt;
 PACKED_END
 
@@ -464,9 +462,9 @@ PACKED_END
 PACKED_BEGIN
 typedef struct PACKED ec_PDOdesc
 {
-   uint8   n;
-   uint8   nu1;
-   uint32  PDO[256];
+   uint8 n;
+   uint8 nu1;
+   uint32 PDO[256];
 } ec_PDOdesct;
 PACKED_END
 
@@ -474,77 +472,77 @@ PACKED_END
 struct ecx_context
 {
    /** port reference, may include red_port */
-   ecx_portt      *port;
+   ecx_portt *port;
    /** slavelist reference */
-   ec_slavet      *slavelist;
+   ec_slavet *slavelist;
    /** number of slaves found in configuration */
-   int            *slavecount;
+   int *slavecount;
    /** maximum number of slaves allowed in slavelist */
-   int            maxslave;
+   int maxslave;
    /** grouplist reference */
-   ec_groupt      *grouplist;
+   ec_groupt *grouplist;
    /** maximum number of groups allowed in grouplist */
-   int            maxgroup;
+   int maxgroup;
    /** internal, reference to eeprom cache buffer */
-   uint8          *esibuf;
+   uint8 *esibuf;
    /** internal, reference to eeprom cache map */
-   uint32         *esimap;
+   uint32 *esimap;
    /** internal, current slave for eeprom cache */
-   uint16         esislave;
+   uint16 esislave;
    /** internal, reference to error list */
-   ec_eringt      *elist;
+   ec_eringt *elist;
    /** internal, reference to processdata stack buffer info */
-   ec_idxstackT   *idxstack;
+   ec_idxstackT *idxstack;
    /** reference to ecaterror state */
-   boolean        *ecaterror;
+   boolean *ecaterror;
    /** reference to last DC time from slaves */
-   int64          *DCtime;
+   int64 *DCtime;
    /** internal, SM buffer */
    ec_SMcommtypet *SMcommtype;
    /** internal, PDO assign list */
-   ec_PDOassignt  *PDOassign;
+   ec_PDOassignt *PDOassign;
    /** internal, PDO description list */
-   ec_PDOdesct    *PDOdesc;
+   ec_PDOdesct *PDOdesc;
    /** internal, SM list from eeprom */
-   ec_eepromSMt   *eepSM;
+   ec_eepromSMt *eepSM;
    /** internal, FMMU list from eeprom */
    ec_eepromFMMUt *eepFMMU;
    /** internal, mailbox pool */
-   ec_mbxpoolt    *mbxpool;
+   ec_mbxpoolt *mbxpool;
    /** registered FoE hook */
-   int            (*FOEhook)(uint16 slave, int packetnumber, int datasize);
+   int (*FOEhook)(uint16 slave, int packetnumber, int datasize);
    /** registered EoE hook */
-   int            (*EOEhook)(ecx_contextt * context, uint16 slave, void * eoembx);
+   int (*EOEhook)(ecx_contextt *context, uint16 slave, void *eoembx);
    /** flag to control legacy automatic state change or manual state change */
-   int            manualstatechange;
+   int manualstatechange;
    /** opaque pointer to application userdata, never used by SOEM. */
-   void           *userdata;
+   void *userdata;
 };
 
-ec_adaptert * ec_find_adapters(void);
-void ec_free_adapters(ec_adaptert * adapter);
+ec_adaptert *ec_find_adapters(void);
+void ec_free_adapters(ec_adaptert *adapter);
 uint8 ec_nextmbxcnt(uint8 cnt);
 void ec_clearmbx(ec_mbxbuft *Mbx);
 void ecx_pusherror(ecx_contextt *context, const ec_errort *Ec);
 boolean ecx_poperror(ecx_contextt *context, ec_errort *Ec);
 boolean ecx_iserror(ecx_contextt *context);
 void ecx_packeterror(ecx_contextt *context, uint16 Slave, uint16 Index, uint8 SubIdx, uint16 ErrorCode);
-int ecx_init(ecx_contextt *context, const char * ifname);
+int ecx_init(ecx_contextt *context, const char *ifname);
 int ecx_init_redundant(ecx_contextt *context, ecx_redportt *redport, const char *ifname, char *if2name);
 void ecx_close(ecx_contextt *context);
 uint8 ecx_siigetbyte(ecx_contextt *context, uint16 slave, uint16 address);
 int16 ecx_siifind(ecx_contextt *context, uint16 slave, uint16 cat);
 void ecx_siistring(ecx_contextt *context, char *str, uint16 slave, uint16 Sn);
-uint16 ecx_siiFMMU(ecx_contextt *context, uint16 slave, ec_eepromFMMUt* FMMU);
-uint16 ecx_siiSM(ecx_contextt *context, uint16 slave, ec_eepromSMt* SM);
-uint16 ecx_siiSMnext(ecx_contextt *context, uint16 slave, ec_eepromSMt* SM, uint16 n);
-uint32 ecx_siiPDO(ecx_contextt *context, uint16 slave, ec_eepromPDOt* PDO, uint8 t);
+uint16 ecx_siiFMMU(ecx_contextt *context, uint16 slave, ec_eepromFMMUt *FMMU);
+uint16 ecx_siiSM(ecx_contextt *context, uint16 slave, ec_eepromSMt *SM);
+uint16 ecx_siiSMnext(ecx_contextt *context, uint16 slave, ec_eepromSMt *SM, uint16 n);
+uint32 ecx_siiPDO(ecx_contextt *context, uint16 slave, ec_eepromPDOt *PDO, uint8 t);
 int ecx_readstate(ecx_contextt *context);
 int ecx_writestate(ecx_contextt *context, uint16 slave);
 uint16 ecx_statecheck(ecx_contextt *context, uint16 slave, uint16 reqstate, int timeout);
 int ecx_mbxhandler(ecx_contextt *context, uint8 group, int limit);
 int ecx_mbxempty(ecx_contextt *context, uint16 slave, int timeout);
-int ecx_mbxsend(ecx_contextt *context, uint16 slave,ec_mbxbuft *mbx, int timeout);
+int ecx_mbxsend(ecx_contextt *context, uint16 slave, ec_mbxbuft *mbx, int timeout);
 int ecx_mbxreceive(ecx_contextt *context, uint16 slave, ec_mbxbuft **mbx, int timeout);
 void ecx_esidump(ecx_contextt *context, uint16 slave, uint8 *esibuf);
 uint32 ecx_readeeprom(ecx_contextt *context, uint16 slave, uint16 eeproma, int timeout);

@@ -21,15 +21,15 @@ PACKED_BEGIN
 typedef struct PACKED
 {
    ec_mbxheadert MbxHeader;
-   uint8         opCode         :3;
-   uint8         incomplete     :1;
-   uint8         error          :1;
-   uint8         driveNo        :3;
-   uint8         elementflags;
+   uint8 opCode : 3;
+   uint8 incomplete : 1;
+   uint8 error : 1;
+   uint8 driveNo : 3;
+   uint8 elementflags;
    union
    {
-      uint16     idn;
-      uint16     fragmentsleft;
+      uint16 idn;
+      uint16 fragmentsleft;
    };
 } ec_SoEt;
 PACKED_END
@@ -115,7 +115,7 @@ int ecx_SoEread(ecx_contextt *context, uint16 slave, uint8 driveNo, uint8 elemen
    {
       while (NotLast)
       {
-         if(MbxIn) ecx_dropmbx(context, MbxIn);
+         if (MbxIn) ecx_dropmbx(context, MbxIn);
          MbxIn = NULL;
          /* read slave response */
          wkc = ecx_mbxreceive(context, slave, &MbxIn, timeout);
@@ -129,7 +129,7 @@ int ecx_SoEread(ecx_contextt *context, uint16 slave, uint8 driveNo, uint8 elemen
                 (aSoEp->driveNo == driveNo) &&
                 (aSoEp->elementflags == elementflags))
             {
-               framedatasize = etohs(aSoEp->MbxHeader.length) - sizeof(ec_SoEt)  + sizeof(ec_mbxheadert);
+               framedatasize = etohs(aSoEp->MbxHeader.length) - sizeof(ec_SoEt) + sizeof(ec_mbxheadert);
                totalsize += framedatasize;
                /* Does parameter fit in parameter buffer ? */
                if (totalsize <= *psize)
@@ -179,8 +179,8 @@ int ecx_SoEread(ecx_contextt *context, uint16 slave, uint8 driveNo, uint8 elemen
          }
       }
    }
-   if(MbxIn) ecx_dropmbx(context, MbxIn);
-   if(MbxOut) ecx_dropmbx(context, MbxOut);
+   if (MbxIn) ecx_dropmbx(context, MbxIn);
+   if (MbxOut) ecx_dropmbx(context, MbxOut);
    return wkc;
 }
 
@@ -236,7 +236,7 @@ int ecx_SoEwrite(ecx_contextt *context, uint16 slave, uint8 driveNo, uint8 eleme
       SoEp->incomplete = 0;
       if (framedatasize > maxdata)
       {
-         framedatasize = maxdata;  /*  segmented transfer needed  */
+         framedatasize = maxdata; /*  segmented transfer needed  */
          NotLast = TRUE;
          SoEp->incomplete = 1;
          SoEp->fragmentsleft = (uint16)(psize / maxdata);
@@ -257,7 +257,7 @@ int ecx_SoEwrite(ecx_contextt *context, uint16 slave, uint8 driveNo, uint8 eleme
       {
          if (!NotLast || !ecx_mbxempty(context, slave, timeout))
          {
-            if(MbxIn) ecx_dropmbx(context, MbxIn);
+            if (MbxIn) ecx_dropmbx(context, MbxIn);
             MbxIn = NULL;
             /* read slave response */
             wkc = ecx_mbxreceive(context, slave, &MbxIn, timeout);
@@ -299,8 +299,8 @@ int ecx_SoEwrite(ecx_contextt *context, uint16 slave, uint8 driveNo, uint8 eleme
          }
       }
    }
-   if(MbxIn) ecx_dropmbx(context, MbxIn);
-   if(MbxOut) ecx_dropmbx(context, MbxOut);
+   if (MbxIn) ecx_dropmbx(context, MbxIn);
+   if (MbxOut) ecx_dropmbx(context, MbxOut);
    return wkc;
 }
 
@@ -319,16 +319,16 @@ int ecx_SoEwrite(ecx_contextt *context, uint16 slave, uint8 driveNo, uint8 eleme
 int ecx_readIDNmap(ecx_contextt *context, uint16 slave, uint32 *Osize, uint32 *Isize)
 {
    int retVal = 0;
-   int   wkc;
+   int wkc;
    int psize;
    uint8 driveNr;
    uint16 entries, itemcount;
-   ec_SoEmappingt     SoEmapping;
-   ec_SoEattributet   SoEattribute;
+   ec_SoEmappingt SoEmapping;
+   ec_SoEattributet SoEattribute;
 
    *Isize = 0;
    *Osize = 0;
-   for(driveNr = 0; driveNr < EC_SOE_MAX_DRIVES; driveNr++)
+   for (driveNr = 0; driveNr < EC_SOE_MAX_DRIVES; driveNr++)
    {
       psize = sizeof(SoEmapping);
       /* read output mapping via SoE */
@@ -337,7 +337,7 @@ int ecx_readIDNmap(ecx_contextt *context, uint16 slave, uint32 *Osize, uint32 *I
       {
          /* command word (uint16) is always mapped but not in list */
          *Osize += 16;
-         for (itemcount = 0 ; itemcount < entries ; itemcount++)
+         for (itemcount = 0; itemcount < entries; itemcount++)
          {
             psize = sizeof(SoEattribute);
             /* read attribute of each IDN in mapping list */
@@ -356,7 +356,7 @@ int ecx_readIDNmap(ecx_contextt *context, uint16 slave, uint32 *Osize, uint32 *I
       {
          /* status word (uint16) is always mapped but not in list */
          *Isize += 16;
-         for (itemcount = 0 ; itemcount < entries ; itemcount++)
+         for (itemcount = 0; itemcount < entries; itemcount++)
          {
             psize = sizeof(SoEattribute);
             /* read attribute of each IDN in mapping list */

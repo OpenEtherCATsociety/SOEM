@@ -19,11 +19,11 @@
 #include "osal.h"
 #include "oshw.h"
 
- /** EoE utility function to convert uint32 to eoe ip bytes.
+/** EoE utility function to convert uint32 to eoe ip bytes.
  * @param[in] ip       = ip in uint32
  * @param[out] byte_ip = eoe ip 4th octet, 3ed octet, 2nd octet, 1st octet
  */
-static void EOE_ip_uint32_to_byte(eoe_ip4_addr_t * ip, uint8_t * byte_ip)
+static void EOE_ip_uint32_to_byte(eoe_ip4_addr_t *ip, uint8_t *byte_ip)
 {
    byte_ip[3] = eoe_ip4_addr1(ip); /* 1st octet */
    byte_ip[2] = eoe_ip4_addr2(ip); /* 2nd octet */
@@ -32,24 +32,24 @@ static void EOE_ip_uint32_to_byte(eoe_ip4_addr_t * ip, uint8_t * byte_ip)
 }
 
 /** EoE utility function to convert eoe ip bytes to uint32.
-* @param[in] byte_ip = eoe ip 4th octet, 3ed octet, 2nd octet, 1st octet
-* @param[out] ip     = ip in uint32
-*/
-static void EOE_ip_byte_to_uint32(uint8_t * byte_ip, eoe_ip4_addr_t * ip)
+ * @param[in] byte_ip = eoe ip 4th octet, 3ed octet, 2nd octet, 1st octet
+ * @param[out] ip     = ip in uint32
+ */
+static void EOE_ip_byte_to_uint32(uint8_t *byte_ip, eoe_ip4_addr_t *ip)
 {
    EOE_IP4_ADDR_TO_U32(ip,
-      byte_ip[3],  /* 1st octet */
-      byte_ip[2],  /* 2nd octet */
-      byte_ip[1],  /* 3ed octet */
-      byte_ip[0]); /* 4th octet */
+                       byte_ip[3],  /* 1st octet */
+                       byte_ip[2],  /* 2nd octet */
+                       byte_ip[1],  /* 3ed octet */
+                       byte_ip[0]); /* 4th octet */
 }
 
 /** EoE fragment data handler hook. Should not block.
-*
-* @param[in]  context = context struct
-* @param[in]  hook    = Pointer to hook function.
-* @return 1
-*/
+ *
+ * @param[in]  context = context struct
+ * @param[in]  hook    = Pointer to hook function.
+ * @return 1
+ */
 int ecx_EOEdefinehook(ecx_contextt *context, void *hook)
 {
    context->EOEhook = hook;
@@ -57,15 +57,15 @@ int ecx_EOEdefinehook(ecx_contextt *context, void *hook)
 }
 
 /** EoE EOE set IP, blocking. Waits for response from the slave.
-*
-* @param[in]  context    = Context struct
-* @param[in]  slave      = Slave number
-* @param[in]  port       = Port number on slave if applicable
-* @param[in]  ipparam    = IP parameter data to be sent
-* @param[in]  timeout    = Timeout in us, standard is EC_TIMEOUTRXM
-* @return Workcounter from last slave response or returned result code 
-*/
-int ecx_EOEsetIp(ecx_contextt *context, uint16 slave, uint8 port, eoe_param_t * ipparam, int timeout)
+ *
+ * @param[in]  context    = Context struct
+ * @param[in]  slave      = Slave number
+ * @param[in]  port       = Port number on slave if applicable
+ * @param[in]  ipparam    = IP parameter data to be sent
+ * @param[in]  timeout    = Timeout in us, standard is EC_TIMEOUTRXM
+ * @return Workcounter from last slave response or returned result code
+ */
+int ecx_EOEsetIp(ecx_contextt *context, uint16 slave, uint8 port, eoe_param_t *ipparam, int timeout)
 {
    ec_EOEt *EOEp, *aEOEp;
    ec_mbxbuft *MbxIn, *MbxOut;
@@ -77,14 +77,14 @@ int ecx_EOEsetIp(ecx_contextt *context, uint16 slave, uint8 port, eoe_param_t * 
    MbxIn = NULL;
    MbxOut = NULL;
    /* Empty slave out mailbox if something is in. Timout set to 0 */
-   wkc = ecx_mbxreceive(context,  slave, &MbxIn, 0);
+   wkc = ecx_mbxreceive(context, slave, &MbxIn, 0);
    MbxOut = ecx_getmbx(context);
    ec_clearmbx(MbxOut);
    EOEp = (ec_EOEt *)MbxOut;
    EOEp->mbxheader.address = htoes(0x0000);
    EOEp->mbxheader.priority = 0x00;
    data_offset = EOE_PARAM_OFFSET;
-   
+
    /* get new mailbox count value, used as session handle */
    cnt = ec_nextmbxcnt(context->slavelist[slave].mbx_cnt);
    context->slavelist[slave].mbx_cnt = cnt;
@@ -92,10 +92,10 @@ int ecx_EOEsetIp(ecx_contextt *context, uint16 slave, uint8 port, eoe_param_t * 
    EOEp->mbxheader.mbxtype = ECT_MBXT_EOE + MBX_HDR_SET_CNT(cnt); /* EoE */
 
    EOEp->frameinfo1 = htoes(EOE_HDR_FRAME_TYPE_SET(EOE_INIT_REQ) |
-      EOE_HDR_FRAME_PORT_SET(port) |
-      EOE_HDR_LAST_FRAGMENT);
+                            EOE_HDR_FRAME_PORT_SET(port) |
+                            EOE_HDR_LAST_FRAGMENT);
    EOEp->frameinfo2 = 0;
-  
+
    if (ipparam->mac_set)
    {
       flags |= EOE_PARAM_MAC_INCLUDE;
@@ -143,13 +143,13 @@ int ecx_EOEsetIp(ecx_contextt *context, uint16 slave, uint8 port, eoe_param_t * 
 
    if (wkc > 0) /* succeeded to place mailbox in slave ? */
    {
-       if (MbxIn) ecx_dropmbx(context, MbxIn);
-       MbxIn = NULL;
+      if (MbxIn) ecx_dropmbx(context, MbxIn);
+      MbxIn = NULL;
       /* read slave response */
       wkc = ecx_mbxreceive(context, slave, &MbxIn, timeout);
       if (wkc > 0) /* succeeded to read slave response ? */
       {
-          aEOEp = (ec_EOEt*)MbxIn;
+         aEOEp = (ec_EOEt *)MbxIn;
          /* slave response should be EoE */
          if ((aEOEp->mbxheader.mbxtype & 0x0f) == ECT_MBXT_EOE)
          {
@@ -176,15 +176,15 @@ int ecx_EOEsetIp(ecx_contextt *context, uint16 slave, uint8 port, eoe_param_t * 
 }
 
 /** EoE EOE get IP, blocking. Waits for response from the slave.
-*
-* @param[in]  context    = Context struct
-* @param[in]  slave      = Slave number
-* @param[in]  port       = Port number on slave if applicable
-* @param[out] ipparam    = IP parameter data retrived from slave
-* @param[in]  timeout    = Timeout in us, standard is EC_TIMEOUTRXM
-* @return Workcounter from last slave response or returned result code
-*/
-int ecx_EOEgetIp(ecx_contextt *context, uint16 slave, uint8 port, eoe_param_t * ipparam, int timeout)
+ *
+ * @param[in]  context    = Context struct
+ * @param[in]  slave      = Slave number
+ * @param[in]  port       = Port number on slave if applicable
+ * @param[out] ipparam    = IP parameter data retrived from slave
+ * @param[in]  timeout    = Timeout in us, standard is EC_TIMEOUTRXM
+ * @return Workcounter from last slave response or returned result code
+ */
+int ecx_EOEgetIp(ecx_contextt *context, uint16 slave, uint8 port, eoe_param_t *ipparam, int timeout)
 {
    ec_EOEt *EOEp, *aEOEp;
    ec_mbxbuft *MbxIn, *MbxOut;
@@ -211,11 +211,11 @@ int ecx_EOEgetIp(ecx_contextt *context, uint16 slave, uint8 port, eoe_param_t * 
    EOEp->mbxheader.mbxtype = ECT_MBXT_EOE + MBX_HDR_SET_CNT(cnt); /* EoE */
 
    EOEp->frameinfo1 = htoes(EOE_HDR_FRAME_TYPE_SET(EOE_GET_IP_PARAM_REQ) |
-      EOE_HDR_FRAME_PORT_SET(port) |
-      EOE_HDR_LAST_FRAGMENT);
+                            EOE_HDR_FRAME_PORT_SET(port) |
+                            EOE_HDR_LAST_FRAGMENT);
    EOEp->frameinfo2 = 0;
 
-   EOEp->mbxheader.length = htoes(0x0004); 
+   EOEp->mbxheader.length = htoes(0x0004);
    EOEp->data[0] = flags;
 
    /* send EoE request to slave */
@@ -223,13 +223,13 @@ int ecx_EOEgetIp(ecx_contextt *context, uint16 slave, uint8 port, eoe_param_t * 
    MbxOut = NULL;
    if (wkc > 0) /* succeeded to place mailbox in slave ? */
    {
-       if (MbxIn) ecx_dropmbx(context, MbxIn);
-       MbxIn = NULL;
+      if (MbxIn) ecx_dropmbx(context, MbxIn);
+      MbxIn = NULL;
       /* read slave response */
       wkc = ecx_mbxreceive(context, slave, &MbxIn, timeout);
       if (wkc > 0) /* succeeded to read slave response ? */
       {
-          aEOEp = (ec_EOEt*)MbxIn;
+         aEOEp = (ec_EOEt *)MbxIn;
          /* slave response should be FoE */
          if ((aEOEp->mbxheader.mbxtype & 0x0f) == ECT_MBXT_EOE)
          {
@@ -244,37 +244,37 @@ int ecx_EOEgetIp(ecx_contextt *context, uint16 slave, uint8 port, eoe_param_t * 
                flags = aEOEp->data[0];
                if (flags & EOE_PARAM_MAC_INCLUDE)
                {
-                  memcpy(ipparam->mac.addr, 
-                     &aEOEp->data[data_offset], 
-                     EOE_ETHADDR_LENGTH);
+                  memcpy(ipparam->mac.addr,
+                         &aEOEp->data[data_offset],
+                         EOE_ETHADDR_LENGTH);
                   ipparam->mac_set = 1;
                   data_offset += EOE_ETHADDR_LENGTH;
                }
                if (flags & EOE_PARAM_IP_INCLUDE)
                {
                   EOE_ip_byte_to_uint32(&aEOEp->data[data_offset],
-                     &ipparam->ip);
+                                        &ipparam->ip);
                   ipparam->ip_set = 1;
                   data_offset += EOE_IP4_LENGTH;
                }
                if (flags & EOE_PARAM_SUBNET_IP_INCLUDE)
                {
                   EOE_ip_byte_to_uint32(&aEOEp->data[data_offset],
-                     &ipparam->subnet);
+                                        &ipparam->subnet);
                   ipparam->subnet_set = 1;
                   data_offset += EOE_IP4_LENGTH;
                }
                if (flags & EOE_PARAM_DEFAULT_GATEWAY_INCLUDE)
                {
                   EOE_ip_byte_to_uint32(&aEOEp->data[data_offset],
-                     &ipparam->default_gateway);
+                                        &ipparam->default_gateway);
                   ipparam->default_gateway_set = 1;
                   data_offset += EOE_IP4_LENGTH;
                }
                if (flags & EOE_PARAM_DNS_IP_INCLUDE)
                {
                   EOE_ip_byte_to_uint32(&aEOEp->data[data_offset],
-                     &ipparam->dns_ip);
+                                        &ipparam->dns_ip);
                   ipparam->dns_ip_set = 1;
                   data_offset += EOE_IP4_LENGTH;
                }
@@ -288,14 +288,14 @@ int ecx_EOEgetIp(ecx_contextt *context, uint16 slave, uint8 port, eoe_param_t * 
                   else
                   {
                      dns_len = EOE_DNS_NAME_LENGTH;
-                  }     
+                  }
                   /* Assume ZERO terminated string */
                   memcpy(ipparam->dns_name, &aEOEp->data[data_offset], dns_len);
                   ipparam->dns_name_set = 1;
                   data_offset += EOE_DNS_NAME_LENGTH;
                }
                /* Something os not correct, flag the error */
-               if(data_offset > eoedatasize)
+               if (data_offset > eoedatasize)
                {
                   wkc = -EC_ERR_TYPE_MBX_ERROR;
                }
@@ -315,34 +315,34 @@ int ecx_EOEgetIp(ecx_contextt *context, uint16 slave, uint8 port, eoe_param_t * 
    return wkc;
 }
 
-/** EoE ethernet buffer write, blocking. 
-*
-* If the buffer is larger than the mailbox size then the buffer is sent in 
-* several fragments. The function will split the buf data in fragments and
-* send them to the slave one by one.
-*
-* @param[in]  context    = context struct
-* @param[in]  slave      = Slave number
-* @param[in]  port       = Port number on slave if applicable
-* @param[in]  psize      = Size in bytes of parameter buffer.
-* @param[in]  p          = Pointer to parameter buffer
-* @param[in]  timeout    = Timeout in us, standard is EC_TIMEOUTRXM
-* @return Workcounter from last slave transmission
-*/
+/** EoE ethernet buffer write, blocking.
+ *
+ * If the buffer is larger than the mailbox size then the buffer is sent in
+ * several fragments. The function will split the buf data in fragments and
+ * send them to the slave one by one.
+ *
+ * @param[in]  context    = context struct
+ * @param[in]  slave      = Slave number
+ * @param[in]  port       = Port number on slave if applicable
+ * @param[in]  psize      = Size in bytes of parameter buffer.
+ * @param[in]  p          = Pointer to parameter buffer
+ * @param[in]  timeout    = Timeout in us, standard is EC_TIMEOUTRXM
+ * @return Workcounter from last slave transmission
+ */
 int ecx_EOEsend(ecx_contextt *context, uint16 slave, uint8 port, int psize, void *p, int timeout)
 {
    ec_EOEt *EOEp;
    ec_mbxbuft *MbxOut;
    uint16 frameinfo1, frameinfo2;
-   uint8 cnt, txfragmentno;  
-   boolean  NotLast;
+   uint8 cnt, txfragmentno;
+   boolean NotLast;
    int wkc, maxdata, txframesize, txframeoffset;
-   const uint8 * buf = p;
+   const uint8 *buf = p;
    static uint8_t txframeno = 0;
 
    MbxOut = NULL;
    /* data section=mailbox size - 6 mbx - 4 EoEh */
-   maxdata = context->slavelist[slave].mbx_l - 0x0A; 
+   maxdata = context->slavelist[slave].mbx_l - 0x0A;
    txframesize = psize;
    txfragmentno = 0;
    txframeoffset = 0;
@@ -352,7 +352,7 @@ int ecx_EOEsend(ecx_contextt *context, uint16 slave, uint8 port, int psize, void
    {
       MbxOut = ecx_getmbx(context);
       ec_clearmbx(MbxOut);
-      EOEp = (ec_EOEt*)MbxOut;
+      EOEp = (ec_EOEt *)MbxOut;
       EOEp->mbxheader.address = htoes(0x0000);
       EOEp->mbxheader.priority = 0x00;
 
@@ -389,7 +389,7 @@ int ecx_EOEsend(ecx_contextt *context, uint16 slave, uint8 port, int psize, void
       cnt = ec_nextmbxcnt(context->slavelist[slave].mbx_cnt);
       context->slavelist[slave].mbx_cnt = cnt;
 
-      EOEp->mbxheader.length = htoes((uint16)(4 + txframesize)); /* no timestamp */
+      EOEp->mbxheader.length = htoes((uint16)(4 + txframesize));     /* no timestamp */
       EOEp->mbxheader.mbxtype = ECT_MBXT_EOE + MBX_HDR_SET_CNT(cnt); /* EoE */
 
       EOEp->frameinfo1 = htoes(frameinfo1);
@@ -400,7 +400,7 @@ int ecx_EOEsend(ecx_contextt *context, uint16 slave, uint8 port, int psize, void
       /* send EoE request to slave */
       wkc = ecx_mbxsend(context, slave, MbxOut, timeout);
       MbxOut = NULL;
-      if ((NotLast == TRUE)  && (wkc > 0))
+      if ((NotLast == TRUE) && (wkc > 0))
       {
          txframeoffset += txframesize;
          txfragmentno++;
@@ -412,22 +412,21 @@ int ecx_EOEsend(ecx_contextt *context, uint16 slave, uint8 port, int psize, void
    return wkc;
 }
 
-
 /** EoE ethernet buffer read, blocking.
-*
-* If the buffer is larger than the mailbox size then the buffer is received 
-* by several fragments. The function will assamble the fragments into
-* a complete Ethernet buffer.
-*
-* @param[in]     context = context struct
-* @param[in]     slave   = Slave number
-* @param[in]     port    = Port number on slave if applicable
-* @param[in,out] psize   = Size in bytes of parameter buffer.
-* @param[in]     p       = Pointer to parameter buffer
-* @param[in]     timeout = Timeout in us, standard is EC_TIMEOUTRXM
-* @return Workcounter from last slave response or error code
-*/
-int ecx_EOErecv(ecx_contextt *context, uint16 slave, uint8 port, int * psize, void *p, int timeout)
+ *
+ * If the buffer is larger than the mailbox size then the buffer is received
+ * by several fragments. The function will assamble the fragments into
+ * a complete Ethernet buffer.
+ *
+ * @param[in]     context = context struct
+ * @param[in]     slave   = Slave number
+ * @param[in]     port    = Port number on slave if applicable
+ * @param[in,out] psize   = Size in bytes of parameter buffer.
+ * @param[in]     p       = Pointer to parameter buffer
+ * @param[in]     timeout = Timeout in us, standard is EC_TIMEOUTRXM
+ * @return Workcounter from last slave response or error code
+ */
+int ecx_EOErecv(ecx_contextt *context, uint16 slave, uint8 port, int *psize, void *p, int timeout)
 {
    ec_EOEt *aEOEp;
    ec_mbxbuft *MbxIn;
@@ -435,7 +434,7 @@ int ecx_EOErecv(ecx_contextt *context, uint16 slave, uint8 port, int * psize, vo
    uint8 rxfragmentno, rxframeno;
    boolean NotLast;
    int wkc, buffersize, rxframesize, rxframeoffset, eoedatasize;
-   uint8 * buf = p;
+   uint8 *buf = p;
 
    MbxIn = NULL;
    NotLast = TRUE;
@@ -443,13 +442,13 @@ int ecx_EOErecv(ecx_contextt *context, uint16 slave, uint8 port, int * psize, vo
    rxfragmentno = 0;
    rxframeno = 0xff;
    rxframeoffset = 0;
-   
+
    /* Hang for a while if nothing is in */
    wkc = ecx_mbxreceive(context, slave, &MbxIn, timeout);
 
    while ((wkc > 0) && (NotLast == TRUE))
    {
-      aEOEp = (ec_EOEt*)MbxIn;
+      aEOEp = (ec_EOEt *)MbxIn;
       /* slave response should be FoE */
       if ((aEOEp->mbxheader.mbxtype & 0x0f) == ECT_MBXT_EOE)
       {
@@ -519,8 +518,8 @@ int ecx_EOErecv(ecx_contextt *context, uint16 slave, uint8 port, int * psize, vo
          }
          else
          {
-             if (MbxIn) ecx_dropmbx(context, MbxIn);
-             MbxIn = NULL;
+            if (MbxIn) ecx_dropmbx(context, MbxIn);
+            MbxIn = NULL;
             /* Hang for a while if nothing is in */
             wkc = ecx_mbxreceive(context, slave, &MbxIn, timeout);
          }
@@ -536,33 +535,33 @@ int ecx_EOErecv(ecx_contextt *context, uint16 slave, uint8 port, int * psize, vo
 }
 
 /** EoE mailbox fragment read
-*
-* Will take the data in incoming mailbox buffer and copy to destination 
-* Ethernet frame buffer at given offset and update current fragment variables
-*
-* @param[in] MbxIn             = Received mailbox containing fragment data
-* @param[in,out] rxfragmentno  = Fragment number
-* @param[in,out] rxframesize   = Frame size
-* @param[in,out] rxframeoffset = Frame offset
-* @param[in,out] rxframeno     = Frame number
-* @param[in,out] psize         = Size in bytes of frame buffer.
-* @param[out] p                = Pointer to frame buffer
-* @return 0= if fragment OK, >0 if last fragment, <0 on error
-*/
+ *
+ * Will take the data in incoming mailbox buffer and copy to destination
+ * Ethernet frame buffer at given offset and update current fragment variables
+ *
+ * @param[in] MbxIn             = Received mailbox containing fragment data
+ * @param[in,out] rxfragmentno  = Fragment number
+ * @param[in,out] rxframesize   = Frame size
+ * @param[in,out] rxframeoffset = Frame offset
+ * @param[in,out] rxframeno     = Frame number
+ * @param[in,out] psize         = Size in bytes of frame buffer.
+ * @param[out] p                = Pointer to frame buffer
+ * @return 0= if fragment OK, >0 if last fragment, <0 on error
+ */
 int ecx_EOEreadfragment(
-   ec_mbxbuft *MbxIn,
-   uint8 *rxfragmentno,
-   uint16 *rxframesize,
-   uint16 *rxframeoffset,
-   uint16 *rxframeno,
-   int *psize,
-   void *p)
-{  
-   uint16 frameinfo1, frameinfo2,  eoedatasize;
+    ec_mbxbuft *MbxIn,
+    uint8 *rxfragmentno,
+    uint16 *rxframesize,
+    uint16 *rxframeoffset,
+    uint16 *rxframeno,
+    int *psize,
+    void *p)
+{
+   uint16 frameinfo1, frameinfo2, eoedatasize;
    int wkc;
-   ec_EOEt * aEOEp;
-   uint8 * buf;
-   
+   ec_EOEt *aEOEp;
+   uint8 *buf;
+
    aEOEp = (ec_EOEt *)MbxIn;
    buf = p;
    wkc = 0;
@@ -625,8 +624,8 @@ int ecx_EOEreadfragment(
       }
 
       /* Make sure we're inside expected frame size */
-      if (((*rxframeoffset + eoedatasize) <= *rxframesize) && 
-         ((*rxframeoffset + eoedatasize) <= *psize))
+      if (((*rxframeoffset + eoedatasize) <= *rxframesize) &&
+          ((*rxframeoffset + eoedatasize) <= *psize))
       {
          memcpy(&buf[*rxframeoffset], aEOEp->data, eoedatasize);
          *rxframeoffset += eoedatasize;

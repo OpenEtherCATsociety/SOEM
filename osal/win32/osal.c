@@ -11,13 +11,13 @@
 static int64_t sysfrequency;
 static double qpc2usec;
 
-#define USECS_PER_SEC     1000000
+#define USECS_PER_SEC 1000000
 
 static int osal_getrelativetime(struct timeval *tv, struct timezone *tz)
 {
    int64_t wintime, usecs;
    (void)tz;
-   if(!sysfrequency)
+   if (!sysfrequency)
    {
       timeBeginPeriod(1);
       QueryPerformanceFrequency((LARGE_INTEGER *)&sysfrequency);
@@ -43,7 +43,7 @@ int osal_gettimeofday(struct timeval *tv, struct timezone *tz)
     * following factors are required for the conversion from days to 100 ns steps:
     *
     * 86.400 seconds per day; 1.000.000 microseconds per second; 10 * 100 ns per microsecond
-   */
+    */
    int64 offset = -134774LL * 86400LL * 1000000LL * 10LL;
 
    GetSystemTimeAsFileTime(&system_time);
@@ -58,12 +58,12 @@ int osal_gettimeofday(struct timeval *tv, struct timezone *tz)
    return 1;
 }
 
-ec_timet osal_current_time (void)
+ec_timet osal_current_time(void)
 {
    struct timeval current_time;
    ec_timet return_value;
 
-   osal_gettimeofday (&current_time, 0);
+   osal_gettimeofday(&current_time, 0);
    return_value.sec = current_time.tv_sec;
    return_value.usec = current_time.tv_usec;
    return return_value;
@@ -71,41 +71,43 @@ ec_timet osal_current_time (void)
 
 void osal_time_diff(ec_timet *start, ec_timet *end, ec_timet *diff)
 {
-   if (end->usec < start->usec) {
+   if (end->usec < start->usec)
+   {
       diff->sec = end->sec - start->sec - 1;
       diff->usec = end->usec + 1000000 - start->usec;
    }
-   else {
+   else
+   {
       diff->sec = end->sec - start->sec;
       diff->usec = end->usec - start->usec;
    }
 }
 
-void osal_timer_start (osal_timert *self, uint32 timeout_usec)
+void osal_timer_start(osal_timert *self, uint32 timeout_usec)
 {
    struct timeval start_time;
    struct timeval timeout;
    struct timeval stop_time;
 
-   osal_getrelativetime (&start_time, 0);
+   osal_getrelativetime(&start_time, 0);
    timeout.tv_sec = timeout_usec / USECS_PER_SEC;
    timeout.tv_usec = timeout_usec % USECS_PER_SEC;
-   timeradd (&start_time, &timeout, &stop_time);
+   timeradd(&start_time, &timeout, &stop_time);
 
    self->stop_time.sec = stop_time.tv_sec;
    self->stop_time.usec = stop_time.tv_usec;
 }
 
-boolean osal_timer_is_expired (osal_timert *self)
+boolean osal_timer_is_expired(osal_timert *self)
 {
    struct timeval current_time;
    struct timeval stop_time;
    int is_not_yet_expired;
 
-   osal_getrelativetime (&current_time, 0);
+   osal_getrelativetime(&current_time, 0);
    stop_time.tv_sec = self->stop_time.sec;
    stop_time.tv_usec = self->stop_time.usec;
-   is_not_yet_expired = timercmp (&current_time, &stop_time, <);
+   is_not_yet_expired = timercmp(&current_time, &stop_time, <);
 
    return is_not_yet_expired == FALSE;
 }
@@ -114,11 +116,12 @@ int osal_usleep(uint32 usec)
 {
    osal_timert qtime;
    osal_timer_start(&qtime, usec);
-   if(usec >= 1000)
+   if (usec >= 1000)
    {
       SleepEx(usec / 1000, FALSE);
    }
-   while(!osal_timer_is_expired(&qtime));
+   while (!osal_timer_is_expired(&qtime))
+      ;
    return 1;
 }
 
@@ -134,8 +137,8 @@ void osal_free(void *ptr)
 
 int osal_thread_create(void *thandle, int stacksize, void *func, void *param)
 {
-   *(OSAL_THREAD_HANDLE*)thandle = CreateThread(NULL, stacksize, func, param, 0, NULL);
-   if(!thandle)
+   *(OSAL_THREAD_HANDLE *)thandle = CreateThread(NULL, stacksize, func, param, 0, NULL);
+   if (!thandle)
    {
       return 0;
    }
@@ -155,20 +158,20 @@ int osal_thread_create_rt(void *thandle, int stacksize, void *func, void *param)
 
 void *osal_mutex_create(void)
 {
-   return CreateMutex (NULL, FALSE, NULL);
+   return CreateMutex(NULL, FALSE, NULL);
 }
 
 void osal_mutex_destroy(void *mutex)
 {
-   CloseHandle (mutex);
+   CloseHandle(mutex);
 }
 
 void osal_mutex_lock(void *mutex)
 {
-   WaitForSingleObject (mutex, INFINITE);
+   WaitForSingleObject(mutex, INFINITE);
 }
 
 void osal_mutex_unlock(void *mutex)
 {
-   ReleaseMutex (mutex);
+   ReleaseMutex(mutex);
 }

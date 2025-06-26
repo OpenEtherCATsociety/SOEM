@@ -13,8 +13,7 @@
 #define _ec_foe_
 
 #ifdef __cplusplus
-extern "C"
-{
+extern "C" {
 #endif
 
 int ecx_FOEdefinehook(ecx_contextt *context, void *hook);

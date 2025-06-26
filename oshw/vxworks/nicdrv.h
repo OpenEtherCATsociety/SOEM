@@ -4,17 +4,16 @@
  * full license information.
  */
 
-/** \file 
+/** \file
  * \brief
- * Headerfile for nicdrv.c 
+ * Headerfile for nicdrv.c
  */
 
 #ifndef _nicdrvh_
 #define _nicdrvh_
 
 #ifdef __cplusplus
-extern "C"
-{
+extern "C" {
 #endif
 
 #include <vxWorks.h>
@@ -22,35 +21,35 @@ extern "C"
 /** structure to connect EtherCAT stack and VxWorks device */
 typedef struct ETHERCAT_PKT_DEV
 {
-   struct ecx_port  *port;
-   void             *pCookie;
-   void             *endObj; 
-   UINT32           redundant;
-   UINT32           tx_count;
-   UINT32           rx_count;
-   UINT32           overrun_count;
-   UINT32           abandoned_count;
-}ETHERCAT_PKT_DEV;
+   struct ecx_port *port;
+   void *pCookie;
+   void *endObj;
+   UINT32 redundant;
+   UINT32 tx_count;
+   UINT32 rx_count;
+   UINT32 overrun_count;
+   UINT32 abandoned_count;
+} ETHERCAT_PKT_DEV;
 
 /** pointer structure to Tx and Rx stacks */
 typedef struct
 {
    /** tx buffer */
-   ec_bufT     (*txbuf)[EC_MAXBUF];
+   ec_bufT (*txbuf)[EC_MAXBUF];
    /** tx buffer lengths */
-   int         (*txbuflength)[EC_MAXBUF];
+   int (*txbuflength)[EC_MAXBUF];
    /** rx buffers */
-   ec_bufT     (*rxbuf)[EC_MAXBUF];
+   ec_bufT (*rxbuf)[EC_MAXBUF];
    /** rx buffer status fields */
-   int         (*rxbufstat)[EC_MAXBUF];
+   int (*rxbufstat)[EC_MAXBUF];
    /** received MAC source address (middle word) */
-   int         (*rxsa)[EC_MAXBUF];
-} ec_stackT;   
+   int (*rxsa)[EC_MAXBUF];
+} ec_stackT;
 
 /** pointer structure to buffers for redundant port */
 typedef struct ecx_redport
 {
-   /** Stack reference */   
+   /** Stack reference */
    ec_stackT stack;
    /** Packet device instance */
    ETHERCAT_PKT_DEV pktDev;
@@ -61,13 +60,13 @@ typedef struct ecx_redport
    /** rx MAC source address */
    int rxsa[EC_MAXBUF];
    /** MSG Q for receive callbacks to post into */
-   MSG_Q_ID  msgQId[EC_MAXBUF];
+   MSG_Q_ID msgQId[EC_MAXBUF];
 } ecx_redportt;
 
 /** pointer structure to buffers, vars and mutexes for port instantiation */
 typedef struct ecx_port
 {
-   /** Stack reference */   
+   /** Stack reference */
    ec_stackT stack;
    /** Packet device instance */
    ETHERCAT_PKT_DEV pktDev;
@@ -90,25 +89,25 @@ typedef struct ecx_port
    /** current redundancy state */
    int redstate;
    /** pointer to redundancy port and buffers */
-   ecx_redportt *redport;   
+   ecx_redportt *redport;
    /** Semaphore to protect single resources */
-   SEM_ID  sem_get_index;
+   SEM_ID sem_get_index;
    /** MSG Q for receive callbacks to post into */
-   MSG_Q_ID  msgQId[EC_MAXBUF];
+   MSG_Q_ID msgQId[EC_MAXBUF];
 } ecx_portt;
 
 extern const uint16 priMAC[3];
 extern const uint16 secMAC[3];
 
 void ec_setupheader(void *p);
-int ecx_setupnic(ecx_portt *port, const char * ifname, int secondary);
+int ecx_setupnic(ecx_portt *port, const char *ifname, int secondary);
 int ecx_closenic(ecx_portt *port);
 void ecx_setbufstat(ecx_portt *port, uint8 idx, int bufstat);
 uint8 ecx_getindex(ecx_portt *port);
 int ecx_outframe(ecx_portt *port, uint8 idx, int sock);
 int ecx_outframe_red(ecx_portt *port, uint8 idx);
 int ecx_waitinframe(ecx_portt *port, uint8 idx, int timeout);
-int ecx_srconfirm(ecx_portt *port, uint8 idx,int timeout);
+int ecx_srconfirm(ecx_portt *port, uint8 idx, int timeout);
 
 #ifdef __cplusplus
 }

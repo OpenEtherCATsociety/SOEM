@@ -13,9 +13,9 @@
  * Note that Ethercat uses little endian byte order, except for the Ethernet
  * header which is big endian as usual.
  */
-uint16 oshw_htons (uint16 host)
+uint16 oshw_htons(uint16 host)
 {
-   uint16 network = htons (host);
+   uint16 network = htons(host);
    return network;
 }
 
@@ -25,16 +25,16 @@ uint16 oshw_htons (uint16 host)
  * Note that Ethercat uses little endian byte order, except for the Ethernet
  * header which is big endian as usual.
  */
-uint16 oshw_ntohs (uint16 network)
+uint16 oshw_ntohs(uint16 network)
 {
-   uint16 host = ntohs (network);
+   uint16 host = ntohs(network);
    return host;
 }
 
 /* Create list over available network adapters.
  * @return First element in linked list of adapters
  */
-ec_adaptert * oshw_find_adapters (void)
+ec_adaptert *oshw_find_adapters(void)
 {
    return NULL;
 }
@@ -43,7 +43,6 @@ ec_adaptert * oshw_find_adapters (void)
  * @param[in] adapter = First element in linked list of adapters
  * EC_NOFRAME.
  */
-void oshw_free_adapters (ec_adaptert * adapter)
+void oshw_free_adapters(ec_adaptert *adapter)
 {
-
 }

@@ -17,11 +17,11 @@
 #include "oshw.h"
 
 /* use maximum size for FOE mailbox data - header and metadata */
-#define EC_MAXFOEDATA                           \
-   (EC_MAXMBX -                                 \
-    (sizeof(ec_mbxheadert) +                    \
-     sizeof(uint8_t) +                          \
-     sizeof(uint8_t) +                          \
+#define EC_MAXFOEDATA        \
+   (EC_MAXMBX -              \
+    (sizeof(ec_mbxheadert) + \
+     sizeof(uint8_t) +       \
+     sizeof(uint8_t) +       \
      sizeof(uint32_t)))
 
 /** FOE structure.
@@ -31,19 +31,19 @@ PACKED_BEGIN
 typedef struct PACKED
 {
    ec_mbxheadert MbxHeader;
-   uint8         OpCode;
-   uint8         Reserved;
+   uint8 OpCode;
+   uint8 Reserved;
    union
    {
-      uint32        Password;
-      uint32        PacketNumber;
-      uint32        ErrorCode;
+      uint32 Password;
+      uint32 PacketNumber;
+      uint32 ErrorCode;
    };
    union
    {
-      char          FileName[EC_MAXFOEDATA];
-      uint8         Data[EC_MAXFOEDATA];
-      char          ErrorText[EC_MAXFOEDATA];
+      char FileName[EC_MAXFOEDATA];
+      uint8 Data[EC_MAXFOEDATA];
+      char ErrorText[EC_MAXFOEDATA];
    };
 } ec_FOEt;
 PACKED_END
@@ -56,8 +56,8 @@ PACKED_END
  */
 int ecx_FOEdefinehook(ecx_contextt *context, void *hook)
 {
-  context->FOEhook = hook;
-  return 1;
+   context->FOEhook = hook;
+   return 1;
 }
 
 /** FoE read, blocking.
@@ -119,7 +119,7 @@ int ecx_FOEread(ecx_contextt *context, uint16 slave, char *filename, uint32 pass
       do
       {
          worktodo = FALSE;
-         if(MbxIn) ecx_dropmbx(context, MbxIn);
+         if (MbxIn) ecx_dropmbx(context, MbxIn);
          MbxIn = NULL;
          /* read slave response */
          wkc = ecx_mbxreceive(context, slave, &MbxIn, timeout);
@@ -129,7 +129,7 @@ int ecx_FOEread(ecx_contextt *context, uint16 slave, char *filename, uint32 pass
             /* slave response should be FoE */
             if ((aFOEp->MbxHeader.mbxtype & 0x0f) == ECT_MBXT_FOE)
             {
-               if(aFOEp->OpCode == ECT_FOE_DATA)
+               if (aFOEp->OpCode == ECT_FOE_DATA)
                {
                   segmentdata = etohs(aFOEp->MbxHeader.length) - 0x0006;
                   packetnumber = etohl(aFOEp->PacketNumber);
@@ -174,7 +174,7 @@ int ecx_FOEread(ecx_contextt *context, uint16 slave, char *filename, uint32 pass
                }
                else
                {
-                  if(aFOEp->OpCode == ECT_FOE_ERROR)
+                  if (aFOEp->OpCode == ECT_FOE_ERROR)
                   {
                      /* FoE error */
                      wkc = -EC_ERR_TYPE_FOE_ERROR;
@@ -195,8 +195,8 @@ int ecx_FOEread(ecx_contextt *context, uint16 slave, char *filename, uint32 pass
          }
       } while (worktodo);
    }
-   if(MbxIn) ecx_dropmbx(context, MbxIn);
-   if(MbxOut) ecx_dropmbx(context, MbxOut);
+   if (MbxIn) ecx_dropmbx(context, MbxIn);
+   if (MbxOut) ecx_dropmbx(context, MbxOut);
    return wkc;
 }
 
@@ -260,7 +260,7 @@ int ecx_FOEwrite(ecx_contextt *context, uint16 slave, char *filename, uint32 pas
       do
       {
          worktodo = FALSE;
-         if(MbxIn) ecx_dropmbx(context, MbxIn);
+         if (MbxIn) ecx_dropmbx(context, MbxIn);
          MbxIn = NULL;
          /* read slave response */
          wkc = ecx_mbxreceive(context, slave, &MbxIn, timeout);
@@ -272,130 +272,130 @@ int ecx_FOEwrite(ecx_contextt *context, uint16 slave, char *filename, uint32 pas
             {
                switch (aFOEp->OpCode)
                {
-                  case ECT_FOE_ACK:
+               case ECT_FOE_ACK:
+               {
+                  packetnumber = etohl(aFOEp->PacketNumber);
+                  if (packetnumber == sendpacket)
                   {
-                     packetnumber = etohl(aFOEp->PacketNumber);
-                     if (packetnumber == sendpacket)
+                     if (context->FOEhook)
                      {
-                        if (context->FOEhook)
+                        context->FOEhook(slave, packetnumber, psize);
+                     }
+                     tsize = psize;
+                     if (tsize > maxdata)
+                     {
+                        tsize = maxdata;
+                     }
+                     if (tsize || dofinalzero)
+                     {
+                        worktodo = TRUE;
+                        dofinalzero = FALSE;
+                        segmentdata = tsize;
+                        psize -= segmentdata;
+                        /* if last packet was full size, add a zero size packet as final */
+                        /* EOF is defined as packetsize < full packetsize */
+                        if (!psize && (segmentdata == maxdata))
                         {
-                           context->FOEhook(slave, packetnumber, psize);
+                           dofinalzero = TRUE;
                         }
-                        tsize = psize;
-                        if (tsize > maxdata)
+                        MbxOut = ecx_getmbx(context);
+                        ec_clearmbx(MbxOut);
+                        FOEp = (ec_FOEt *)MbxOut;
+                        FOEp->MbxHeader.length = htoes((uint16)(0x0006 + segmentdata));
+                        FOEp->MbxHeader.address = htoes(0x0000);
+                        FOEp->MbxHeader.priority = 0x00;
+                        /* get new mailbox count value */
+                        cnt = ec_nextmbxcnt(context->slavelist[slave].mbx_cnt);
+                        context->slavelist[slave].mbx_cnt = cnt;
+                        FOEp->MbxHeader.mbxtype = ECT_MBXT_FOE + MBX_HDR_SET_CNT(cnt); /* FoE */
+                        FOEp->OpCode = ECT_FOE_DATA;
+                        sendpacket++;
+                        FOEp->PacketNumber = htoel(sendpacket);
+                        memcpy(&FOEp->Data[0], p, segmentdata);
+                        p = (uint8 *)p + segmentdata;
+                        /* send FoE data to slave */
+                        wkc = ecx_mbxsend(context, slave, MbxOut, EC_TIMEOUTTXM);
+                        MbxOut = NULL;
+                        if (wkc <= 0)
                         {
-                           tsize = maxdata;
-                        }
-                        if(tsize || dofinalzero)
-                        {
-                           worktodo = TRUE;
-                           dofinalzero = FALSE;
-                           segmentdata = tsize;
-                           psize -= segmentdata;
-                           /* if last packet was full size, add a zero size packet as final */
-                           /* EOF is defined as packetsize < full packetsize */
-                           if (!psize && (segmentdata == maxdata))
-                           {
-                              dofinalzero = TRUE;
-                           }
-                           MbxOut = ecx_getmbx(context);
-                           ec_clearmbx(MbxOut);
-                           FOEp = (ec_FOEt *)MbxOut;
-                           FOEp->MbxHeader.length = htoes((uint16)(0x0006 + segmentdata));
-                           FOEp->MbxHeader.address = htoes(0x0000);
-                           FOEp->MbxHeader.priority = 0x00;
-                           /* get new mailbox count value */
-                           cnt = ec_nextmbxcnt(context->slavelist[slave].mbx_cnt);
-                           context->slavelist[slave].mbx_cnt = cnt;
-                           FOEp->MbxHeader.mbxtype = ECT_MBXT_FOE + MBX_HDR_SET_CNT(cnt); /* FoE */
-                           FOEp->OpCode = ECT_FOE_DATA;
-                           sendpacket++;
-                           FOEp->PacketNumber = htoel(sendpacket);
-                           memcpy(&FOEp->Data[0], p, segmentdata);
-                           p = (uint8 *)p + segmentdata;
-                           /* send FoE data to slave */
-                           wkc = ecx_mbxsend(context, slave, MbxOut, EC_TIMEOUTTXM);
-                           MbxOut = NULL;
-                           if (wkc <= 0)
-                           {
-                              worktodo = FALSE;
-                           }
+                           worktodo = FALSE;
                         }
                      }
-                     else
-                     {
-                        /* FoE error */
-                        wkc = -EC_ERR_TYPE_FOE_PACKETNUMBER;
-                     }
-                     break;
                   }
-                  case ECT_FOE_BUSY:
-                  {
-                     /* resend if data has been send before */
-                     /* otherwise ignore */
-                     if (sendpacket)
-                     {
-                        psize += segmentdata;
-                        p = (uint8 *)p - segmentdata;
-                        --sendpacket;
-                        tsize = psize;
-                        if (tsize > maxdata)
-                        {
-                           tsize = maxdata;
-                        }
-                        if(tsize || dofinalzero)
-                        {
-                           worktodo = TRUE;
-                           dofinalzero = FALSE;
-                           segmentdata = tsize;
-                           psize -= segmentdata;
-                           /* if last packet was full size, add a zero size packet as final */
-                           /* EOF is defined as packetsize < full packetsize */
-                           if (!psize && (segmentdata == maxdata))
-                           {
-                              dofinalzero = TRUE;
-                           }
-                           FOEp->MbxHeader.length = htoes((uint16)(0x0006 + segmentdata));
-                           FOEp->MbxHeader.address = htoes(0x0000);
-                           FOEp->MbxHeader.priority = 0x00;
-                           /* get new mailbox count value */
-                           cnt = ec_nextmbxcnt(context->slavelist[slave].mbx_cnt);
-                           context->slavelist[slave].mbx_cnt = cnt;
-                           FOEp->MbxHeader.mbxtype = ECT_MBXT_FOE + MBX_HDR_SET_CNT(cnt); /* FoE */
-                           FOEp->OpCode = ECT_FOE_DATA;
-                           sendpacket++;
-                           FOEp->PacketNumber = htoel(sendpacket);
-                           memcpy(&FOEp->Data[0], p, segmentdata);
-                           p = (uint8 *)p + segmentdata;
-                           /* send FoE data to slave */
-                           wkc = ecx_mbxsend(context, slave, (ec_mbxbuft *)&MbxOut, EC_TIMEOUTTXM);
-                           if (wkc <= 0)
-                           {
-                              worktodo = FALSE;
-                           }
-                        }
-                     }
-                     break;
-                  }
-                  case ECT_FOE_ERROR:
+                  else
                   {
                      /* FoE error */
-                     if (aFOEp->ErrorCode == 0x8001)
-                     {
-                        wkc = -EC_ERR_TYPE_FOE_FILE_NOTFOUND;
-                     }
-                     else
-                     {
-                        wkc = -EC_ERR_TYPE_FOE_ERROR;
-                     }
-                     break;
+                     wkc = -EC_ERR_TYPE_FOE_PACKETNUMBER;
                   }
-                  default:
+                  break;
+               }
+               case ECT_FOE_BUSY:
+               {
+                  /* resend if data has been send before */
+                  /* otherwise ignore */
+                  if (sendpacket)
                   {
-                     /* unexpected mailbox received */
-                     wkc = -EC_ERR_TYPE_PACKET_ERROR;
-                     break;
+                     psize += segmentdata;
+                     p = (uint8 *)p - segmentdata;
+                     --sendpacket;
+                     tsize = psize;
+                     if (tsize > maxdata)
+                     {
+                        tsize = maxdata;
+                     }
+                     if (tsize || dofinalzero)
+                     {
+                        worktodo = TRUE;
+                        dofinalzero = FALSE;
+                        segmentdata = tsize;
+                        psize -= segmentdata;
+                        /* if last packet was full size, add a zero size packet as final */
+                        /* EOF is defined as packetsize < full packetsize */
+                        if (!psize && (segmentdata == maxdata))
+                        {
+                           dofinalzero = TRUE;
+                        }
+                        FOEp->MbxHeader.length = htoes((uint16)(0x0006 + segmentdata));
+                        FOEp->MbxHeader.address = htoes(0x0000);
+                        FOEp->MbxHeader.priority = 0x00;
+                        /* get new mailbox count value */
+                        cnt = ec_nextmbxcnt(context->slavelist[slave].mbx_cnt);
+                        context->slavelist[slave].mbx_cnt = cnt;
+                        FOEp->MbxHeader.mbxtype = ECT_MBXT_FOE + MBX_HDR_SET_CNT(cnt); /* FoE */
+                        FOEp->OpCode = ECT_FOE_DATA;
+                        sendpacket++;
+                        FOEp->PacketNumber = htoel(sendpacket);
+                        memcpy(&FOEp->Data[0], p, segmentdata);
+                        p = (uint8 *)p + segmentdata;
+                        /* send FoE data to slave */
+                        wkc = ecx_mbxsend(context, slave, (ec_mbxbuft *)&MbxOut, EC_TIMEOUTTXM);
+                        if (wkc <= 0)
+                        {
+                           worktodo = FALSE;
+                        }
+                     }
                   }
+                  break;
+               }
+               case ECT_FOE_ERROR:
+               {
+                  /* FoE error */
+                  if (aFOEp->ErrorCode == 0x8001)
+                  {
+                     wkc = -EC_ERR_TYPE_FOE_FILE_NOTFOUND;
+                  }
+                  else
+                  {
+                     wkc = -EC_ERR_TYPE_FOE_ERROR;
+                  }
+                  break;
+               }
+               default:
+               {
+                  /* unexpected mailbox received */
+                  wkc = -EC_ERR_TYPE_PACKET_ERROR;
+                  break;
+               }
                }
             }
             else
@@ -406,7 +406,7 @@ int ecx_FOEwrite(ecx_contextt *context, uint16 slave, char *filename, uint32 pas
          }
       } while (worktodo);
    }
-   if(MbxIn) ecx_dropmbx(context, MbxIn);
-   if(MbxOut) ecx_dropmbx(context, MbxOut);
+   if (MbxIn) ecx_dropmbx(context, MbxIn);
+   if (MbxOut) ecx_dropmbx(context, MbxOut);
    return wkc;
 }

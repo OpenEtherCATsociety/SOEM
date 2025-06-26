@@ -13,12 +13,11 @@
 #define _ec_config_
 
 #ifdef __cplusplus
-extern "C"
-{
+extern "C" {
 #endif
 
-#define EC_NODEOFFSET      0x1000
-#define EC_TEMPNODE        0xffff
+#define EC_NODEOFFSET 0x1000
+#define EC_TEMPNODE   0xffff
 
 int ecx_config_init(ecx_contextt *context, uint8 usetable);
 int ecx_config_map_group(ecx_contextt *context, void *pIOmap, uint8 group);

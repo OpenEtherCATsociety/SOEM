@@ -11,9 +11,9 @@
 #include <string.h>
 #include <osal.h>
 
-#define USECS_PER_SEC     1000000
+#define USECS_PER_SEC 1000000
 
-int osal_usleep (uint32 usec)
+int osal_usleep(uint32 usec)
 {
    struct timespec ts;
    ts.tv_sec = usec / USECS_PER_SEC;
@@ -36,11 +36,13 @@ ec_timet osal_current_time(void)
 
 void osal_time_diff(ec_timet *start, ec_timet *end, ec_timet *diff)
 {
-   if (end->usec < start->usec) {
+   if (end->usec < start->usec)
+   {
       diff->sec = end->sec - start->sec - 1;
       diff->usec = end->usec + 1000000 - start->usec;
    }
-   else {
+   else
+   {
       diff->sec = end->sec - start->sec;
       diff->usec = end->usec - start->usec;
    }
@@ -61,7 +63,7 @@ static void osal_getrelativetime(struct timeval *tv)
    tv->tv_usec = ts.tv_nsec / 1000;
 }
 
-void osal_timer_start(osal_timert * self, uint32 timeout_usec)
+void osal_timer_start(osal_timert *self, uint32 timeout_usec)
 {
    struct timeval start_time;
    struct timeval timeout;
@@ -76,7 +78,7 @@ void osal_timer_start(osal_timert * self, uint32 timeout_usec)
    self->stop_time.usec = stop_time.tv_usec;
 }
 
-boolean osal_timer_is_expired (osal_timert * self)
+boolean osal_timer_is_expired(osal_timert *self)
 {
    struct timeval current_time;
    struct timeval stop_time;
@@ -102,15 +104,15 @@ void osal_free(void *ptr)
 
 int osal_thread_create(void *thandle, int stacksize, void *func, void *param)
 {
-   int                  ret;
-   pthread_attr_t       attr;
-   pthread_t            *threadp;
+   int ret;
+   pthread_attr_t attr;
+   pthread_t *threadp;
 
    threadp = thandle;
    pthread_attr_init(&attr);
    pthread_attr_setstacksize(&attr, stacksize);
    ret = pthread_create(threadp, &attr, func, param);
-   if(ret < 0)
+   if (ret < 0)
    {
       return 0;
    }
@@ -119,24 +121,24 @@ int osal_thread_create(void *thandle, int stacksize, void *func, void *param)
 
 int osal_thread_create_rt(void *thandle, int stacksize, void *func, void *param)
 {
-   int                  ret;
-   pthread_attr_t       attr;
-   struct sched_param   schparam;
-   pthread_t            *threadp;
+   int ret;
+   pthread_attr_t attr;
+   struct sched_param schparam;
+   pthread_t *threadp;
 
    threadp = thandle;
    pthread_attr_init(&attr);
    pthread_attr_setstacksize(&attr, stacksize);
    ret = pthread_create(threadp, &attr, func, param);
    pthread_attr_destroy(&attr);
-   if(ret < 0)
+   if (ret < 0)
    {
       return 0;
    }
    memset(&schparam, 0, sizeof(schparam));
    schparam.sched_priority = 40;
    ret = pthread_setschedparam(*threadp, SCHED_FIFO, &schparam);
-   if(ret < 0)
+   if (ret < 0)
    {
       return 0;
    }
@@ -148,8 +150,8 @@ void *osal_mutex_create(void)
 {
    pthread_mutexattr_t mutexattr;
    osal_mutext *mutex;
-   mutex = (osal_mutext *)osal_malloc (sizeof(osal_mutext));
-   if(mutex)
+   mutex = (osal_mutext *)osal_malloc(sizeof(osal_mutext));
+   if (mutex)
    {
       pthread_mutexattr_init(&mutexattr);
       pthread_mutexattr_setprotocol(&mutexattr, PTHREAD_PRIO_INHERIT);
@@ -166,10 +168,10 @@ void osal_mutex_destroy(void *mutex)
 
 void osal_mutex_lock(void *mutex)
 {
-   pthread_mutex_lock((osal_mutext *) mutex);
+   pthread_mutex_lock((osal_mutext *)mutex);
 }
 
 void osal_mutex_unlock(void *mutex)
 {
-   pthread_mutex_unlock((osal_mutext *) mutex);
+   pthread_mutex_unlock((osal_mutext *)mutex);
 }

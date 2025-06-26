@@ -50,29 +50,28 @@ enum
    ECT_RED_DOUBLE
 };
 
-
 /** Primary source MAC address used for EtherCAT.
  * This address is not the MAC address used from the NIC.
  * EtherCAT does not care about MAC addressing, but it is used here to
  * differentiate the route the packet traverses through the EtherCAT
  * segment. This is needed to find out the packet flow in redundant
  * configurations. */
-const uint16 priMAC[3] = { 0x0101, 0x0101, 0x0101 };
+const uint16 priMAC[3] = {0x0101, 0x0101, 0x0101};
 /** Secondary source MAC address used for EtherCAT. */
-const uint16 secMAC[3] = { 0x0404, 0x0404, 0x0404 };
+const uint16 secMAC[3] = {0x0404, 0x0404, 0x0404};
 
 /** second MAC word is used for identification */
-#define RX_PRIM priMAC[1]
+#define RX_PRIM          priMAC[1]
 /** second MAC word is used for identification */
-#define RX_SEC secMAC[1]
+#define RX_SEC           secMAC[1]
 
-#define ECAT_PRINT_INFO    printf
-#define ECAT_PRINT_WARN    printf
-#define ECAT_PRINT_ERROR   printf
+#define ECAT_PRINT_INFO  printf
+#define ECAT_PRINT_WARN  printf
+#define ECAT_PRINT_ERROR printf
 
 /* HPE port settings */
 const unsigned long interrupt_mode = NO_INTERRUPT;
-const unsigned long phy_settings   = SPEED_100 | DUPLEX_FULL;
+const unsigned long phy_settings = SPEED_100 | DUPLEX_FULL;
 
 /** Basic setup to connect NIC to socket.
  * @param[in] ifname      = Name of NIC device, f.e. "eth0"
@@ -88,19 +87,26 @@ int ecx_setupnic(ecx_portt *port, const char *ifname, int secondary)
    int i;
    int dontWaitForLink = 0;
    int result = 1;
-   HPE_CONFIG_OPTIONS conf = { 0, 0, NULL};
+   HPE_CONFIG_OPTIONS conf = {0, 0, NULL};
 
    status = hpeOpen(ifname, phy_settings, interrupt_mode, &(port->handle));
    if (status != E_OK)
    {
       ECAT_PRINT_ERROR("hpeOpen failed with status %04x ", status);
-      if(status == E_EXIST) ECAT_PRINT_ERROR("E_EXIST\n");
-      else if(status == E_STATE) ECAT_PRINT_ERROR("E_STATE\n");
-      else if(status == E_PARAM) ECAT_PRINT_ERROR("E_PARAM\n");
-      else if(status == E_INVALID_ADDR) ECAT_PRINT_ERROR("E_INVALID_ADDR\n");
-      else if(status == E_IO) ECAT_PRINT_ERROR("E_IO\n");
-      else if(status == E_TIME) ECAT_PRINT_ERROR("E_TIME\n");
-      else ECAT_PRINT_ERROR("UNKNOWN\n");
+      if (status == E_EXIST)
+         ECAT_PRINT_ERROR("E_EXIST\n");
+      else if (status == E_STATE)
+         ECAT_PRINT_ERROR("E_STATE\n");
+      else if (status == E_PARAM)
+         ECAT_PRINT_ERROR("E_PARAM\n");
+      else if (status == E_INVALID_ADDR)
+         ECAT_PRINT_ERROR("E_INVALID_ADDR\n");
+      else if (status == E_IO)
+         ECAT_PRINT_ERROR("E_IO\n");
+      else if (status == E_TIME)
+         ECAT_PRINT_ERROR("E_TIME\n");
+      else
+         ECAT_PRINT_ERROR("UNKNOWN\n");
       result = 0;
       goto end;
    }
@@ -119,28 +125,29 @@ int ecx_setupnic(ecx_portt *port, const char *ifname, int secondary)
    time(&now);
    do
    {
-	   status = hpeGetMediaStatus(port->handle, &mstat);
-       if (status != E_OK)
-       {
-           ECAT_PRINT_ERROR("hpeGetMediaStatus failed with status %04x\n", status);
-           result = 0;
-           goto end;
-       }
-       if (mstat.media_speed == SPEED_NONE)
-       {
-           RtSleepEx(1000);
-           time(&t);
-       }
-   } while (mstat.media_speed == SPEED_NONE && t < (now+10));
+      status = hpeGetMediaStatus(port->handle, &mstat);
+      if (status != E_OK)
+      {
+         ECAT_PRINT_ERROR("hpeGetMediaStatus failed with status %04x\n", status);
+         result = 0;
+         goto end;
+      }
+      if (mstat.media_speed == SPEED_NONE)
+      {
+         RtSleepEx(1000);
+         time(&t);
+      }
+   } while (mstat.media_speed == SPEED_NONE && t < (now + 10));
 
-   if (((mstat.media_speed & phy_settings) == 0) || ((mstat.media_duplex & phy_settings) == 0)) {
+   if (((mstat.media_speed & phy_settings) == 0) || ((mstat.media_duplex & phy_settings) == 0))
+   {
       ECAT_PRINT_ERROR("Media not connected as requested: speed=%u, duplex=%u\n",
-              mstat.media_speed, mstat.media_duplex);
+                       mstat.media_speed, mstat.media_duplex);
       result = 0;
       goto end;
    }
 
-   status= hpeGetMacAddress(port->handle, mac);
+   status = hpeGetMacAddress(port->handle, mac);
    if (status != E_OK)
    {
       ECAT_PRINT_ERROR("hpeGetMacAddress failed with status %04x\n", status);
@@ -149,7 +156,7 @@ int ecx_setupnic(ecx_portt *port, const char *ifname, int secondary)
    }
 
    /* allocate 2 receive buffers and attach them */
-   status  = hpeAllocateReceiveBufferSet(port->handle, &(port->rx_buffers), EC_MAXBUF, EC_BUFSIZE);
+   status = hpeAllocateReceiveBufferSet(port->handle, &(port->rx_buffers), EC_MAXBUF, EC_BUFSIZE);
    if (status != E_OK)
    {
       ECAT_PRINT_ERROR("hpeAllocateReceiveBufferSet failed with status %04x\n", status);
@@ -178,16 +185,16 @@ int ecx_setupnic(ecx_portt *port, const char *ifname, int secondary)
    {
       port->redstate = ECT_RED_NONE;
       /* Init regions */
-      port->getindex_region = CreateRtRegion (PRIORITY_QUEUING);
-      port->rx_region = CreateRtRegion (PRIORITY_QUEUING);
-      port->tx_region = CreateRtRegion (PRIORITY_QUEUING);
+      port->getindex_region = CreateRtRegion(PRIORITY_QUEUING);
+      port->rx_region = CreateRtRegion(PRIORITY_QUEUING);
+      port->tx_region = CreateRtRegion(PRIORITY_QUEUING);
       port->lastidx = 0;
-      port->stack.txbuf       = &(port->txbuf);
+      port->stack.txbuf = &(port->txbuf);
       port->stack.txbuflength = &(port->txbuflength);
-      port->stack.tempbuf     = &(port->tempinbuf);
-      port->stack.rxbuf       = &(port->rxbuf);
-      port->stack.rxbufstat   = &(port->rxbufstat);
-      port->stack.rxsa        = &(port->rxsa);
+      port->stack.tempbuf = &(port->tempinbuf);
+      port->stack.rxbuf = &(port->rxbuf);
+      port->stack.rxbufstat = &(port->rxbufstat);
+      port->stack.rxsa = &(port->rxsa);
    }
 
    /* setup ethernet headers in tx buffers so we don't have to repeat it */
@@ -223,7 +230,7 @@ int ecx_closenic(ecx_portt *port)
       for (i = 0; i < EC_MAXBUF; i++)
       {
          FreeRtMemory(port->tx_buffers[i]);
-		 port->tx_buffers[i] = NULL;
+         port->tx_buffers[i] = NULL;
       }
    }
    if (port->rx_buffers)
@@ -231,7 +238,7 @@ int ecx_closenic(ecx_portt *port)
       hpeFreeReceiveBufferSet(port->handle, &(port->rx_buffers));
    }
 
-   status= hpeClose(port->handle);
+   status = hpeClose(port->handle);
    if (status != E_OK)
    {
       ECAT_PRINT_ERROR("hpeClose failed with status %04x\n", status);
@@ -285,7 +292,7 @@ uint8 ecx_getindex(ecx_portt *port)
       }
    }
    port->rxbufstat[idx] = EC_BUF_ALLOC;
-   if ( port->redstate != ECT_RED_NONE)
+   if (port->redstate != ECT_RED_NONE)
    {
       port->redport->rxbufstat[idx] = EC_BUF_ALLOC;
    }
@@ -338,23 +345,23 @@ int ecx_outframe(ecx_portt *port, uint8 idx, int stacknumber)
    // wait for transmit to complete
    do
    {
-     result = hpeGetTransmitterState(port->handle, &txstate) == E_OK && txstate == HPE_TXBUSY;
+      result = hpeGetTransmitterState(port->handle, &txstate) == E_OK && txstate == HPE_TXBUSY;
    } while (result && retries-- > 0);
 
    if (result)
    {
-     result = -1;
-     goto end;
+      result = -1;
+      goto end;
    }
 
-   log_RT_event('S',(WORD)2);
+   log_RT_event('S', (WORD)2);
    status = hpeAttachTransmitBufferSet(port->handle, port->tx_buffers[idx]);
    if (status != E_OK)
    {
       result = -2;
       goto end;
    }
-   log_RT_event('S',(WORD)3);
+   log_RT_event('S', (WORD)3);
 
    (*stack->rxbufstat)[idx] = EC_BUF_TX;
    status = hpeStartTransmitter(port->handle);
@@ -365,7 +372,7 @@ int ecx_outframe(ecx_portt *port, uint8 idx, int stacknumber)
       goto end;
    }
 
-   log_RT_event('S',(WORD)4);
+   log_RT_event('S', (WORD)4);
    result = lp;
 
 end:
@@ -393,15 +400,15 @@ int ecx_outframe_red(ecx_portt *port, uint8 idx)
    {
       ehp = (ec_etherheadert *)&(port->txbuf2);
       /* use dummy frame for secondary socket transmit (BRD) */
-      datagramP = (ec_comt*)&(port->txbuf2)[ETH_HEADERSIZE];
+      datagramP = (ec_comt *)&(port->txbuf2)[ETH_HEADERSIZE];
       /* write index to frame */
       datagramP->index = idx;
       /* rewrite MAC source address 1 to secondary */
       ehp->sa1 = oshw_htons(secMAC[1]);
       /* transmit over secondary socket */
-      //send(sockhandle2, &ec_txbuf2, ec_txbuflength2 , 0);
-      // OBS! redundant not ACTIVE for BFIN, just added to compile
-      //ASSERT (0);
+      // send(sockhandle2, &ec_txbuf2, ec_txbuflength2 , 0);
+      //  OBS! redundant not ACTIVE for BFIN, just added to compile
+      // ASSERT (0);
       hpeAttachTransmitBufferSet(port->redport->handle, port->tx_buffers[idx]);
       port->redport->rxbufstat[idx] = EC_BUF_TX;
       status = hpeStartTransmitter(port->redport->handle);
@@ -434,17 +441,17 @@ static int ecx_recvpkt(ecx_portt *port, int stacknumber)
       stack = &(port->redport->stack);
    }
 
-   log_RT_event('R',(WORD)2);
+   log_RT_event('R', (WORD)2);
 
    status = hpeGetReceiveBuffer(port->handle, &rxbuffer);
    if (status == E_OK)
    {
-       memcpy(stack->tempbuf,rxbuffer->ptr, rxbuffer->used);
-       bytesrx = rxbuffer->used;
-       port->tempinbufs = bytesrx;
-       // TODO case no interrupt
+      memcpy(stack->tempbuf, rxbuffer->ptr, rxbuffer->used);
+      bytesrx = rxbuffer->used;
+      port->tempinbufs = bytesrx;
+      // TODO case no interrupt
    }
-   log_RT_event('R',(WORD)3);
+   log_RT_event('R', (WORD)3);
 
    return (bytesrx > 0);
 }
@@ -466,9 +473,9 @@ static int ecx_recvpkt(ecx_portt *port, int stacknumber)
  */
 int ecx_inframe(ecx_portt *port, uint8 idx, int stacknumber)
 {
-   uint16  l;
-   int     rval;
-   uint8   idxf;
+   uint16 l;
+   int rval;
+   uint8 idxf;
    ec_etherheadert *ehp;
    ec_comt *ecp;
    ec_stackT *stack;
@@ -486,7 +493,7 @@ int ecx_inframe(ecx_portt *port, uint8 idx, int stacknumber)
    rval = EC_NOFRAME;
    rxbuf = &(*stack->rxbuf)[idx];
    /* check if requested index is already in buffer ? */
-   if ((idx < EC_MAXBUF) && ( (*stack->rxbufstat)[idx] == EC_BUF_RCVD))
+   if ((idx < EC_MAXBUF) && ((*stack->rxbufstat)[idx] == EC_BUF_RCVD))
    {
       l = (*rxbuf)[0] + ((uint16)((*rxbuf)[1] & 0x0f) << 8);
       /* return WKC */
@@ -501,11 +508,11 @@ int ecx_inframe(ecx_portt *port, uint8 idx, int stacknumber)
       if (ecx_recvpkt(port, stacknumber))
       {
          rval = EC_OTHERFRAME;
-         ehp = (ec_etherheadert*)(stack->tempbuf);
+         ehp = (ec_etherheadert *)(stack->tempbuf);
          /* check if it is an EtherCAT frame */
          if (ehp->etype == oshw_htons(ETH_P_ECAT))
          {
-            ecp =(ec_comt*)(&(*stack->tempbuf)[ETH_HEADERSIZE]);
+            ecp = (ec_comt *)(&(*stack->tempbuf)[ETH_HEADERSIZE]);
             l = etohs(ecp->elength) & 0x0fff;
             idxf = ecp->index;
             /* found index equals requested index ? */
@@ -556,7 +563,7 @@ int ecx_inframe(ecx_portt *port, uint8 idx, int stacknumber)
 static int ecx_waitinframe_red(ecx_portt *port, uint8 idx, osal_timert *timer)
 {
    osal_timert timer2;
-   int wkc  = EC_NOFRAME;
+   int wkc = EC_NOFRAME;
    int wkc2 = EC_NOFRAME;
    int primrx, secrx;
 
@@ -569,7 +576,7 @@ static int ecx_waitinframe_red(ecx_portt *port, uint8 idx, osal_timert *timer)
    {
       /* only read frame if not already in */
       if (wkc <= EC_NOFRAME)
-         wkc  = ecx_inframe(port, idx, 0);
+         wkc = ecx_inframe(port, idx, 0);
       /* only try secondary if in redundant mode */
       if (port->redstate != ECT_RED_NONE)
       {
@@ -579,7 +586,7 @@ static int ecx_waitinframe_red(ecx_portt *port, uint8 idx, osal_timert *timer)
             wkc2 = ecx_inframe(port, idx, 1);
          }
       }
-   /* wait for both frames to arrive or timeout */
+      /* wait for both frames to arrive or timeout */
    } while (((wkc <= EC_NOFRAME) || (wkc2 <= EC_NOFRAME)) && !osal_timer_is_expired(timer));
    /* only do redundant functions when in redundant mode */
    if (port->redstate != ECT_RED_NONE)
@@ -593,7 +600,7 @@ static int ecx_waitinframe_red(ecx_portt *port, uint8 idx, osal_timert *timer)
 
       /* primary socket got secondary frame and secondary socket got primary frame */
       /* normal situation in redundant mode */
-      if ( ((primrx == RX_SEC) && (secrx == RX_PRIM)) )
+      if (((primrx == RX_SEC) && (secrx == RX_PRIM)))
       {
          /* copy secondary buffer to primary */
          memcpy(&(port->rxbuf[idx]), &(port->redport->rxbuf[idx]), port->txbuflength[idx] - ETH_HEADERSIZE);
@@ -601,20 +608,20 @@ static int ecx_waitinframe_red(ecx_portt *port, uint8 idx, osal_timert *timer)
       }
       /* primary socket got nothing or primary frame, and secondary socket got secondary frame */
       /* we need to resend TX packet */
-      if ( ((primrx == 0) && (secrx == RX_SEC)) ||
-           ((primrx == RX_PRIM) && (secrx == RX_SEC)) )
+      if (((primrx == 0) && (secrx == RX_SEC)) ||
+          ((primrx == RX_PRIM) && (secrx == RX_SEC)))
       {
          /* If both primary and secondary have partial connection retransmit the primary received
           * frame over the secondary socket. The result from the secondary received frame is a combined
           * frame that traversed all slaves in standard order. */
-         if ( (primrx == RX_PRIM) && (secrx == RX_SEC) )
+         if ((primrx == RX_PRIM) && (secrx == RX_SEC))
          {
             /* copy primary rx to tx buffer */
             memcpy(&(port->txbuf[idx][ETH_HEADERSIZE]), &(port->rxbuf[idx]), port->txbuflength[idx] - ETH_HEADERSIZE);
          }
-         osal_timer_start (&timer2, EC_TIMEOUTRET);
+         osal_timer_start(&timer2, EC_TIMEOUTRET);
          /* resend secondary tx */
-         ecx_outframe(port,idx,1);
+         ecx_outframe(port, idx, 1);
          do
          {
             /* retrieve frame */
@@ -650,13 +657,13 @@ int ecx_waitinframe(ecx_portt *port, uint8 idx, int timeout)
       /* Allow us to consume MAX buffer number of frames */
       do
       {
-         wkc  = ecx_inframe(port, idx, 0);
+         wkc = ecx_inframe(port, idx, 0);
          loop_cnt++;
       } while (wkc <= EC_NOFRAME && (loop_cnt <= EC_MAXBUF));
    }
    else
    {
-      osal_timer_start (&timer, timeout);
+      osal_timer_start(&timer, timeout);
       wkc = ecx_waitinframe_red(port, idx, &timer);
    }
 
@@ -679,7 +686,7 @@ int ecx_srconfirm(ecx_portt *port, uint8 idx, int timeout)
    int wkc = EC_NOFRAME;
    osal_timert timer1;
 
-   osal_timer_start (&timer1, timeout);
+   osal_timer_start(&timer1, timeout);
    /* tx frame on primary and if in redundant mode a dummy on secondary */
    ecx_outframe_red(port, idx);
    wkc = ecx_waitinframe_red(port, idx, &timer1);

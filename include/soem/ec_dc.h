@@ -13,8 +13,7 @@
 #define _EC_ECATDC_H
 
 #ifdef __cplusplus
-extern "C"
-{
+extern "C" {
 #endif
 
 boolean ecx_configdc(ecx_contextt *context);

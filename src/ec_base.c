@@ -26,27 +26,27 @@
  * @param[in]  length         = length of databuffer
  * @param[in]  data           = databuffer to be copied into datagram
  */
-static void ecx_writedatagramdata(void *datagramdata, ec_cmdtype com, uint16 length, const void * data)
+static void ecx_writedatagramdata(void *datagramdata, ec_cmdtype com, uint16 length, const void *data)
 {
    if (length > 0)
    {
       switch (com)
       {
-         case EC_CMD_NOP:
-            /* Fall-through */
-         case EC_CMD_APRD:
-            /* Fall-through */
-         case EC_CMD_FPRD:
-            /* Fall-through */
-         case EC_CMD_BRD:
-            /* Fall-through */
-         case EC_CMD_LRD:
-            /* no data to write. initialise data so frame is in a known state */
-            memset(datagramdata, 0, length);
-            break;
-         default:
-            memcpy(datagramdata, data, length);
-            break;
+      case EC_CMD_NOP:
+         /* Fall-through */
+      case EC_CMD_APRD:
+         /* Fall-through */
+      case EC_CMD_FPRD:
+         /* Fall-through */
+      case EC_CMD_BRD:
+         /* Fall-through */
+      case EC_CMD_LRD:
+         /* no data to write. initialise data so frame is in a known state */
+         memset(datagramdata, 0, length);
+         break;
+      default:
+         memcpy(datagramdata, data, length);
+         break;
       }
    }
 }
@@ -71,7 +71,7 @@ int ecx_setupdatagram(ecx_portt *port, void *frame, uint8 com, uint8 idx, uint16
    frameP = frame;
    /* Ethernet header is preset and fixed in frame buffers
       EtherCAT header needs to be added after that */
-   datagramP = (ec_comt*)&frameP[ETH_HEADERSIZE];
+   datagramP = (ec_comt *)&frameP[ETH_HEADERSIZE];
    datagramP->elength = htoes(EC_ECATTYPE + EC_HEADERSIZE + length);
    datagramP->command = com;
    datagramP->index = idx;
@@ -110,13 +110,13 @@ uint16 ecx_adddatagram(ecx_portt *port, void *frame, uint8 com, uint8 idx, boole
    frameP = frame;
    /* copy previous frame size */
    prevlength = (uint16)port->txbuflength[idx];
-   datagramP = (ec_comt*)&frameP[ETH_HEADERSIZE];
+   datagramP = (ec_comt *)&frameP[ETH_HEADERSIZE];
    /* add new datagram to ethernet frame size */
-   datagramP->elength = htoes( etohs(datagramP->elength) + EC_HEADERSIZE + length );
+   datagramP->elength = htoes(etohs(datagramP->elength) + EC_HEADERSIZE + length);
    /* add "datagram follows" flag to previous subframe dlength */
-   datagramP->dlength = htoes( etohs(datagramP->dlength) | EC_DATAGRAMFOLLOWS );
+   datagramP->dlength = htoes(etohs(datagramP->dlength) | EC_DATAGRAMFOLLOWS);
    /* set new EtherCAT header position */
-   datagramP = (ec_comt*)&frameP[prevlength - EC_ELENGTHSIZE];
+   datagramP = (ec_comt *)&frameP[prevlength - EC_ELENGTHSIZE];
    datagramP->command = com;
    datagramP->index = idx;
    datagramP->ADP = htoes(ADP);
@@ -153,19 +153,19 @@ uint16 ecx_adddatagram(ecx_portt *port, void *frame, uint8 com, uint8 idx, boole
  * @param[in] timeout     = timeout in us, standard is EC_TIMEOUTRET
  * @return Workcounter or EC_NOFRAME
  */
-int ecx_BWR (ecx_portt *port, uint16 ADP, uint16 ADO, uint16 length, void *data, int timeout)
+int ecx_BWR(ecx_portt *port, uint16 ADP, uint16 ADO, uint16 length, void *data, int timeout)
 {
    uint8 idx;
    int wkc;
 
    /* get fresh index */
-   idx = ecx_getindex (port);
+   idx = ecx_getindex(port);
    /* setup datagram */
-   ecx_setupdatagram (port, &(port->txbuf[idx]), EC_CMD_BWR, idx, ADP, ADO, length, data);
+   ecx_setupdatagram(port, &(port->txbuf[idx]), EC_CMD_BWR, idx, ADP, ADO, length, data);
    /* send data and wait for answer */
-   wkc = ecx_srconfirm (port, idx, timeout);
+   wkc = ecx_srconfirm(port, idx, timeout);
    /* clear buffer status */
-   ecx_setbufstat (port, idx, EC_BUF_EMPTY);
+   ecx_setbufstat(port, idx, EC_BUF_EMPTY);
 
    return wkc;
 }
@@ -190,7 +190,7 @@ int ecx_BRD(ecx_portt *port, uint16 ADP, uint16 ADO, uint16 length, void *data, 
    /* setup datagram */
    ecx_setupdatagram(port, &(port->txbuf[idx]), EC_CMD_BRD, idx, ADP, ADO, length, data);
    /* send data and wait for answer */
-   wkc = ecx_srconfirm (port, idx, timeout);
+   wkc = ecx_srconfirm(port, idx, timeout);
    if (wkc > 0)
    {
       /* copy datagram to data buffer */
@@ -464,7 +464,7 @@ int ecx_LRD(ecx_portt *port, uint32 LogAdr, uint16 length, void *data, int timeo
    idx = ecx_getindex(port);
    ecx_setupdatagram(port, &(port->txbuf[idx]), EC_CMD_LRD, idx, LO_WORD(LogAdr), HI_WORD(LogAdr), length, data);
    wkc = ecx_srconfirm(port, idx, timeout);
-   if ((wkc > 0) && (port->rxbuf[idx][EC_CMDOFFSET]==EC_CMD_LRD))
+   if ((wkc > 0) && (port->rxbuf[idx][EC_CMDOFFSET] == EC_CMD_LRD))
    {
       memcpy(data, &(port->rxbuf[idx][EC_HEADERSIZE]), length);
    }

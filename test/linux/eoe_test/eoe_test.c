@@ -1,6 +1,6 @@
 /** \file
  * \brief Example code for Simple Open EtherCAT master EoE
- * 
+ *
  * This example will run the follwing EoE functions
  * SetIP
  * GetIP
@@ -8,10 +8,10 @@
  * Loop
  *    Send fragment data (Layer 2 0x88A4)
  *    Receive fragment data (Layer 2 0x88A4)
- * 
+ *
  * For this to work, a special slave test code is running that
  * will bounce the sent 0x88A4 back to receive.
- * 
+ *
  * Usage : eoe_test [ifname1]
  * ifname is NIC interface, f.e. eth0
  *
@@ -51,26 +51,26 @@ uint8 rxbuf[1024];
 int size_of_rx = sizeof(rxbuf);
 
 /** registered EoE hook */
-int eoe_hook(ecx_contextt * context, uint16 slave, void * eoembx)
+int eoe_hook(ecx_contextt *context, uint16 slave, void *eoembx)
 {
    int wkc;
    /* Pass received Mbx data to EoE recevive fragment function that
-   * that will start/continue fill an Ethernet frame buffer
-   */
+    * that will start/continue fill an Ethernet frame buffer
+    */
    size_of_rx = sizeof(rxbuf);
    wkc = ecx_EOEreadfragment(eoembx,
-      &rxfragmentno,
-      &rxframesize,
-      &rxframeoffset,
-      &rxframeno,
-      &size_of_rx,
-      rxbuf);
+                             &rxfragmentno,
+                             &rxframesize,
+                             &rxframeoffset,
+                             &rxframeno,
+                             &size_of_rx,
+                             rxbuf);
 
    printf("Read frameno %d, fragmentno %d\n", rxframeno, rxfragmentno);
 
    /* wkc == 1 would mean a frame is complete , last fragment flag have been set and all
-   * other checks must have past
-   */
+    * other checks must have past
+    */
    if (wkc > 0)
    {
       ec_etherheadert *bp = (ec_etherheadert *)rxbuf;
@@ -119,7 +119,7 @@ OSAL_THREAD_FUNC mailbox_reader(void *lpParam)
    ecx_contextt *context = (ecx_contextt *)lpParam;
    int wkc;
    ec_mbxbuft MbxIn;
-   ec_mbxheadert * MbxHdr = (ec_mbxheadert *)MbxIn;
+   ec_mbxheadert *MbxHdr = (ec_mbxheadert *)MbxIn;
 
    int ixme;
    ec_setupheader(&txbuf);
@@ -128,9 +128,9 @@ OSAL_THREAD_FUNC mailbox_reader(void *lpParam)
       txbuf[ixme] = (uint8)rand();
    }
    /* Send a made up frame to trigger a fragmented transfer
-   * Used with a special bound impelmentaion of SOES. Will
-   * trigger a fragmented transfer back of the same frame.
-   */
+    * Used with a special bound impelmentaion of SOES. Will
+    * trigger a fragmented transfer back of the same frame.
+    */
    ecx_EOEsend(context, 1, 0, sizeof(txbuf), txbuf, EC_TIMEOUTRXM);
 
    for (;;)
@@ -145,7 +145,7 @@ OSAL_THREAD_FUNC mailbox_reader(void *lpParam)
    }
 }
 
-void test_eoe(ecx_contextt * context)
+void test_eoe(ecx_contextt *context)
 {
    /* Set the HOOK */
    ecx_EOEdefinehook(context, eoe_hook);
@@ -161,7 +161,7 @@ void test_eoe(ecx_contextt * context)
    EOE_IP4_ADDR_TO_U32(&ipsettings.ip, 192, 168, 9, 200);
    EOE_IP4_ADDR_TO_U32(&ipsettings.subnet, 255, 255, 255, 0);
    EOE_IP4_ADDR_TO_U32(&ipsettings.default_gateway, 0, 0, 0, 0);
-   
+
    /* Send a set IP request */
    ecx_EOEsetIp(context, 1, 0, &ipsettings, EC_TIMEOUTRXM);
 
@@ -169,23 +169,23 @@ void test_eoe(ecx_contextt * context)
    ecx_EOEgetIp(context, 1, 0, &re_ipsettings, EC_TIMEOUTRXM);
 
    /* Trigger an MBX read request, to be replaced by slave Mbx
-   * full notification via polling of FMMU status process data
-   */
+    * full notification via polling of FMMU status process data
+    */
    printf("recieved IP (%d.%d.%d.%d)\n",
-      eoe_ip4_addr1(&re_ipsettings.ip),
-      eoe_ip4_addr2(&re_ipsettings.ip),
-      eoe_ip4_addr3(&re_ipsettings.ip),
-      eoe_ip4_addr4(&re_ipsettings.ip));
+          eoe_ip4_addr1(&re_ipsettings.ip),
+          eoe_ip4_addr2(&re_ipsettings.ip),
+          eoe_ip4_addr3(&re_ipsettings.ip),
+          eoe_ip4_addr4(&re_ipsettings.ip));
    printf("recieved subnet (%d.%d.%d.%d)\n",
-      eoe_ip4_addr1(&re_ipsettings.subnet),
-      eoe_ip4_addr2(&re_ipsettings.subnet),
-      eoe_ip4_addr3(&re_ipsettings.subnet),
-      eoe_ip4_addr4(&re_ipsettings.subnet));
+          eoe_ip4_addr1(&re_ipsettings.subnet),
+          eoe_ip4_addr2(&re_ipsettings.subnet),
+          eoe_ip4_addr3(&re_ipsettings.subnet),
+          eoe_ip4_addr4(&re_ipsettings.subnet));
    printf("recieved gateway (%d.%d.%d.%d)\n",
-      eoe_ip4_addr1(&re_ipsettings.default_gateway),
-      eoe_ip4_addr2(&re_ipsettings.default_gateway),
-      eoe_ip4_addr3(&re_ipsettings.default_gateway),
-      eoe_ip4_addr4(&re_ipsettings.default_gateway));
+          eoe_ip4_addr1(&re_ipsettings.default_gateway),
+          eoe_ip4_addr2(&re_ipsettings.default_gateway),
+          eoe_ip4_addr3(&re_ipsettings.default_gateway),
+          eoe_ip4_addr4(&re_ipsettings.default_gateway));
 
    /* Create a asyncronous EoE reader */
    osal_thread_create(&thread2, 128000, &mailbox_reader, &ecx_context);
@@ -202,11 +202,11 @@ void teststarter(char *ifname)
    /* initialise SOEM, bind socket to ifname */
    if (ec_init(ifname))
    {
-      printf("ec_init on %s succeeded.\n",ifname);
+      printf("ec_init on %s succeeded.\n", ifname);
       /* find and auto-config slaves */
-      if ( ec_config_init(FALSE) > 0 )
+      if (ec_config_init(FALSE) > 0)
       {
-         printf("%d slaves found and configured.\n",ec_slavecount);
+         printf("%d slaves found and configured.\n", ec_slavecount);
 
          ec_config_map(&IOmap);
 
@@ -214,7 +214,7 @@ void teststarter(char *ifname)
 
          printf("Slaves mapped, state to SAFE_OP.\n");
          /* wait for all slaves to reach SAFE_OP state */
-         ec_statecheck(0, EC_STATE_SAFE_OP,  EC_TIMEOUTSTATE * 4);
+         ec_statecheck(0, EC_STATE_SAFE_OP, EC_TIMEOUTSTATE * 4);
 
          oloop = ec_slave[0].Obytes;
          if ((oloop == 0) && (ec_slave[0].Obits > 0)) oloop = 1;
@@ -223,7 +223,7 @@ void teststarter(char *ifname)
          if ((iloop == 0) && (ec_slave[0].Ibits > 0)) iloop = 1;
          if (iloop > 8) iloop = 8;
 
-         printf("segments : %d : %d %d %d %d\n",ec_group[0].nsegments ,ec_group[0].IOsegment[0],ec_group[0].IOsegment[1],ec_group[0].IOsegment[2],ec_group[0].IOsegment[3]);
+         printf("segments : %d : %d %d %d %d\n", ec_group[0].nsegments, ec_group[0].IOsegment[0], ec_group[0].IOsegment[1], ec_group[0].IOsegment[2], ec_group[0].IOsegment[3]);
 
          printf("Request operational state for all slaves\n");
          expectedWKC = (ec_group[0].outputsWKC * 2) + ec_group[0].inputsWKC;
@@ -235,7 +235,7 @@ void teststarter(char *ifname)
 
          /* Simple EoE test */
          test_eoe(&ecx_context);
-   
+
          /* request OP state for all slaves */
          ec_writestate(0);
          chk = 200;
@@ -245,33 +245,32 @@ void teststarter(char *ifname)
             ec_send_processdata();
             ec_receive_processdata(EC_TIMEOUTRET);
             ec_statecheck(0, EC_STATE_OPERATIONAL, 50000);
-         }
-         while (chk-- && (ec_slave[0].state != EC_STATE_OPERATIONAL));
-         if (ec_slave[0].state == EC_STATE_OPERATIONAL )
+         } while (chk-- && (ec_slave[0].state != EC_STATE_OPERATIONAL));
+         if (ec_slave[0].state == EC_STATE_OPERATIONAL)
          {
             printf("Operational state reached for all slaves.\n");
             globalwkc = expectedWKC;
             inOP = TRUE;
             /* cyclic loop */
-            for(i = 1; i <= 10000; i++)
+            for (i = 1; i <= 10000; i++)
             {
                ec_send_processdata();
                globalwkc = ec_receive_processdata(EC_TIMEOUTRET * 5);
 #if PRINT_EOE_INFO_INSTEAD
                int j;
-               if(globalwkc >= expectedWKC)
+               if (globalwkc >= expectedWKC)
                {
                   printf("Processdata cycle %4d, WKC %d , O:", i, globalwkc);
-                  for(j = 0 ; j < oloop; j++)
+                  for (j = 0; j < oloop; j++)
                   {
                      printf(" %2.2x", *(ec_slave[0].outputs + j));
                   }
                   printf(" I:");
-                  for(j = 0 ; j < iloop; j++)
+                  for (j = 0; j < iloop; j++)
                   {
                      printf(" %2.2x", *(ec_slave[0].inputs + j));
                   }
-                  printf(" T:%"PRId64"\r",ec_DCtime);
+                  printf(" T:%" PRId64 "\r", ec_DCtime);
                   needlf = TRUE;
                }
 #endif
@@ -283,12 +282,12 @@ void teststarter(char *ifname)
          {
             printf("Not all slaves reached operational state.\n");
             ec_readstate();
-            for(i = 1; i<=ec_slavecount ; i++)
+            for (i = 1; i <= ec_slavecount; i++)
             {
-               if(ec_slave[i].state != EC_STATE_OPERATIONAL)
+               if (ec_slave[i].state != EC_STATE_OPERATIONAL)
                {
                   printf("Slave %d State=0x%2.2x StatusCode=0x%4.4x : %s\n",
-                        i, ec_slave[i].state, ec_slave[i].ALstatuscode, ec_ALstatuscode2string(ec_slave[i].ALstatuscode));
+                         i, ec_slave[i].state, ec_slave[i].ALstatuscode, ec_ALstatuscode2string(ec_slave[i].ALstatuscode));
                }
             }
          }
@@ -307,18 +306,18 @@ void teststarter(char *ifname)
    }
    else
    {
-      printf("No socket connection on %s\nExcecute as root\n",ifname);
+      printf("No socket connection on %s\nExcecute as root\n", ifname);
    }
 }
 
-OSAL_THREAD_FUNC ecatcheck( void *ptr )
+OSAL_THREAD_FUNC ecatcheck(void *ptr)
 {
    int slave;
-   (void)ptr;                  /* Not used */
+   (void)ptr; /* Not used */
 
-   while(1)
+   while (1)
    {
-      if( inOP && ((globalwkc < expectedWKC) || ec_group[currentgroup].docheckstate))
+      if (inOP && ((globalwkc < expectedWKC) || ec_group[currentgroup].docheckstate))
       {
          if (globalwkc < expectedWKC)
          {
@@ -348,49 +347,49 @@ OSAL_THREAD_FUNC ecatcheck( void *ptr )
                   ec_slave[slave].state = (EC_STATE_SAFE_OP + EC_STATE_ACK);
                   ec_writestate(slave);
                }
-               else if(ec_slave[slave].state == EC_STATE_SAFE_OP)
+               else if (ec_slave[slave].state == EC_STATE_SAFE_OP)
                {
                   printf("WARNING : slave %d is in SAFE_OP, change to OPERATIONAL.\n", slave);
                   ec_slave[slave].state = EC_STATE_OPERATIONAL;
                   ec_writestate(slave);
                }
-               else if(ec_slave[slave].state > EC_STATE_NONE)
+               else if (ec_slave[slave].state > EC_STATE_NONE)
                {
                   if (ec_reconfig_slave(slave, EC_TIMEOUTMON))
                   {
                      ec_slave[slave].islost = FALSE;
-                     printf("MESSAGE : slave %d reconfigured\n",slave);
+                     printf("MESSAGE : slave %d reconfigured\n", slave);
                   }
                }
-               else if(!ec_slave[slave].islost)
+               else if (!ec_slave[slave].islost)
                {
                   /* re-check state */
                   ec_statecheck(slave, EC_STATE_OPERATIONAL, EC_TIMEOUTRET);
                   if (ec_slave[slave].state == EC_STATE_NONE)
                   {
                      ec_slave[slave].islost = TRUE;
-                     printf("ERROR : slave %d lost\n",slave);
+                     printf("ERROR : slave %d lost\n", slave);
                   }
                }
             }
             if (ec_slave[slave].islost)
             {
-               if(ec_slave[slave].state == EC_STATE_NONE)
+               if (ec_slave[slave].state == EC_STATE_NONE)
                {
                   if (ec_recover_slave(slave, EC_TIMEOUTMON))
                   {
                      ec_slave[slave].islost = FALSE;
-                     printf("MESSAGE : slave %d recovered\n",slave);
+                     printf("MESSAGE : slave %d recovered\n", slave);
                   }
                }
                else
                {
                   ec_slave[slave].islost = FALSE;
-                  printf("MESSAGE : slave %d found\n",slave);
+                  printf("MESSAGE : slave %d found\n", slave);
                }
             }
          }
-         if(!ec_group[currentgroup].docheckstate)
+         if (!ec_group[currentgroup].docheckstate)
             printf("OK : all slaves resumed OPERATIONAL.\n");
       }
       osal_usleep(10000);

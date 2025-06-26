@@ -599,7 +599,7 @@ int ecx_send_processdata_group(ecx_contextt *context, uint8 group);
 ec_mbxbuft *ecx_getmbx(ecx_contextt *context);
 int ecx_dropmbx(ecx_contextt *context, ec_mbxbuft *mbx);
 int ecx_initmbxpool(ecx_contextt *context);
-int ecx_initmbxqueue(ecx_contextt *context, uint16 group);
+int ecx_initmbxqueue(ecx_contextt *context, uint8 group);
 int ecx_slavembxcyclic(ecx_contextt *context, uint16 slave);
 
 #ifdef __cplusplus

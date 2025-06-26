@@ -333,7 +333,7 @@ int ecx_initmbxpool(ecx_contextt *context)
  * @param[in]  group          = group number
  * @return 0 on success.
  */
-int ecx_initmbxqueue(ecx_contextt *context, uint16 group)
+int ecx_initmbxqueue(ecx_contextt *context, uint8 group)
 {
    int retval = 0;
    int cnt;
@@ -435,7 +435,7 @@ int ecx_mbxexpirequeue(ecx_contextt *context, uint16 slave, int ticket)
  * @param[in]  ticketloc      = Ticket location in the queue
  * @return 1 on success, 0 if rotation is not possible.
  */
-int ecx_mbxrotatequeue(ecx_contextt *context, uint16 group, int ticketloc)
+int ecx_mbxrotatequeue(ecx_contextt *context, uint8 group, int ticketloc)
 {
    int retval = 0;
    int cnt = 0;
@@ -493,7 +493,7 @@ int ecx_slavembxcyclic(ecx_contextt *context, uint16 slave)
  * @param[in]  ticketloc      = Ticket location in the queue
  * @return Pointer to the dropped mailbox
  */
-ec_mbxbuft *ecx_mbxdropqueue(ecx_contextt *context, uint16 group, int ticketloc)
+ec_mbxbuft *ecx_mbxdropqueue(ecx_contextt *context, uint8 group, int ticketloc)
 {
    ec_mbxbuft *mbx;
    ec_mbxqueuet *mbxqueue = &(context->grouplist[group].mbxtxqueue);

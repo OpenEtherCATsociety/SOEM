@@ -58,9 +58,9 @@ enum
  * differentiate the route the packet traverses through the EtherCAT
  * segment. This is needed to find out the packet flow in redundant
  * configurations. */
-const uint16 priMAC[3] = {0x0101, 0x0101, 0x0101};
+const uint16 priMAC[3] = EC_PRIMARY_MAC_ARRAY;
 /** Secondary source MAC address used for EtherCAT. */
-const uint16 secMAC[3] = {0x0404, 0x0404, 0x0404};
+const uint16 secMAC[3] = EC_SECONDARY_MAC_ARRAY;
 
 /** second MAC word is used for identification */
 #define RX_PRIM priMAC[1]
@@ -376,14 +376,25 @@ int ecx_inframe(ecx_portt *port, uint8 idx, int stacknumber)
    else
    {
       mtx_lock(port->rx_mutex);
+      /* check again if requested index is already in buffer ?
+       * other task might have reveived it befor we grabbed mutex */
+      if ((idx < EC_MAXBUF) && ((*stack->rxbufstat)[idx] == EC_BUF_RCVD))
+      {
+         l = (*rxbuf)[0] + ((uint16)((*rxbuf)[1] & 0x0f) << 8);
+         /* return WKC */
+         rval = ((*rxbuf)[l] + ((uint16)(*rxbuf)[l + 1] << 8));
+         /* mark as completed */
+         (*stack->rxbufstat)[idx] = EC_BUF_COMPLETE;
+      }
       /* non blocking call to retrieve frame from socket */
-      if (ecx_recvpkt(port, stacknumber))
+      else if (ecx_recvpkt(port, stacknumber))
       {
          rval = EC_OTHERFRAME;
          ehp = (ec_etherheadert *)(stack->tempbuf);
          /* check if it is an EtherCAT frame */
          if (ehp->etype == oshw_htons(ETH_P_ECAT))
          {
+            stack->rxcnt++;
             ecp = (ec_comt *)(&(*stack->tempbuf)[ETH_HEADERSIZE]);
             l = etohs(ecp->elength) & 0x0fff;
             idxf = ecp->index;

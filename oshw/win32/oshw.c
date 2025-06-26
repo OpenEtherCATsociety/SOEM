@@ -39,7 +39,7 @@ ec_adaptert *oshw_find_adapters(void)
    pcap_if_t *alldevs;
    pcap_if_t *d;
    ec_adaptert *adapter;
-   ec_adaptert *prev_adapter;
+   ec_adaptert *prev_adapter = NULL;
    ec_adaptert *ret_adapter = NULL;
    char errbuf[PCAP_ERRBUF_SIZE];
 

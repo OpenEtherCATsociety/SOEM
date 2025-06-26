@@ -31,8 +31,6 @@
  * This layer is fully transparent for the higher layers.
  */
 
-#ifdef WIN32
-
 #include <sys/types.h>
 #include <fcntl.h>
 #include <string.h>
@@ -41,8 +39,6 @@
 #include "soem/soem.h"
 #include "nicdrv.h"
 #include "osal_win32.h"
-
-#endif
 
 /** Redundancy modes */
 enum
@@ -398,14 +394,25 @@ int ecx_inframe(ecx_portt *port, uint8 idx, int stacknumber)
    else
    {
       EnterCriticalSection(&(port->rx_mutex));
+      /* check again if requested index is already in buffer ?
+       * other task might have reveived it befor we grabbed mutex */
+      if ((idx < EC_MAXBUF) && ((*stack->rxbufstat)[idx] == EC_BUF_RCVD))
+      {
+         l = (*rxbuf)[0] + ((uint16)((*rxbuf)[1] & 0x0f) << 8);
+         /* return WKC */
+         rval = ((*rxbuf)[l] + ((uint16)(*rxbuf)[l + 1] << 8));
+         /* mark as completed */
+         (*stack->rxbufstat)[idx] = EC_BUF_COMPLETE;
+      }
       /* non blocking call to retrieve frame from socket */
-      if (ecx_recvpkt(port, stacknumber))
+      else if (ecx_recvpkt(port, stacknumber))
       {
          rval = EC_OTHERFRAME;
          ehp = (ec_etherheadert *)(stack->tempbuf);
          /* check if it is an EtherCAT frame */
          if (ehp->etype == htons(ETH_P_ECAT))
          {
+            stack->rxcnt++;
             ecp = (ec_comt *)(&(*stack->tempbuf)[ETH_HEADERSIZE]);
             l = etohs(ecp->elength) & 0x0fff;
             idxf = ecp->index;
@@ -455,7 +462,7 @@ int ecx_inframe(ecx_portt *port, uint8 idx, int stacknumber)
  *
  * @param[in] port        = port context struct
  * @param[in] idx = requested index of frame
- * @param[in] tvs = timeout
+ * @param[in] timer = absolute timeout time
  * @return Workcounter if a frame is found with corresponding index, otherwise
  * EC_NOFRAME.
  */

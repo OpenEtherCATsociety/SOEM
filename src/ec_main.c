@@ -259,6 +259,11 @@ void ecx_close(ecx_contextt *context)
    ecx_closenic(context->port);
 }
 
+/**
+ * Get a mailbox from the mailbox pool.
+ * @param[in]  context   = context struct
+ * @return Pointer to the mailbox if available, otherwise NULL.
+ */
 ec_mbxbuft *ecx_getmbx(ecx_contextt *context)
 {
    ec_mbxbuft *mbx = NULL;
@@ -276,6 +281,11 @@ ec_mbxbuft *ecx_getmbx(ecx_contextt *context)
    return mbx;
 }
 
+/** Drop a mailbox back to the mailbox pool.
+ * @param[in]  context   = context struct
+ * @param[in]  mbx       = Pointer to mailbox to be dropped
+ * @return 1 on success, 0 if the mailbox is invalid.
+ */
 int ecx_dropmbx(ecx_contextt *context, ec_mbxbuft *mbx)
 {
    ec_mbxpoolt *mbxpool = context->mbxpool;
@@ -293,6 +303,15 @@ int ecx_dropmbx(ecx_contextt *context, ec_mbxbuft *mbx)
    return 0;
 }
 
+/**
+ * Initialize the mailbox pool.
+ *
+ * Sets up the mailbox pool mutex and initializes the empty list with
+ * all available mailboxes.
+ *
+ * @param[in] context        = context struct
+ * @return 0 on success.
+ */
 int ecx_initmbxpool(ecx_contextt *context)
 {
    int retval = 0;
@@ -309,6 +328,11 @@ int ecx_initmbxpool(ecx_contextt *context)
    return retval;
 }
 
+/** Initialize mailbox queue.
+ * @param[in]  context        = context struct
+ * @param[in]  group          = group number
+ * @return 0 on success.
+ */
 int ecx_initmbxqueue(ecx_contextt *context, uint16 group)
 {
    int retval = 0;
@@ -323,6 +347,12 @@ int ecx_initmbxqueue(ecx_contextt *context, uint16 group)
    return retval;
 }
 
+/** Add a mailbox to the queue for a specific slave.
+ * @param[in]  context        = context struct
+ * @param[in]  slave          = Slave number
+ * @param[in]  mbx            = Pointer to mailbox
+ * @return Ticket number of the added mailbox, or -1 on failure.
+ */
 int ecx_mbxaddqueue(ecx_contextt *context, uint16 slave, ec_mbxbuft *mbx)
 {
    int ticketloc;
@@ -349,6 +379,12 @@ int ecx_mbxaddqueue(ecx_contextt *context, uint16 slave, ec_mbxbuft *mbx)
    return ticket;
 }
 
+/** Mark a mailbox in the queue as done.
+ * @param[in]  context        = context struct
+ * @param[in]  slave          = Slave number
+ * @param[in]  ticket         = Ticket number of the mailbox
+ * @return 1 on success, 0 if the ticket is invalid or not done.
+ */
 int ecx_mbxdonequeue(ecx_contextt *context, uint16 slave, int ticket)
 {
    int retval = 0;
@@ -368,6 +404,12 @@ int ecx_mbxdonequeue(ecx_contextt *context, uint16 slave, int ticket)
    return retval;
 }
 
+/** Expire a mailbox in the queue.
+ * @param[in]  context        = context struct
+ * @param[in]  slave          = Slave number
+ * @param[in]  ticket         = Ticket number of the mailbox
+ * @return 1 on success, 0 if the ticket is invalid or not expired.
+ */
 int ecx_mbxexpirequeue(ecx_contextt *context, uint16 slave, int ticket)
 {
    int retval = 0;
@@ -387,6 +429,12 @@ int ecx_mbxexpirequeue(ecx_contextt *context, uint16 slave, int ticket)
    return retval;
 }
 
+/** Rotate a mailbox in the queue.
+ * @param[in]  context        = context struct
+ * @param[in]  group          = Group number
+ * @param[in]  ticketloc      = Ticket location in the queue
+ * @return 1 on success, 0 if rotation is not possible.
+ */
 int ecx_mbxrotatequeue(ecx_contextt *context, uint16 group, int ticketloc)
 {
    int retval = 0;
@@ -423,6 +471,11 @@ int ecx_mbxrotatequeue(ecx_contextt *context, uint16 group, int ticketloc)
    return retval;
 }
 
+/** Set a slave's mailbox to be cyclic.
+ * @param[in]  context        = context struct
+ * @param[in]  slave          = Slave number
+ * @return 1 if the mailbox was set to cyclic, 0 if it cannot be set.
+ */
 int ecx_slavembxcyclic(ecx_contextt *context, uint16 slave)
 {
    if (context->slavelist[slave].mbxstatus)
@@ -434,6 +487,12 @@ int ecx_slavembxcyclic(ecx_contextt *context, uint16 slave)
    return 0;
 }
 
+/** Drop a mailbox from the queue.
+ * @param[in]  context        = context struct
+ * @param[in]  group          = Group number
+ * @param[in]  ticketloc      = Ticket location in the queue
+ * @return Pointer to the dropped mailbox
+ */
 ec_mbxbuft *ecx_mbxdropqueue(ecx_contextt *context, uint16 group, int ticketloc)
 {
    ec_mbxbuft *mbx;
@@ -1057,6 +1116,11 @@ void ec_clearmbx(ec_mbxbuft *Mbx)
       memset(Mbx, 0x00, EC_MAXMBX);
 }
 
+/** Clear mailbox status for a specific group.
+ * @param[in]  context = context struct
+ * @param[in] group   = Group number
+ * @return 1 if successfully cleared, 0 otherwise
+ */
 int ecx_clearmbxstatus(ecx_contextt *context, uint8 group)
 {
    if (context->grouplist[group].mbxstatus && context->grouplist[group].mbxstatuslength)
@@ -1067,6 +1131,14 @@ int ecx_clearmbxstatus(ecx_contextt *context, uint8 group)
    return 0;
 }
 
+/**
+ * Read mailbox status from slave.
+ *
+ * @param[in]  context  = context struct
+ * @param[in]  slave    = Slave number
+ * @param[out] SMstat   = Pointer to store mailbox status
+ * @return Workcounter or EC_NOFRAME
+ */
 int ecx_readmbxstatus(ecx_contextt *context, uint16 slave, uint8 *SMstat)
 {
    int wkc = 0;
@@ -1083,6 +1155,13 @@ int ecx_readmbxstatus(ecx_contextt *context, uint16 slave, uint8 *SMstat)
    return wkc;
 }
 
+/**
+ * Read extended mailbox status for a specified slave.
+ * @param[in]  context        = context struct
+ * @param[in]  slave          = Slave number
+ * @param[out] SMstatex       = Pointer to store extended mailbox status
+ * @return Workcounter from slave response
+ */
 int ecx_readmbxstatusex(ecx_contextt *context, uint16 slave, uint16 *SMstatex)
 {
    uint16 hu16;
@@ -1126,6 +1205,21 @@ int ecx_mbxempty(ecx_contextt *context, uint16 slave, int timeout)
    return 0;
 }
 
+/**
+ * Handles incoming mailbox messages for a specified group.
+ *
+ * This function processes mailbox messages for the given group. It
+ * checks if slaves have messages in their mailboxes and handles them
+ * according to their type (CoE, SoE, EoE, etc.).  Also manages the
+ * robust mailbox protocol state machine for error handling. It keeps
+ * track of a work limit to prevent excessive processing in a single
+ * call.
+ *
+ * @param[in]  context  = context struct
+ * @param[in]  group    = group number
+ * @param[in]  limit    = maximum number of mailbox operations to process
+ * @return Number of mailbox operations processed
+ */
 int ecx_mbxinhandler(ecx_contextt *context, uint8 group, int limit)
 {
    int cnt, cntoffset, wkc, wkc2, limitcnt;
@@ -1332,6 +1426,18 @@ int ecx_mbxinhandler(ecx_contextt *context, uint8 group, int limit)
    return limitcnt;
 }
 
+/**
+ * Handles outgoing mailbox messages for a specified group.
+ *
+ * This function processes outgoing mailbox messages for the given group,
+ * checking the state of each message in the queue and sending appropriate
+ * requests to the slaves. It supports retrying for failed requests.
+ *
+ * @param[in] context = context struct
+ * @param[in] group   = group number
+ * @param[in] limit   = maximum number of mailboxes to process
+ * @return Number of processed mailboxes
+ */
 int ecx_mbxouthandler(ecx_contextt *context, uint8 group, int limit)
 {
    int wkc;
@@ -1386,12 +1492,25 @@ int ecx_mbxouthandler(ecx_contextt *context, uint8 group, int limit)
    return limitcnt;
 }
 
+/**
+ * Combined handler for both incoming and outgoing mailbox messages.
+ *
+ * This function processes both incoming and outgoing mailbox messages
+ * for the specified group, dividing the processing limit between them.
+ * It first handles incoming messages and then uses the remaining limit
+ * for outgoing messages.
+ *
+ * @param[in] context Pointer to the context structure.
+ * @param[in] group Group number.
+ * @param[in] limit The maximum number of mailboxes to process.
+ *
+ * @return count of processed outgoing mailboxes.
+ */
 int ecx_mbxhandler(ecx_contextt *context, uint8 group, int limit)
 {
    int limitcnt;
    limitcnt = ecx_mbxinhandler(context, group, limit);
    return ecx_mbxouthandler(context, group, (limit - limitcnt));
-   // return limitcnt;
 }
 
 /** Write IN mailbox to slave.
@@ -2579,16 +2698,35 @@ int ecx_receive_processdata_group(ecx_contextt *context, uint8 group, int timeou
    return wkc;
 }
 
+/**
+ * Send processdata to slaves.
+ * Group number is zero (default).
+ * @param[in]  context        = context struct
+ * @return Work counter.
+ */
 int ecx_send_processdata(ecx_contextt *context)
 {
    return ecx_send_processdata_group(context, 0);
 }
 
+/**
+ * Send overlap processdata to slaves.
+ * Group number is zero (default).
+ * @param[in]  context        = context struct
+ * @return Work counter.
+ */
 int ecx_send_overlap_processdata(ecx_contextt *context)
 {
    return ecx_send_overlap_processdata_group(context, 0);
 }
 
+/**
+ * Receive processdata from slaves.
+ * Group number is zero (default).
+ * @param[in]  context        = context struct
+ * @param[in]  timeout        = Timeout in us.
+ * @return Work counter.
+ */
 int ecx_receive_processdata(ecx_contextt *context, int timeout)
 {
    return ecx_receive_processdata_group(context, 0, timeout);

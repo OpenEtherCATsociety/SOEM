@@ -217,7 +217,7 @@ int ecx_FOEwrite(ecx_contextt *context, uint16 slave, char *filename, uint32 pas
    int wkc;
    int32 packetnumber, sendpacket = 0;
    uint16 fnsize, maxdata;
-   int segmentdata;
+   int segmentdata = 0;
    ec_mbxbuft *MbxIn, *MbxOut;
    uint8 cnt;
    boolean worktodo, dofinalzero;

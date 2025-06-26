@@ -1,0 +1,15 @@
+# This file contains a list of commits that are not likely what you
+# are looking for in a blame, such as mass reformatting or renaming.
+# You can set this file as a default ignore file for blame by running
+# the following command.
+#
+# $ git config blame.ignoreRevsFile .git-blame-ignore-revs
+
+# Run clang-format on sources
+27539189f481129b882b941c4b4e19beab156499
+
+# Refactor repository layout (step 2 of 2)
+f107f24ba2a9b2a5539c528f722ba281d2943218
+
+# Refactor repository layout (step 1 of 2)
+0fd6a6a1e2d8cf6106b4db5962f096773f937494

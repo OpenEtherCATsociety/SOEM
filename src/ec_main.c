@@ -267,7 +267,7 @@ ec_mbxbuft *ecx_getmbx(ecx_contextt *context)
    if (mbxpool->listcount > 0)
    {
       mbx = (ec_mbxbuft *)&(mbxpool->mbx[mbxpool->mbxemptylist[mbxpool->listtail]]);
-      //      printf("getmbx item:%d mbx:%p\n\r",mbxpool->mbxemptylist[mbxpool->listtail], mbx);
+      EC_PRINT("getmbx item:%d mbx:%p\n\r", mbxpool->mbxemptylist[mbxpool->listtail], mbx);
       mbxpool->listtail++;
       if (mbxpool->listtail >= EC_MBXPOOLSIZE) mbxpool->listtail = 0;
       mbxpool->listcount--;
@@ -280,7 +280,7 @@ int ecx_dropmbx(ecx_contextt *context, ec_mbxbuft *mbx)
 {
    ec_mbxpoolt *mbxpool = context->mbxpool;
    int item = mbx - &(mbxpool->mbx[0]);
-   //   printf("dropmbx item:%d mbx:%p\n\r",item, mbx);
+   EC_PRINT("dropmbx item:%d mbx:%p\n\r", item, mbx);
    if ((item >= 0) && (item < EC_MBXPOOLSIZE))
    {
       osal_mutex_lock(mbxpool->mbxmutex);
@@ -305,7 +305,7 @@ int ecx_initmbxpool(ecx_contextt *context)
    mbxpool->listhead = 0;
    mbxpool->listtail = 0;
    mbxpool->listcount = EC_MBXPOOLSIZE;
-   //  printf("intmbxpool mbxp:%p mutex:%p\n\r", mbxpool->mbx[0],  mbxpool->mbxmutex);
+   EC_PRINT("intmbxpool mbxp:%p mutex:%p\n\r", mbxpool->mbx[0], mbxpool->mbxmutex);
    return retval;
 }
 
@@ -438,7 +438,6 @@ ec_mbxbuft *ecx_mbxdropqueue(ecx_contextt *context, uint16 group, int ticketloc)
 {
    ec_mbxbuft *mbx;
    ec_mbxqueuet *mbxqueue = &(context->grouplist[group].mbxtxqueue);
-   //   printf("mbxgetqueue item:%d mbx:%p\n\r",item, mbx);
    osal_mutex_lock(mbxqueue->mbxmutex);
    mbxqueue->mbxstate[ticketloc] = EC_MBXQUEUESTATE_NONE;
    mbxqueue->mbxremove[ticketloc] = 0;
@@ -1436,7 +1435,7 @@ int ecx_mbxsend(ecx_contextt *context, uint16 slave, ec_mbxbuft *mbx, int timeou
                {
                   if (!ecx_mbxexpirequeue(context, slave, ticket))
                   {
-                     //                     printf("expirequeue failed\n\r");
+                     EC_PRINT("expirequeue failed\n\r");
                   }
                }
             }

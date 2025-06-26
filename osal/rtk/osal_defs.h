@@ -15,6 +15,7 @@ extern "C" {
 
 // define if debug printf is needed
 #ifdef EC_DEBUG
+#include <stdio.h>
 #define EC_PRINT printf
 #else
 #define EC_PRINT(...) \

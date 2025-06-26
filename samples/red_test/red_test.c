@@ -197,21 +197,14 @@ void redtest(char *ifname, char *ifname2)
    }
 }
 
-/* add ns to timespec */
-void add_timespec(struct timespec *ts, int64 addtime)
+/* add ns to ec_timet */
+void add_time_ns(ec_timet *ts, int64 addtime)
 {
-   int64 sec, nsec;
+   ec_timet addts;
 
-   nsec = addtime % NSEC_PER_SEC;
-   sec = (addtime - nsec) / NSEC_PER_SEC;
-   ts->tv_sec += sec;
-   ts->tv_nsec += nsec;
-   if (ts->tv_nsec >= NSEC_PER_SEC)
-   {
-      nsec = ts->tv_nsec % NSEC_PER_SEC;
-      ts->tv_sec += (ts->tv_nsec - nsec) / NSEC_PER_SEC;
-      ts->tv_nsec = nsec;
-   }
+   addts.tv_nsec = addtime % NSEC_PER_SEC;
+   addts.tv_sec = (addtime - addts.tv_nsec) / NSEC_PER_SEC;
+   osal_timespecadd(ts, &addts, ts);
 }
 
 /* PI calculation to get linux time synced to DC time */
@@ -240,11 +233,11 @@ void ec_sync(int64 reftime, int64 cycletime, int64 *offsettime)
 /* RT EtherCAT thread */
 OSAL_THREAD_FUNC_RT ecatthread(void *ptr)
 {
-   struct timespec ts, tleft;
+   ec_timet ts;
    int ht;
    int64 cycletime;
 
-   clock_gettime(CLOCK_MONOTONIC, &ts);
+   osal_get_monotonic_time(&ts);
    ht = (ts.tv_nsec / 1000000) + 1; /* round to nearest ms */
    ts.tv_nsec = ht * 1000000;
    if (ts.tv_nsec >= NSEC_PER_SEC)
@@ -259,9 +252,9 @@ OSAL_THREAD_FUNC_RT ecatthread(void *ptr)
    while (1)
    {
       /* calculate next cycle start */
-      add_timespec(&ts, cycletime + toff);
+      add_time_ns(&ts, cycletime + toff);
       /* wait to cycle start */
-      clock_nanosleep(CLOCK_MONOTONIC, TIMER_ABSTIME, &ts, &tleft);
+      osal_monotonic_sleep(&ts);
       if (dorun > 0)
       {
          wkc = ecx_receive_processdata(&ctx, EC_TIMEOUTRET);

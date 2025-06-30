@@ -49,7 +49,7 @@ set(EC_SECONDARY_MAC "04:04:04:04:04:04" CACHE STRING "Secondary MAC address")
 if(PROJECT_IS_TOP_LEVEL)
   # Make option visible in ccmake, cmake-gui
   option(BUILD_SHARED_LIBS "Build shared library" OFF)
-  option(SOEM_BUILD_UTILS "Build utitilities" ON)
+  option(SOEM_BUILD_SAMPLES "Build samples" ON)
 
   # Default to release build with debug info
   if(NOT CMAKE_BUILD_TYPE)
@@ -157,7 +157,7 @@ install(FILES
   DESTINATION cmake
 )
 
-if(SOEM_BUILD_UTILS)
+if(SOEM_BUILD_SAMPLES)
   add_subdirectory(samples/coetest)
   add_subdirectory(samples/eepromtool)
   add_subdirectory(samples/firm_update)

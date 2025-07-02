@@ -59,22 +59,6 @@ typedef struct
    char   Name[EC_MAXOELIST][EC_MAXNAME+1];
 } ec_OElistt;
 
-#ifdef EC_VER1
-void ec_SDOerror(uint16 Slave, uint16 Index, uint8 SubIdx, int32 AbortCode);
-int ec_SDOread(uint16 slave, uint16 index, uint8 subindex,
-               boolean CA, int *psize, void *p, int timeout);
-int ec_SDOwrite(uint16 Slave, uint16 Index, uint8 SubIndex,
-                boolean CA, int psize, const void *p, int Timeout);
-int ec_RxPDO(uint16 Slave, uint16 RxPDOnumber , int psize, const void *p);
-int ec_TxPDO(uint16 slave, uint16 TxPDOnumber , int *psize, void *p, int timeout);
-int ec_readPDOmap(uint16 Slave, uint32 *Osize, uint32 *Isize);
-int ec_readPDOmapCA(uint16 Slave, int Thread_n, uint32 *Osize, uint32 *Isize);
-int ec_readODlist(uint16 Slave, ec_ODlistt *pODlist);
-int ec_readODdescription(uint16 Item, ec_ODlistt *pODlist);
-int ec_readOEsingle(uint16 Item, uint8 SubI, ec_ODlistt *pODlist, ec_OElistt *pOElist);
-int ec_readOE(uint16 Item, ec_ODlistt *pODlist, ec_OElistt *pOElist);
-#endif
-
 void ecx_SDOerror(ecx_contextt *context, uint16 Slave, uint16 Index, uint8 SubIdx, int32 AbortCode);
 int ecx_SDOread(ecx_contextt *context, uint16 slave, uint16 index, uint8 subindex,
                 boolean CA, int *psize, void *p, int timeout);

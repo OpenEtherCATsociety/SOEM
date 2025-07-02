@@ -36,27 +36,6 @@ int ecx_LRD(ecx_portt *port, uint32 LogAdr, uint16 length, void *data, int timeo
 int ecx_LWR(ecx_portt *port, uint32 LogAdr, uint16 length, void *data, int timeout);
 int ecx_LRWDC(ecx_portt *port, uint32 LogAdr, uint16 length, void *data, uint16 DCrs, int64 *DCtime, int timeout);
 
-#ifdef EC_VER1
-int ec_setupdatagram(void *frame, uint8 com, uint8 idx, uint16 ADP, uint16 ADO, uint16 length, void *data);
-uint16 ec_adddatagram(void *frame, uint8 com, uint8 idx, boolean more, uint16 ADP, uint16 ADO, uint16 length, void *data);
-int ec_BWR(uint16 ADP,uint16 ADO,uint16 length,void *data,int timeout);
-int ec_BRD(uint16 ADP,uint16 ADO,uint16 length,void *data,int timeout);
-int ec_APRD(uint16 ADP, uint16 ADO, uint16 length, void *data, int timeout);
-int ec_ARMW(uint16 ADP, uint16 ADO, uint16 length, void *data, int timeout);
-int ec_FRMW(uint16 ADP, uint16 ADO, uint16 length, void *data, int timeout);
-uint16 ec_APRDw(uint16 ADP, uint16 ADO, int timeout);
-int ec_FPRD(uint16 ADP, uint16 ADO, uint16 length, void *data, int timeout);
-uint16 ec_FPRDw(uint16 ADP, uint16 ADO, int timeout);
-int ec_APWRw(uint16 ADP, uint16 ADO, uint16 data, int timeout);
-int ec_APWR(uint16 ADP, uint16 ADO, uint16 length, void *data, int timeout);
-int ec_FPWRw(uint16 ADP, uint16 ADO, uint16 data, int timeout);
-int ec_FPWR(uint16 ADP, uint16 ADO, uint16 length, void *data, int timeout);
-int ec_LRW(uint32 LogAdr, uint16 length, void *data, int timeout);
-int ec_LRD(uint32 LogAdr, uint16 length, void *data, int timeout);
-int ec_LWR(uint32 LogAdr, uint16 length, void *data, int timeout);
-int ec_LRWDC(uint32 LogAdr, uint16 length, void *data, uint16 DCrs, int64 *DCtime, int timeout);
-#endif
-
 #ifdef __cplusplus
 }
 #endif

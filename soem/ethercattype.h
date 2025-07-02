@@ -26,13 +26,6 @@ extern "C"
 
 #include "osal.h"
 
-/** define EC_VER1 if version 1 default context and functions are needed
- * define EC_VER2 if application uses only ecx_ functions and own context */
-#if !defined(EC_VER1) && !defined(EC_VER2)
-#   define EC_VER1
-#endif
-
-
 /** Define little endian target by default if no endian is set */
 #if !defined(EC_LITTLE_ENDIAN) && !defined(EC_BIG_ENDIAN)
 #   define EC_LITTLE_ENDIAN

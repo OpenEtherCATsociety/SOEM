@@ -22,6 +22,24 @@ target_compile_options(soem PRIVATE
   -Werror
 )
 
+target_compile_options(slaveinfo PRIVATE
+  -Wall
+  -Wextra
+  -Werror
+)
+
+target_compile_options(simple_test PRIVATE
+  -Wall
+  -Wextra
+  -Werror
+)
+
+target_compile_options(eepromtool PRIVATE
+  -Wall
+  -Wextra
+  -Werror
+)
+
 target_link_libraries(soem PUBLIC pthread rt)
 
 install(FILES

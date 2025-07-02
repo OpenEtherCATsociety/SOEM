@@ -46,6 +46,49 @@ int wkc;
 int mode;
 char sline[MAXSLENGTH];
 
+static ec_slavet ec_slave[EC_MAXSLAVE];
+static int ec_slavecount;
+static ec_groupt ec_group[EC_MAXGROUP];
+static uint8 ec_esibuf[EC_MAXEEPBUF];
+static uint32 ec_esimap[EC_MAXEEPBITMAP];
+static ec_eringt ec_elist;
+static ec_idxstackT ec_idxstack;
+static ec_SMcommtypet ec_SMcommtype[EC_MAX_MAPT];
+static ec_PDOassignt ec_PDOassign[EC_MAX_MAPT];
+static ec_PDOdesct ec_PDOdesc[EC_MAX_MAPT];
+static ec_eepromSMt ec_SM;
+static ec_eepromFMMUt ec_FMMU;
+static boolean EcatError = FALSE;
+static int64 ec_DCtime;
+static ecx_portt ecx_port;
+static ec_mbxpoolt ec_mbxpool;
+
+static ecx_contextt  ctx = {
+   .port = &ecx_port,
+   .slavelist = &ec_slave[0],
+   .slavecount = &ec_slavecount,
+   .maxslave = EC_MAXSLAVE,
+   .grouplist = &ec_group[0],
+   .maxgroup = EC_MAXGROUP,
+   .esibuf = &ec_esibuf[0],
+   .esimap = &ec_esimap[0],
+   .esislave = 0,
+   .elist = &ec_elist,
+   .idxstack = &ec_idxstack,
+   .ecaterror = &EcatError,
+   .DCtime = &ec_DCtime,
+   .SMcommtype = &ec_SMcommtype[0],
+   .PDOassign = &ec_PDOassign[0],
+   .PDOdesc = &ec_PDOdesc[0],
+   .eepSM = &ec_SM,
+   .eepFMMU = &ec_FMMU,
+   .mbxpool = &ec_mbxpool,
+   .FOEhook = NULL,
+   .EOEhook = NULL,
+   .manualstatechange = 0,
+   .userdata = NULL,
+};
+
 #define IHEXLENGTH 0x20
 
 void calc_crc(uint8 *crc, uint8 b)
@@ -211,20 +254,20 @@ int eeprom_read(int slave, int start, int length)
    {
       aiadr = 1 - slave;
       eepctl = 2;
-      ec_APWR(aiadr, ECT_REG_EEPCFG, sizeof(eepctl), &eepctl , EC_TIMEOUTRET); /* force Eeprom from PDI */
+      ecx_APWR(&ctx.port[0], aiadr, ECT_REG_EEPCFG, sizeof(eepctl), &eepctl , EC_TIMEOUTRET); /* force Eeprom from PDI */
       eepctl = 0;
-      ec_APWR(aiadr, ECT_REG_EEPCFG, sizeof(eepctl), &eepctl , EC_TIMEOUTRET); /* set Eeprom to master */
+      ecx_APWR(&ctx.port[0], aiadr, ECT_REG_EEPCFG, sizeof(eepctl), &eepctl , EC_TIMEOUTRET); /* set Eeprom to master */
 
       estat = 0x0000;
       aiadr = 1 - slave;
-      ec_APRD(aiadr, ECT_REG_EEPSTAT, sizeof(estat), &estat, EC_TIMEOUTRET); /* read eeprom status */
+      ecx_APRD(&ctx.port[0], aiadr, ECT_REG_EEPSTAT, sizeof(estat), &estat, EC_TIMEOUTRET); /* read eeprom status */
       estat = etohs(estat);
       if (estat & EC_ESTAT_R64)
       {
          ainc = 8;
          for (i = start ; i < (start + length) ; i+=ainc)
          {
-            b8 = ec_readeepromAP(aiadr, i >> 1 , EC_TIMEOUTEEP);
+            b8 = ecx_readeepromAP(&ctx, aiadr, i >> 1 , EC_TIMEOUTEEP);
             ebuf[i] = b8 & 0xFF;
             ebuf[i+1] = (b8 >> 8) & 0xFF;
             ebuf[i+2] = (b8 >> 16) & 0xFF;
@@ -239,7 +282,7 @@ int eeprom_read(int slave, int start, int length)
       {
          for (i = start ; i < (start + length) ; i+=ainc)
          {
-            b4 = ec_readeepromAP(aiadr, i >> 1 , EC_TIMEOUTEEP) & 0xFFFFFFFF;
+            b4 = ecx_readeepromAP(&ctx, aiadr, i >> 1 , EC_TIMEOUTEEP) & 0xFFFFFFFF;
             ebuf[i] = b4 & 0xFF;
             ebuf[i+1] = (b4 >> 8) & 0xFF;
             ebuf[i+2] = (b4 >> 16) & 0xFF;
@@ -263,15 +306,15 @@ int eeprom_write(int slave, int start, int length)
    {
       aiadr = 1 - slave;
       eepctl = 2;
-      ec_APWR(aiadr, ECT_REG_EEPCFG, sizeof(eepctl), &eepctl , EC_TIMEOUTRET); /* force Eeprom from PDI */
+      ecx_APWR(&ctx.port[0], aiadr, ECT_REG_EEPCFG, sizeof(eepctl), &eepctl , EC_TIMEOUTRET); /* force Eeprom from PDI */
       eepctl = 0;
-      ec_APWR(aiadr, ECT_REG_EEPCFG, sizeof(eepctl), &eepctl , EC_TIMEOUTRET); /* set Eeprom to master */
+      ecx_APWR(&ctx.port[0], aiadr, ECT_REG_EEPCFG, sizeof(eepctl), &eepctl , EC_TIMEOUTRET); /* set Eeprom to master */
 
       aiadr = 1 - slave;
       wbuf = (uint16 *)&ebuf[0];
       for (i = start ; i < (start + length) ; i+=2)
       {
-         ec_writeeepromAP(aiadr, i >> 1 , *(wbuf + (i >> 1)), EC_TIMEOUTEEP);
+         ecx_writeeepromAP(&ctx, aiadr, i >> 1 , *(wbuf + (i >> 1)), EC_TIMEOUTEEP);
          if (++dc >= 100)
          {
             dc = 0;
@@ -296,13 +339,13 @@ int eeprom_writealias(int slave, int alias, uint16 crc)
    {
       aiadr = 1 - slave;
       eepctl = 2;
-      ec_APWR(aiadr, ECT_REG_EEPCFG, sizeof(eepctl), &eepctl , EC_TIMEOUTRET); /* force Eeprom from PDI */
+      ecx_APWR(&ctx.port[0], aiadr, ECT_REG_EEPCFG, sizeof(eepctl), &eepctl , EC_TIMEOUTRET); /* force Eeprom from PDI */
       eepctl = 0;
-      ec_APWR(aiadr, ECT_REG_EEPCFG, sizeof(eepctl), &eepctl , EC_TIMEOUTRET); /* set Eeprom to master */
+      ecx_APWR(&ctx.port[0], aiadr, ECT_REG_EEPCFG, sizeof(eepctl), &eepctl , EC_TIMEOUTRET); /* set Eeprom to master */
 
-      ret = ec_writeeepromAP(aiadr, 0x04 , alias, EC_TIMEOUTEEP);
+      ret = ecx_writeeepromAP(&ctx, aiadr, 0x04 , alias, EC_TIMEOUTEEP);
       if (ret)
-        ret = ec_writeeepromAP(aiadr, 0x07 , crc, EC_TIMEOUTEEP);
+         ret = ecx_writeeepromAP(&ctx, aiadr, 0x07 , crc, EC_TIMEOUTEEP);
 
       return ret;
    }
@@ -316,12 +359,12 @@ void eepromtool(char *ifname, int slave, int mode, char *fname)
    uint16 *wbuf;
 
    /* initialise SOEM, bind socket to ifname */
-   if (ec_init(ifname))
+   if (ecx_init(&ctx, ifname))
    {
       printf("ec_init on %s succeeded.\n",ifname);
 
       w = 0x0000;
-       wkc = ec_BRD(0x0000, ECT_REG_TYPE, sizeof(w), &w, EC_TIMEOUTSAFE);      /* detect number of slaves */
+      wkc = ecx_BRD(&ctx.port[0], 0x0000, ECT_REG_TYPE, sizeof(w), &w, EC_TIMEOUTSAFE);      /* detect number of slaves */
        if (wkc > 0)
        {
          ec_slavecount = wkc;
@@ -422,7 +465,7 @@ void eepromtool(char *ifname, int slave, int mode, char *fname)
       }
       printf("End, close socket\n");
       /* stop SOEM, close socket */
-      ec_close();
+      ecx_close(&ctx);
    }
    else
    {

@@ -413,20 +413,3 @@ int ecx_FOEwrite(ecx_contextt *context, uint16 slave, char *filename, uint32 pas
    if(MbxOut) ecx_dropmbx(context, MbxOut);
    return wkc;
 }
-
-#ifdef EC_VER1
-int ec_FOEdefinehook(void *hook)
-{
-   return ecx_FOEdefinehook(&ecx_context, hook);
-}
-
-int ec_FOEread(uint16 slave, char *filename, uint32 password, int *psize, void *p, int timeout)
-{
-   return ecx_FOEread(&ecx_context, slave, filename, password, psize, p, timeout);
-}
-
-int ec_FOEwrite(uint16 slave, char *filename, uint32 password, int psize, void *p, int timeout)
-{
-   return ecx_FOEwrite(&ecx_context, slave, filename, password, psize, p, timeout);
-}
-#endif

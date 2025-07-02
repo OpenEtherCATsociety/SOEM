@@ -17,13 +17,56 @@
 
 #include "ethercat.h"
 
-char IOmap[4096];
-ec_ODlistt ODlist;
-ec_OElistt OElist;
-boolean printSDO = FALSE;
-boolean printMAP = FALSE;
-char usdo[128];
+static char IOmap[4096];
+static ec_ODlistt ODlist;
+static ec_OElistt OElist;
+static boolean printSDO = FALSE;
+static boolean printMAP = FALSE;
+static char usdo[128];
+boolean forceByteAlignment = FALSE;
 
+static ec_slavet ec_slave[EC_MAXSLAVE];
+static int ec_slavecount;
+static ec_groupt ec_group[EC_MAXGROUP];
+static uint8 ec_esibuf[EC_MAXEEPBUF];
+static uint32 ec_esimap[EC_MAXEEPBITMAP];
+static ec_eringt ec_elist;
+static ec_idxstackT ec_idxstack;
+static ec_SMcommtypet ec_SMcommtype[EC_MAX_MAPT];
+static ec_PDOassignt ec_PDOassign[EC_MAX_MAPT];
+static ec_PDOdesct ec_PDOdesc[EC_MAX_MAPT];
+static ec_eepromSMt ec_SM;
+static ec_eepromFMMUt ec_FMMU;
+static boolean EcatError = FALSE;
+static int64 ec_DCtime;
+static ecx_portt ecx_port;
+static ec_mbxpoolt ec_mbxpool;
+
+static ecx_contextt  ctx = {
+   .port = &ecx_port,
+   .slavelist = &ec_slave[0],
+   .slavecount = &ec_slavecount,
+   .maxslave = EC_MAXSLAVE,
+   .grouplist = &ec_group[0],
+   .maxgroup = EC_MAXGROUP,
+   .esibuf = &ec_esibuf[0],
+   .esimap = &ec_esimap[0],
+   .esislave = 0,
+   .elist = &ec_elist,
+   .idxstack = &ec_idxstack,
+   .ecaterror = &EcatError,
+   .DCtime = &ec_DCtime,
+   .SMcommtype = &ec_SMcommtype[0],
+   .PDOassign = &ec_PDOassign[0],
+   .PDOdesc = &ec_PDOdesc[0],
+   .eepSM = &ec_SM,
+   .eepFMMU = &ec_FMMU,
+   .mbxpool = &ec_mbxpool,
+   .FOEhook = NULL,
+   .EOEhook = NULL,
+   .manualstatechange = 0,
+   .userdata = NULL,
+};
 
 #define OTYPE_VAR               0x0007
 #define OTYPE_ARRAY             0x0008
@@ -169,10 +212,10 @@ char* SDO2string(uint16 slave, uint16 index, uint8 subidx, uint16 dtype)
    char es[32];
 
    memset(&usdo, 0, 128);
-   ec_SDOread(slave, index, subidx, FALSE, &l, &usdo, EC_TIMEOUTRXM);
+   ecx_SDOread(&ctx, slave, index, subidx, FALSE, &l, &usdo, EC_TIMEOUTRXM);
    if (EcatError)
    {
-      return ec_elist2string();
+      return ecx_elist2string(&ctx);
    }
    else
    {
@@ -270,7 +313,7 @@ int si_PDOassign(uint16 slave, uint16 PDOassign, int mapoffset, int bitoffset)
 
     rdl = sizeof(rdat); rdat = 0;
     /* read PDO assign subindex 0 ( = number of PDO's) */
-    wkc = ec_SDOread(slave, PDOassign, 0x00, FALSE, &rdl, &rdat, EC_TIMEOUTRXM);
+    wkc = ecx_SDOread(&ctx, slave, PDOassign, 0x00, FALSE, &rdl, &rdat, EC_TIMEOUTRXM);
     rdat = etohs(rdat);
     /* positive result from slave ? */
     if ((wkc > 0) && (rdat > 0))
@@ -283,21 +326,21 @@ int si_PDOassign(uint16 slave, uint16 PDOassign, int mapoffset, int bitoffset)
         {
             rdl = sizeof(rdat); rdat = 0;
             /* read PDO assign */
-            wkc = ec_SDOread(slave, PDOassign, (uint8)idxloop, FALSE, &rdl, &rdat, EC_TIMEOUTRXM);
+            wkc = ecx_SDOread(&ctx, slave, PDOassign, (uint8)idxloop, FALSE, &rdl, &rdat, EC_TIMEOUTRXM);
             /* result is index of PDO */
             idx = etohs(rdat);
             if (idx > 0)
             {
                 rdl = sizeof(subcnt); subcnt = 0;
                 /* read number of subindexes of PDO */
-                wkc = ec_SDOread(slave,idx, 0x00, FALSE, &rdl, &subcnt, EC_TIMEOUTRXM);
+                wkc = ecx_SDOread(&ctx, slave,idx, 0x00, FALSE, &rdl, &subcnt, EC_TIMEOUTRXM);
                 subidx = subcnt;
                 /* for each subindex */
                 for (subidxloop = 1; subidxloop <= subidx; subidxloop++)
                 {
                     rdl = sizeof(rdat2); rdat2 = 0;
                     /* read SDO that is mapped in PDO */
-                    wkc = ec_SDOread(slave, idx, (uint8)subidxloop, FALSE, &rdl, &rdat2, EC_TIMEOUTRXM);
+                    wkc = ecx_SDOread(&ctx, slave, idx, (uint8)subidxloop, FALSE, &rdl, &rdat2, EC_TIMEOUTRXM);
                     rdat2 = etohl(rdat2);
                     /* extract bitlength of SDO */
                     bitlen = LO_BYTE(rdat2);
@@ -312,7 +355,7 @@ int si_PDOassign(uint16 slave, uint16 PDOassign, int mapoffset, int bitoffset)
                     wkc = 0;
                     /* read object entry from dictionary if not a filler (0x0000:0x00) */
                     if(obj_idx || obj_subidx)
-                        wkc = ec_readOEsingle(0, obj_subidx, &ODlist, &OElist);
+                       wkc = ecx_readOEsingle(&ctx, 0, obj_subidx, &ODlist, &OElist);
                     printf("  [0x%4.4X.%1d] 0x%4.4X:0x%2.2X 0x%2.2X", abs_offset, abs_bit, obj_idx, obj_subidx, bitlen);
                     if((wkc > 0) && OElist.Entries)
                     {
@@ -343,7 +386,7 @@ int si_map_sdo(int slave)
     inputs_bo = 0;
     rdl = sizeof(nSM); nSM = 0;
     /* read SyncManager Communication Type object count */
-    wkc = ec_SDOread(slave, ECT_SDO_SMCOMMTYPE, 0x00, FALSE, &rdl, &nSM, EC_TIMEOUTRXM);
+    wkc = ecx_SDOread(&ctx, slave, ECT_SDO_SMCOMMTYPE, 0x00, FALSE, &rdl, &nSM, EC_TIMEOUTRXM);
     /* positive result from slave ? */
     if ((wkc > 0) && (nSM > 2))
     {
@@ -357,7 +400,7 @@ int si_map_sdo(int slave)
         {
             rdl = sizeof(tSM); tSM = 0;
             /* read SyncManager Communication Type */
-            wkc = ec_SDOread(slave, ECT_SDO_SMCOMMTYPE, iSM + 1, FALSE, &rdl, &tSM, EC_TIMEOUTRXM);
+            wkc = ecx_SDOread(&ctx, slave, ECT_SDO_SMCOMMTYPE, iSM + 1, FALSE, &rdl, &tSM, EC_TIMEOUTRXM);
             if (wkc > 0)
             {
                 if((iSM == 2) && (tSM == 2)) // SM2 has type 2 == mailbox out, this is a bug in the slave!
@@ -417,34 +460,34 @@ int si_siiPDO(uint16 slave, uint8 t, int mapoffset, int bitoffset)
     for (c = 0 ; c < EC_MAXSM ; c++) PDO->SMbitsize[c] = 0;
     if (t > 1)
         t = 1;
-    PDO->Startpos = ec_siifind(slave, ECT_SII_PDO + t);
+    PDO->Startpos = ecx_siifind(&ctx, slave, ECT_SII_PDO + t);
     if (PDO->Startpos > 0)
     {
         a = PDO->Startpos;
-        w = ec_siigetbyte(slave, a++);
-        w += (ec_siigetbyte(slave, a++) << 8);
+        w = ecx_siigetbyte(&ctx, slave, a++);
+        w += (ecx_siigetbyte(&ctx, slave, a++) << 8);
         PDO->Length = w;
         c = 1;
         /* traverse through all PDOs */
         do
         {
             PDO->nPDO++;
-            PDO->Index[PDO->nPDO] = ec_siigetbyte(slave, a++);
-            PDO->Index[PDO->nPDO] += (ec_siigetbyte(slave, a++) << 8);
+            PDO->Index[PDO->nPDO] = ecx_siigetbyte(&ctx, slave, a++);
+            PDO->Index[PDO->nPDO] += (ecx_siigetbyte(&ctx, slave, a++) << 8);
             PDO->BitSize[PDO->nPDO] = 0;
             c++;
             /* number of entries in PDO */
-            e = ec_siigetbyte(slave, a++);
-            PDO->SyncM[PDO->nPDO] = ec_siigetbyte(slave, a++);
+            e = ecx_siigetbyte(&ctx, slave, a++);
+            PDO->SyncM[PDO->nPDO] = ecx_siigetbyte(&ctx, slave, a++);
             a++;
-            obj_name = ec_siigetbyte(slave, a++);
+            obj_name = ecx_siigetbyte(&ctx, slave, a++);
             a += 2;
             c += 2;
             if (PDO->SyncM[PDO->nPDO] < EC_MAXSM) /* active and in range SM? */
             {
                 str_name[0] = 0;
                 if(obj_name)
-                  ec_siistring(str_name, slave, obj_name);
+                  ecx_siistring(&ctx, str_name, slave, obj_name);
                 if (t)
                   printf("  SM%1d RXPDO 0x%4.4X %s\n", PDO->SyncM[PDO->nPDO], PDO->Index[PDO->nPDO], str_name);
                 else
@@ -454,12 +497,12 @@ int si_siiPDO(uint16 slave, uint8 t, int mapoffset, int bitoffset)
                 for (er = 1; er <= e; er++)
                 {
                     c += 4;
-                    obj_idx = ec_siigetbyte(slave, a++);
-                    obj_idx += (ec_siigetbyte(slave, a++) << 8);
-                    obj_subidx = ec_siigetbyte(slave, a++);
-                    obj_name = ec_siigetbyte(slave, a++);
-                    obj_datatype = ec_siigetbyte(slave, a++);
-                    bitlen = ec_siigetbyte(slave, a++);
+                    obj_idx = ecx_siigetbyte(&ctx, slave, a++);
+                    obj_idx += (ecx_siigetbyte(&ctx, slave, a++) << 8);
+                    obj_subidx = ecx_siigetbyte(&ctx, slave, a++);
+                    obj_name = ecx_siigetbyte(&ctx, slave, a++);
+                    obj_datatype = ecx_siigetbyte(&ctx, slave, a++);
+                    bitlen = ecx_siigetbyte(&ctx, slave, a++);
                     abs_offset = mapoffset + (bitoffset / 8);
                     abs_bit = bitoffset % 8;
 
@@ -471,7 +514,7 @@ int si_siiPDO(uint16 slave, uint8 t, int mapoffset, int bitoffset)
                     {
                        str_name[0] = 0;
                        if(obj_name)
-                          ec_siistring(str_name, slave, obj_name);
+                          ecx_siistring(&ctx, str_name, slave, obj_name);
 
                        printf("  [0x%4.4X.%1d] 0x%4.4X:0x%2.2X 0x%2.2X", abs_offset, abs_bit, obj_idx, obj_subidx, bitlen);
                        printf(" %-12s %s\n", dtype2string(obj_datatype, bitlen), str_name);
@@ -492,7 +535,7 @@ int si_siiPDO(uint16 slave, uint8 t, int mapoffset, int bitoffset)
         }
         while (c < PDO->Length);
     }
-    if (eectl) ec_eeprom2pdi(slave); /* if eeprom control was previously pdi then restore */
+    if (eectl) ecx_eeprom2pdi(&ctx, slave); /* if eeprom control was previously pdi then restore */
     return totalsize;
 }
 
@@ -524,7 +567,7 @@ void si_sdo(int cnt)
 
     ODlist.Entries = 0;
     memset(&ODlist, 0, sizeof(ODlist));
-    if( ec_readODlist(cnt, &ODlist))
+    if( ecx_readODlist(&ctx, cnt, &ODlist))
     {
         printf(" CoE Object Description found, %d entries.\n",ODlist.Entries);
         for( i = 0 ; i < ODlist.Entries ; i++)
@@ -532,8 +575,8 @@ void si_sdo(int cnt)
             uint16_t max_sub;
             char name[128] = { 0 };
 
-            ec_readODdescription(i, &ODlist);
-            while(EcatError) printf(" - %s\n", ec_elist2string());
+            ecx_readODdescription(&ctx, i, &ODlist);
+            while(EcatError) printf(" - %s\n", ecx_elist2string(&ctx));
             snprintf(name, sizeof(name) - 1, "\"%s\"", ODlist.Name[i]);
             if (ODlist.ObjectCode[i] == OTYPE_VAR)
             {
@@ -547,13 +590,13 @@ void si_sdo(int cnt)
                        ODlist.MaxSub[i], ODlist.MaxSub[i]);
             }
             memset(&OElist, 0, sizeof(OElist));
-            ec_readOE(i, &ODlist, &OElist);
-            while(EcatError) printf("- %s\n", ec_elist2string());
+            ecx_readOE(&ctx, i, &ODlist, &OElist);
+            while(EcatError) printf("- %s\n", ecx_elist2string(&ctx));
 
             if(ODlist.ObjectCode[i] != OTYPE_VAR)
             {
                 int l = sizeof(max_sub);
-                ec_SDOread(cnt, ODlist.Index[i], 0, FALSE, &l, &max_sub, EC_TIMEOUTRXM);
+                ecx_SDOread(&ctx, cnt, ODlist.Index[i], 0, FALSE, &l, &max_sub, EC_TIMEOUTRXM);
             }
             else {
                 max_sub = ODlist.MaxSub[i];
@@ -578,7 +621,7 @@ void si_sdo(int cnt)
     }
     else
     {
-        while(EcatError) printf("%s", ec_elist2string());
+        while(EcatError) printf("%s", ecx_elist2string(&ctx));
     }
 }
 
@@ -591,23 +634,35 @@ void slaveinfo(char *ifname)
    printf("Starting slaveinfo\n");
 
    /* initialise SOEM, bind socket to ifname */
-   if (ec_init(ifname))
+   if (ecx_init(&ctx, ifname))
    {
       printf("ec_init on %s succeeded.\n",ifname);
+
       /* find and auto-config slaves */
-      if ( ec_config(FALSE, &IOmap) > 0 )
+      if (ecx_config_init(&ctx, FALSE) > 0)
       {
-         ec_configdc();
-         while(EcatError) printf("%s", ec_elist2string());
+         printf("%d slaves found and configured.\n",ec_slavecount);
+
+         if (forceByteAlignment)
+         {
+            ecx_config_map_group_aligned(&ctx, &IOmap, 0);
+         }
+         else
+         {
+            ecx_config_map_group(&ctx, &IOmap, 0);
+         }
+
+         ecx_configdc(&ctx);
+         while(EcatError) printf("%s", ecx_elist2string(&ctx));
          printf("%d slaves found and configured.\n",ec_slavecount);
          expectedWKC = (ec_group[0].outputsWKC * 2) + ec_group[0].inputsWKC;
          printf("Calculated workcounter %d\n", expectedWKC);
          /* wait for all slaves to reach SAFE_OP state */
-         ec_statecheck(0, EC_STATE_SAFE_OP,  EC_TIMEOUTSTATE * 3);
+         ecx_statecheck(&ctx, 0, EC_STATE_SAFE_OP,  EC_TIMEOUTSTATE * 3);
          if (ec_slave[0].state != EC_STATE_SAFE_OP )
          {
             printf("Not all slaves reached safe operational state.\n");
-            ec_readstate();
+            ecx_readstate(&ctx);
             for(i = 1; i<=ec_slavecount ; i++)
             {
                if(ec_slave[i].state != EC_STATE_SAFE_OP)
@@ -619,7 +674,7 @@ void slaveinfo(char *ifname)
          }
 
 
-         ec_readstate();
+         ecx_readstate(&ctx);
          for( cnt = 1 ; cnt <= ec_slavecount ; cnt++)
          {
             printf("\nSlave:%d\n Name:%s\n Output size: %dbits\n Input size: %dbits\n State: %d\n Delay: %d[ns]\n Has DC: %d\n",
@@ -648,21 +703,21 @@ void slaveinfo(char *ifname)
             printf(" FMMUfunc 0:%d 1:%d 2:%d 3:%d\n",
                      ec_slave[cnt].FMMU0func, ec_slave[cnt].FMMU1func, ec_slave[cnt].FMMU2func, ec_slave[cnt].FMMU3func);
             printf(" MBX length wr: %d rd: %d MBX protocols : %2.2x\n", ec_slave[cnt].mbx_l, ec_slave[cnt].mbx_rl, ec_slave[cnt].mbx_proto);
-            ssigen = ec_siifind(cnt, ECT_SII_GENERAL);
+            ssigen = ecx_siifind(&ctx, cnt, ECT_SII_GENERAL);
             /* SII general section */
             if (ssigen)
             {
-               ec_slave[cnt].CoEdetails = ec_siigetbyte(cnt, ssigen + 0x07);
-               ec_slave[cnt].FoEdetails = ec_siigetbyte(cnt, ssigen + 0x08);
-               ec_slave[cnt].EoEdetails = ec_siigetbyte(cnt, ssigen + 0x09);
-               ec_slave[cnt].SoEdetails = ec_siigetbyte(cnt, ssigen + 0x0a);
-               if((ec_siigetbyte(cnt, ssigen + 0x0d) & 0x02) > 0)
+               ec_slave[cnt].CoEdetails = ecx_siigetbyte(&ctx, cnt, ssigen + 0x07);
+               ec_slave[cnt].FoEdetails = ecx_siigetbyte(&ctx, cnt, ssigen + 0x08);
+               ec_slave[cnt].EoEdetails = ecx_siigetbyte(&ctx, cnt, ssigen + 0x09);
+               ec_slave[cnt].SoEdetails = ecx_siigetbyte(&ctx, cnt, ssigen + 0x0a);
+               if((ecx_siigetbyte(&ctx, cnt, ssigen + 0x0d) & 0x02) > 0)
                {
                   ec_slave[cnt].blockLRW = 1;
                   ec_slave[0].blockLRW++;
                }
-               ec_slave[cnt].Ebuscurrent = ec_siigetbyte(cnt, ssigen + 0x0e);
-               ec_slave[cnt].Ebuscurrent += ec_siigetbyte(cnt, ssigen + 0x0f) << 8;
+               ec_slave[cnt].Ebuscurrent = ecx_siigetbyte(&ctx, cnt, ssigen + 0x0e);
+               ec_slave[cnt].Ebuscurrent += ecx_siigetbyte(&ctx, cnt, ssigen + 0x0f) << 8;
                ec_slave[0].Ebuscurrent += ec_slave[cnt].Ebuscurrent;
             }
             printf(" CoE details: %2.2x FoE details: %2.2x EoE details: %2.2x SoE details: %2.2x\n",
@@ -686,7 +741,7 @@ void slaveinfo(char *ifname)
       }
       printf("End slaveinfo, close socket\n");
       /* stop SOEM, close socket */
-      ec_close();
+      ecx_close(&ctx);
    }
    else
    {

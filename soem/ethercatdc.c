@@ -430,20 +430,3 @@ boolean ecx_configdc(ecx_contextt *context)
 
    return context->slavelist[0].hasdc;
 }
-
-#ifdef EC_VER1
-void ec_dcsync0(uint16 slave, boolean act, uint32 CyclTime, int32 CyclShift)
-{
-   ecx_dcsync0(&ecx_context, slave, act, CyclTime, CyclShift);
-}
-
-void ec_dcsync01(uint16 slave, boolean act, uint32 CyclTime0, uint32 CyclTime1, int32 CyclShift)
-{
-   ecx_dcsync01(&ecx_context, slave, act, CyclTime0, CyclTime1, CyclShift);
-}
-
-boolean ec_configdc(void)
-{
-   return ecx_configdc(&ecx_context);
-}
-#endif

@@ -54,9 +54,6 @@ target_include_directories(soem PUBLIC
   $<INSTALL_INTERFACE:include/soem>
 )
 
-# Platform configuration
-include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/${CMAKE_SYSTEM_NAME}.cmake)
-
 install(
   TARGETS soem
   EXPORT soemConfig
@@ -72,7 +69,6 @@ install(FILES
   soem/ethercatbase.h
   soem/ethercatcoe.h
   soem/ethercatconfig.h
-  soem/ethercatconfiglist.h
   soem/ethercatdc.h
   soem/ethercateoe.h
   soem/ethercatfoe.h
@@ -92,6 +88,9 @@ if(SOEM_BUILD_UTILS)
   add_subdirectory(test/linux/simple_test)
   # add_subdirectory(test/linux/coetest)
 endif()
+
+# Platform configuration
+include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/${CMAKE_SYSTEM_NAME}.cmake)
 
 include (InstallRequiredSystemLibraries)
 set (CPACK_RESOURCE_FILE_LICENSE "${SOEM_SOURCE_DIR}/LICENSE.md")

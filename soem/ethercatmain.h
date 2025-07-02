@@ -241,9 +241,7 @@ typedef struct ec_slave
    /** DC shift from clock modulus boundary */
    int32            DCshift;
    /** DC sync activation, 0=off, 1=on */
-   uint8            DCactive;
-   /** link to config table */
-   uint16           configindex;
+   uint8 DCactive;
    /** link to SII config */
    uint16           SIIindex;
    /** 1 = 8 bytes per read, 0 = 4 bytes per read */
@@ -268,10 +266,8 @@ typedef struct ec_slave
    uint8            FMMUunused;
    /** Boolean for tracking whether the slave is (not) responding, not used/set by the SOEM library */
    boolean          islost;
-   /** registered configuration function PO->SO, (DEPRECATED)*/
-   int              (*PO2SOconfig)(uint16 slave);
    /** registered configuration function PO->SO */
-   int              (*PO2SOconfigx)(ecx_contextt * context, uint16 slave);
+   int (*PO2SOconfig)(ecx_contextt *context, uint16 slave);
    /** mailbox handler state, 0 = no handler, 1 = cyclic task mbx handler, 2 = slave lost */
    int              mbxhandlerstate;
    /** mailbox handler robust mailbox protocol state */
@@ -521,62 +517,9 @@ struct ecx_context
    int            (*EOEhook)(ecx_contextt * context, uint16 slave, void * eoembx);
    /** flag to control legacy automatic state change or manual state change */
    int            manualstatechange;
-   /** userdata, promotes application configuration esp. in EC_VER2 with multiple
-    * ec_context instances. Note: userdata memory is managed by application, not SOEM */
+   /** opaque pointer to application userdata, never used by SOEM. */
    void           *userdata;
 };
-
-#ifdef EC_VER1
-/** global struct to hold default master context */
-extern ecx_contextt  ecx_context;
-/** main slave data structure array */
-extern ec_slavet   ec_slave[EC_MAXSLAVE];
-/** number of slaves found by configuration function */
-extern int         ec_slavecount;
-/** slave group structure */
-extern ec_groupt   ec_group[EC_MAXGROUP];
-extern boolean     EcatError;
-extern int64       ec_DCtime;
-extern ec_mbxpoolt ec_mbxpool;
-
-void ec_pusherror(const ec_errort *Ec);
-boolean ec_poperror(ec_errort *Ec);
-boolean ec_iserror(void);
-void ec_packeterror(uint16 Slave, uint16 Index, uint8 SubIdx, uint16 ErrorCode);
-int ec_init(const char * ifname);
-int ec_init_redundant(const char *ifname, char *if2name);
-void ec_close(void);
-uint8 ec_siigetbyte(uint16 slave, uint16 address);
-int16 ec_siifind(uint16 slave, uint16 cat);
-void ec_siistring(char *str, uint16 slave, uint16 Sn);
-uint16 ec_siiFMMU(uint16 slave, ec_eepromFMMUt* FMMU);
-uint16 ec_siiSM(uint16 slave, ec_eepromSMt* SM);
-uint16 ec_siiSMnext(uint16 slave, ec_eepromSMt* SM, uint16 n);
-uint32 ec_siiPDO(uint16 slave, ec_eepromPDOt* PDO, uint8 t);
-int ec_readstate(void);
-int ec_writestate(uint16 slave);
-uint16 ec_statecheck(uint16 slave, uint16 reqstate, int timeout);
-int ec_mbxempty(uint16 slave, int timeout);
-int ec_mbxsend(uint16 slave,ec_mbxbuft *mbx, int timeout);
-int ec_mbxreceive(uint16 slave, ec_mbxbuft **mbx, int timeout);
-void ec_esidump(uint16 slave, uint8 *esibuf);
-uint32 ec_readeeprom(uint16 slave, uint16 eeproma, int timeout);
-int ec_writeeeprom(uint16 slave, uint16 eeproma, uint16 data, int timeout);
-int ec_eeprom2master(uint16 slave);
-int ec_eeprom2pdi(uint16 slave);
-uint64 ec_readeepromAP(uint16 aiadr, uint16 eeproma, int timeout);
-int ec_writeeepromAP(uint16 aiadr, uint16 eeproma, uint16 data, int timeout);
-uint64 ec_readeepromFP(uint16 configadr, uint16 eeproma, int timeout);
-int ec_writeeepromFP(uint16 configadr, uint16 eeproma, uint16 data, int timeout);
-void ec_readeeprom1(uint16 slave, uint16 eeproma);
-uint32 ec_readeeprom2(uint16 slave, int timeout);
-int ec_send_processdata_group(uint8 group);
-int ec_send_overlap_processdata_group(uint8 group);
-int ec_receive_processdata_group(uint8 group, int timeout);
-int ec_send_processdata(void);
-int ec_send_overlap_processdata(void);
-int ec_receive_processdata(int timeout);
-#endif
 
 ec_adaptert * ec_find_adapters(void);
 void ec_free_adapters(ec_adaptert * adapter);

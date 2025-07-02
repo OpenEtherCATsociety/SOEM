@@ -37,69 +37,12 @@ ecx_mapt_t ecx_mapt[EC_MAX_MAPT];
 OSAL_THREAD_HANDLE ecx_threadh[EC_MAX_MAPT];
 #endif
 
-#ifdef EC_VER1
-/** Slave configuration structure */
-typedef const struct
-{
-   /** Manufacturer code of slave */
-   uint32           man;
-   /** ID of slave */
-   uint32           id;
-   /** Readable name */
-   char             name[EC_MAXNAME + 1];
-   /** Data type */
-   uint8            Dtype;
-   /** Input bits */
-   uint16            Ibits;
-   /** Output bits */
-   uint16           Obits;
-   /** SyncManager 2 address */
-   uint16           SM2a;
-   /** SyncManager 2 flags */
-   uint32           SM2f;
-   /** SyncManager 3 address */
-   uint16           SM3a;
-   /** SyncManager 3 flags */
-   uint32           SM3f;
-   /** FMMU 0 activation */
-   uint8            FM0ac;
-   /** FMMU 1 activation */
-   uint8            FM1ac;
-} ec_configlist_t;
-
-#include "ethercatconfiglist.h"
-#endif
-
 /** standard SM0 flags configuration for mailbox slaves */
 #define EC_DEFAULTMBXSM0  0x00010026
 /** standard SM1 flags configuration for mailbox slaves */
 #define EC_DEFAULTMBXSM1  0x00010022
 /** standard SM0 flags configuration for digital output slaves */
 #define EC_DEFAULTDOSM0   0x00010044
-
-#ifdef EC_VER1
-/** Find slave in standard configuration list ec_configlist[]
- *
- * @param[in] man      = manufacturer
- * @param[in] id       = ID
- * @return index in ec_configlist[] when found, otherwise 0
- */
-int ec_findconfig( uint32 man, uint32 id)
-{
-   int i = 0;
-
-   do
-   {
-      i++;
-   } while ( (ec_configlist[i].man != EC_CONFIGEND) &&
-           ((ec_configlist[i].man != man) || (ec_configlist[i].id != id)) );
-   if (ec_configlist[i].man == EC_CONFIGEND)
-   {
-      i = 0;
-   }
-   return i;
-}
-#endif
 
 void ecx_init_context(ecx_contextt *context)
 {
@@ -180,79 +123,12 @@ static void ecx_set_slaves_to_default(ecx_contextt *context)
    ecx_BWR(context->port, 0x0000, ECT_REG_EEPCFG      , sizeof(b) , &b, EC_TIMEOUTRET3);     /* set Eeprom to master */
 }
 
-#ifdef EC_VER1
-static int ecx_config_from_table(ecx_contextt *context, uint16 slave)
-{
-   int cindex;
-   ec_slavet *csl;
-
-   csl = &(context->slavelist[slave]);
-   cindex = ec_findconfig( csl->eep_man, csl->eep_id );
-   csl->configindex= cindex;
-   /* slave found in configuration table ? */
-   if (cindex)
-   {
-      csl->Dtype = ec_configlist[cindex].Dtype;
-      strcpy(csl->name ,ec_configlist[cindex].name);
-      csl->Ibits = ec_configlist[cindex].Ibits;
-      csl->Obits = ec_configlist[cindex].Obits;
-      if (csl->Obits)
-      {
-         csl->FMMU0func = 1;
-      }
-      if (csl->Ibits)
-      {
-         csl->FMMU1func = 2;
-      }
-      csl->FMMU[0].FMMUactive = ec_configlist[cindex].FM0ac;
-      csl->FMMU[1].FMMUactive = ec_configlist[cindex].FM1ac;
-      csl->SM[2].StartAddr = htoes(ec_configlist[cindex].SM2a);
-      csl->SM[2].SMflags = htoel(ec_configlist[cindex].SM2f);
-      /* simple (no mailbox) output slave found ? */
-      if (csl->Obits && !csl->SM[2].StartAddr)
-      {
-         csl->SM[0].StartAddr = htoes(0x0f00);
-         csl->SM[0].SMlength = htoes((csl->Obits + 7) / 8);
-         csl->SM[0].SMflags = htoel(EC_DEFAULTDOSM0);
-         csl->FMMU[0].FMMUactive = 1;
-         csl->FMMU[0].FMMUtype = 2;
-         csl->SMtype[0] = 3;
-      }
-      /* complex output slave */
-      else
-      {
-         csl->SM[2].SMlength = htoes((csl->Obits + 7) / 8);
-         csl->SMtype[2] = 3;
-      }
-      csl->SM[3].StartAddr = htoes(ec_configlist[cindex].SM3a);
-      csl->SM[3].SMflags = htoel(ec_configlist[cindex].SM3f);
-      /* simple (no mailbox) input slave found ? */
-      if (csl->Ibits && !csl->SM[3].StartAddr)
-      {
-         csl->SM[1].StartAddr = htoes(0x1000);
-         csl->SM[1].SMlength = htoes((csl->Ibits + 7) / 8);
-         csl->SM[1].SMflags = htoel(0x00000000);
-         csl->FMMU[1].FMMUactive = 1;
-         csl->FMMU[1].FMMUtype = 1;
-         csl->SMtype[1] = 4;
-      }
-      /* complex input slave */
-      else
-      {
-         csl->SM[3].SMlength = htoes((csl->Ibits + 7) / 8);
-         csl->SMtype[3] = 4;
-      }
-   }
-   return cindex;
-}
-#else
 static int ecx_config_from_table(ecx_contextt *context, uint16 slave)
 {
    (void)context;
    (void)slave;
    return 0;
 }
-#endif
 
 /* If slave has SII and same slave ID done before, use previous data.
  * This is safe because SII is constant for same slave ID.
@@ -656,46 +532,39 @@ static int ecx_map_coe_soe(ecx_contextt *context, uint16 slave, int thread_n)
    EC_PRINT(" >Slave %d, configadr %x, state %2.2x\n",
             slave, context->slavelist[slave].configadr, context->slavelist[slave].state);
 
-   /* execute special slave configuration hook Pre-Op to Safe-OP */
-   if(context->slavelist[slave].PO2SOconfig) /* only if registered */
+   /* execute slave configuration hook Pre-Op to Safe-OP */
+   if (context->slavelist[slave].PO2SOconfig) /* only if registered */
    {
-      context->slavelist[slave].PO2SOconfig(slave);
+      context->slavelist[slave].PO2SOconfig(context, slave);
    }
-   if (context->slavelist[slave].PO2SOconfigx) /* only if registered */
+   /* Find IO mapping in slave */
+   Isize = 0;
+   Osize = 0;
+   if (context->slavelist[slave].mbx_proto & ECT_MBXPROT_COE) /* has CoE */
    {
-      context->slavelist[slave].PO2SOconfigx(context, slave);
-   }
-   /* if slave not found in configlist find IO mapping in slave self */
-   if (!context->slavelist[slave].configindex)
-   {
-      Isize = 0;
-      Osize = 0;
-      if (context->slavelist[slave].mbx_proto & ECT_MBXPROT_COE) /* has CoE */
+      rval = 0;
+      if (context->slavelist[slave].CoEdetails & ECT_COEDET_SDOCA) /* has Complete Access */
       {
-         rval = 0;
-         if (context->slavelist[slave].CoEdetails & ECT_COEDET_SDOCA) /* has Complete Access */
-         {
-            /* read PDO mapping via CoE and use Complete Access */
-            rval = ecx_readPDOmapCA(context, slave, thread_n, &Osize, &Isize);
-         }
-         if (!rval) /* CA not available or not succeeded */
-         {
-            /* read PDO mapping via CoE */
-            rval = ecx_readPDOmap(context, slave, &Osize, &Isize);
-         }
-         EC_PRINT("  CoE Osize:%u Isize:%u\n", Osize, Isize);
+         /* read PDO mapping via CoE and use Complete Access */
+         rval = ecx_readPDOmapCA(context, slave, thread_n, &Osize, &Isize);
       }
-      if ((!Isize && !Osize) && (context->slavelist[slave].mbx_proto & ECT_MBXPROT_SOE)) /* has SoE */
+      if (!rval) /* CA not available or not succeeded */
       {
-         /* read AT / MDT mapping via SoE */
-         rval = ecx_readIDNmap(context, slave, &Osize, &Isize);
-         context->slavelist[slave].SM[2].SMlength = htoes((uint16)((Osize + 7) / 8));
-         context->slavelist[slave].SM[3].SMlength = htoes((uint16)((Isize + 7) / 8));
-         EC_PRINT("  SoE Osize:%u Isize:%u\n", Osize, Isize);
+         /* read PDO mapping via CoE */
+         rval = ecx_readPDOmap(context, slave, &Osize, &Isize);
       }
-      context->slavelist[slave].Obits = (uint16)Osize;
-      context->slavelist[slave].Ibits = (uint16)Isize;
+      EC_PRINT("  CoE Osize:%u Isize:%u\n", Osize, Isize);
    }
+   if ((!Isize && !Osize) && (context->slavelist[slave].mbx_proto & ECT_MBXPROT_SOE)) /* has SoE */
+   {
+      /* read AT / MDT mapping via SoE */
+      rval = ecx_readIDNmap(context, slave, &Osize, &Isize);
+      context->slavelist[slave].SM[2].SMlength = htoes((uint16)((Osize + 7) / 8));
+      context->slavelist[slave].SM[3].SMlength = htoes((uint16)((Isize + 7) / 8));
+      EC_PRINT("  SoE Osize:%u Isize:%u\n", Osize, Isize);
+   }
+   context->slavelist[slave].Obits = (uint16)Osize;
+   context->slavelist[slave].Ibits = (uint16)Isize;
 
    return 1;
 }
@@ -1782,14 +1651,10 @@ int ecx_reconfig_slave(ecx_contextt *context, uint16 slave, int timeout)
       state = ecx_statecheck(context, slave, EC_STATE_PRE_OP, EC_TIMEOUTSTATE); /* check state change pre-op */
       if( state == EC_STATE_PRE_OP)
       {
-         /* execute special slave configuration hook Pre-Op to Safe-OP */
-         if(context->slavelist[slave].PO2SOconfig) /* only if registered */
+         /* execute slave configuration hook Pre-Op to Safe-OP */
+         if (context->slavelist[slave].PO2SOconfig) /* only if registered */
          {
-            context->slavelist[slave].PO2SOconfig(slave);
-         }
-         if (context->slavelist[slave].PO2SOconfigx) /* only if registered */
-         {
-            context->slavelist[slave].PO2SOconfigx(context, slave);
+            context->slavelist[slave].PO2SOconfig(context, slave);
          }
          ecx_FPWRw(context->port, configadr, ECT_REG_ALCTL, htoes(EC_STATE_SAFE_OP) , timeout); /* set safeop status */
          state = ecx_statecheck(context, slave, EC_STATE_SAFE_OP, EC_TIMEOUTSTATE); /* check state change safe-op */
@@ -1804,146 +1669,3 @@ int ecx_reconfig_slave(ecx_contextt *context, uint16 slave, int timeout)
 
    return state;
 }
-
-#ifdef EC_VER1
-/** Enumerate and init all slaves.
- *
- * @param[in] usetable     = TRUE when using configtable to init slaves, FALSE otherwise
- * @return Workcounter of slave discover datagram = number of slaves found
- * @see ecx_config_init
- */
-int ec_config_init(uint8 usetable)
-{
-   return ecx_config_init(&ecx_context, usetable);
-}
-
-/** Map all PDOs in one group of slaves to IOmap with Outputs/Inputs
- * in sequential order (legacy SOEM way).
- *
- * @param[out] pIOmap     = pointer to IOmap
- * @param[in]  group      = group to map, 0 = all groups
- * @return IOmap size
- * @see ecx_config_map_group
- */
-int ec_config_map_group(void *pIOmap, uint8 group)
-{
-   return ecx_config_map_group(&ecx_context, pIOmap, group);
-}
-
-/** Map all PDOs in one group of slaves to IOmap with Outputs/Inputs
-* overlapping. NOTE: Must use this for TI ESC when using LRW.
-*
-* @param[out] pIOmap     = pointer to IOmap
-* @param[in]  group      = group to map, 0 = all groups
-* @return IOmap size
-* @see ecx_config_overlap_map_group
-*/
-int ec_config_overlap_map_group(void *pIOmap, uint8 group)
-{
-   return ecx_config_overlap_map_group(&ecx_context, pIOmap, group);
-}
-
-/** Map all PDOs in one group of slaves to IOmap with Outputs/Inputs
- * in sequential order (legacy SOEM way) and force byte alignment.
- *
- * @param[out] pIOmap     = pointer to IOmap
- * @param[in]  group      = group to map, 0 = all groups
- * @return IOmap size
- * @see ecx_config_map_group
- */
-int ec_config_map_group_aligned(void *pIOmap, uint8 group)
-{
-   return ecx_config_map_group_aligned(&ecx_context, pIOmap, group);
-}
-
-/** Map all PDOs from slaves to IOmap with Outputs/Inputs
- * in sequential order (legacy SOEM way).
- *
- * @param[out] pIOmap     = pointer to IOmap
- * @return IOmap size
- */
-int ec_config_map(void *pIOmap)
-{
-   return ec_config_map_group(pIOmap, 0);
-}
-
-/** Map all PDOs from slaves to IOmap with Outputs/Inputs
-* overlapping. NOTE: Must use this for TI ESC when using LRW.
-*
-* @param[out] pIOmap     = pointer to IOmap
-* @return IOmap size
-*/
-int ec_config_overlap_map(void *pIOmap)
-{
-   return ec_config_overlap_map_group(pIOmap, 0);
-}
-
-/** Map all PDOs from slaves to IOmap with Outputs/Inputs
- * in sequential order (legacy SOEM way) and force byte alignment.
- *
- * @param[out] pIOmap     = pointer to IOmap
- * @return IOmap size
- */
-int ec_config_map_aligned(void *pIOmap)
-{
-   return ec_config_map_group_aligned(pIOmap, 0);
-}
-
-/** Enumerate / map and init all slaves.
- *
- * @param[in] usetable    = TRUE when using configtable to init slaves, FALSE otherwise
- * @param[out] pIOmap     = pointer to IOmap
- * @return Workcounter of slave discover datagram = number of slaves found
- */
-int ec_config(uint8 usetable, void *pIOmap)
-{
-   int wkc;
-   wkc = ec_config_init(usetable);
-   if (wkc)
-   {
-      ec_config_map(pIOmap);
-   }
-   return wkc;
-}
-
-/** Enumerate / map and init all slaves.
-*
-* @param[in] usetable    = TRUE when using configtable to init slaves, FALSE otherwise
-* @param[out] pIOmap     = pointer to IOmap
-* @return Workcounter of slave discover datagram = number of slaves found
-*/
-int ec_config_overlap(uint8 usetable, void *pIOmap)
-{
-   int wkc;
-   wkc = ec_config_init(usetable);
-   if (wkc)
-   {
-      ec_config_overlap_map(pIOmap);
-   }
-   return wkc;
-}
-
-/** Recover slave.
- *
- * @param[in] slave   = slave to recover
- * @param[in] timeout = local timeout f.e. EC_TIMEOUTRET3
- * @return >0 if successful
- * @see ecx_recover_slave
- */
-int ec_recover_slave(uint16 slave, int timeout)
-{
-   return ecx_recover_slave(&ecx_context, slave, timeout);
-}
-
-/** Reconfigure slave.
- *
- * @param[in] slave   = slave to reconfigure
- * @param[in] timeout = local timeout f.e. EC_TIMEOUTRET3
- * @return Slave state
- * @see ecx_reconfig_slave
- */
-int ec_reconfig_slave(uint16 slave, int timeout)
-{
-   return ecx_reconfig_slave(&ecx_context, slave, timeout);
-}
-#endif

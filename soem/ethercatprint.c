@@ -378,10 +378,3 @@ char* ecx_elist2string(ecx_contextt *context)
       return "";
    }
 }
-
-#ifdef EC_VER1
-char* ec_elist2string(void)
-{
-   return ecx_elist2string(&ecx_context);
-}
-#endif

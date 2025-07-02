@@ -67,13 +67,6 @@ const uint16 secMAC[3] = { 0x0404, 0x0404, 0x0404 };
 /** second MAC word is used for identification */
 #define RX_SEC secMAC[1]
 
-#ifdef EC_VER1
-
-ecx_portt      ecx_port;
-ecx_redportt   ecx_redport;
-
-#endif
-
 #define ECAT_PRINT_INFO    printf
 #define ECAT_PRINT_WARN    printf
 #define ECAT_PRINT_ERROR   printf
@@ -694,52 +687,3 @@ int ecx_srconfirm(ecx_portt *port, uint8 idx, int timeout)
 
    return wkc;
 }
-
-#ifdef EC_VER1
-
-int ec_setupnic(const char *ifname, int secondary)
-{
-   return ecx_setupnic(&ecx_port, ifname, secondary);
-}
-
-int ec_closenic(void)
-{
-   return ecx_closenic(&ecx_port);
-}
-
-uint8 ec_getindex(void)
-{
-   return ecx_getindex(&ecx_port);
-}
-
-void ec_setbufstat(uint8 idx, int bufstat)
-{
-   ecx_setbufstat(&ecx_port, idx, bufstat);
-}
-
-int ec_outframe(uint8 idx, int stacknumber)
-{
-   return ecx_outframe(&ecx_port, idx, stacknumber);
-}
-
-int ec_outframe_red(uint8 idx)
-{
-   return ecx_outframe_red(&ecx_port, idx);
-}
-
-int ec_inframe(uint8 idx, int stacknumber)
-{
-   return ecx_inframe(&ecx_port, idx, stacknumber);
-}
-
-int ec_waitinframe(uint8 idx, int timeout)
-{
-   return ecx_waitinframe(&ecx_port, idx, timeout);
-}
-
-int ec_srconfirm(uint8 idx, int timeout)
-{
-   return ecx_srconfirm(&ecx_port, idx, timeout);
-}
-
-#endif

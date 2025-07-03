@@ -104,11 +104,9 @@ void eni_test(char *ifname)
          /* wait for all slaves to reach SAFE_OP state */
          ecx_statecheck(&ctx, 0, EC_STATE_SAFE_OP, EC_TIMEOUTSTATE * 4);
 
-         oloop = ec_slave[0].Obytes;
-         if ((oloop == 0) && (ec_slave[0].Obits > 0)) oloop = 1;
+         oloop = ec_group[0].Obytes;
          if (oloop > 8) oloop = 8;
-         iloop = ec_slave[0].Ibytes;
-         if ((iloop == 0) && (ec_slave[0].Ibits > 0)) iloop = 1;
+         iloop = ec_group[0].Ibytes;
          if (iloop > 8) iloop = 8;
 
          printf("segments : %d : %d %d %d %d\n", ec_group[0].nsegments, ec_group[0].IOsegment[0], ec_group[0].IOsegment[1], ec_group[0].IOsegment[2], ec_group[0].IOsegment[3]);

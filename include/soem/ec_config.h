@@ -19,7 +19,7 @@ extern "C" {
 #define EC_NODEOFFSET 0x1000
 #define EC_TEMPNODE   0xffff
 
-int ecx_config_init(ecx_contextt *context, uint8 usetable);
+int ecx_config_init(ecx_contextt *context);
 int ecx_config_map_group(ecx_contextt *context, void *pIOmap, uint8 group);
 int ecx_recover_slave(ecx_contextt *context, uint16 slave, int timeout);
 int ecx_reconfig_slave(ecx_contextt *context, uint16 slave, int timeout);

@@ -117,7 +117,7 @@ fieldbus_start(Fieldbus *fieldbus)
    printf("done\n");
 
    printf("Finding autoconfig slaves... ");
-   if (ecx_config_init(context, FALSE) <= 0)
+   if (ecx_config_init(context) <= 0)
    {
       printf("no slaves found\n");
       return FALSE;

@@ -99,7 +99,7 @@ void boottest(char *ifname, uint16 slave, char *filename)
       printf("ecx_init on %s succeeded.\n", ifname);
 
       /* find and auto-config slaves */
-      if (ecx_config_init(&ctx, FALSE) > 0)
+      if (ecx_config_init(&ctx) > 0)
       {
          printf("%d slaves found and configured.\n", ec_slavecount);
 

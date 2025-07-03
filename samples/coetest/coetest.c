@@ -225,7 +225,7 @@ void ethercatstartup(char *ifname)
    if (rv)
    {
       adapterisbound = 1;
-      ecx_config_init(&ctx, FALSE);
+      ecx_config_init(&ctx);
       if (ec_slavecount > 0)
       {
          conf_io_size = ecx_config_map_group(&ctx, &IOmap, 0);

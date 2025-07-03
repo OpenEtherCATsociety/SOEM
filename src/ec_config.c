@@ -117,13 +117,6 @@ static void ecx_set_slaves_to_default(ecx_contextt *context)
    ecx_BWR(context->port, 0x0000, ECT_REG_EEPCFG, sizeof(b), &b, EC_TIMEOUTRET3); /* set Eeprom to master */
 }
 
-static int ecx_config_from_table(ecx_contextt *context, uint16 slave)
-{
-   (void)context;
-   (void)slave;
-   return 0;
-}
-
 /* If slave has SII and same slave ID done before, use previous data.
  * This is safe because SII is constant for same slave ID.
  */
@@ -174,10 +167,9 @@ static int ecx_lookup_prev_sii(ecx_contextt *context, uint16 slave)
 /** Enumerate and init all slaves.
  *
  * @param[in] context      = context struct
- * @param[in] usetable     = TRUE when using configtable to init slaves, FALSE otherwise
  * @return Workcounter of slave discover datagram = number of slaves found
  */
-int ecx_config_init(ecx_contextt *context, uint8 usetable)
+int ecx_config_init(ecx_contextt *context)
 {
    uint16 slave, ADPh, configadr, ssigen;
    uint16 topology, estat;
@@ -185,10 +177,10 @@ int ecx_config_init(ecx_contextt *context, uint8 usetable)
    uint8 b, h;
    uint8 SMc;
    uint32 eedat;
-   int wkc, cindex, nSM;
+   int wkc, nSM;
    uint16 val16;
 
-   EC_PRINT("ec_config_init %d\n", usetable);
+   EC_PRINT("ec_config_init\n");
    ecx_init_context(context);
    wkc = ecx_detect_slaves(context);
    if (wkc > 0)
@@ -363,14 +355,8 @@ int ecx_config_init(ecx_contextt *context, uint8 usetable)
             eedat = ecx_readeeprom2(context, slave, EC_TIMEOUTEEP);
             context->slavelist[slave].mbx_proto = (uint16)etohl(eedat);
          }
-         cindex = 0;
-         /* use configuration table ? */
-         if (usetable == 1)
-         {
-            cindex = ecx_config_from_table(context, slave);
-         }
-         /* slave not in configuration table, find out via SII */
-         if (!cindex && !ecx_lookup_prev_sii(context, slave))
+         /* find configuration via SII */
+         if (!ecx_lookup_prev_sii(context, slave))
          {
             ssigen = ecx_siifind(context, slave, ECT_SII_GENERAL);
             /* SII general section */

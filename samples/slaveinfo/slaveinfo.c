@@ -648,7 +648,7 @@ void slaveinfo(char *ifname)
       printf("ecx_init on %s succeeded.\n", ifname);
 
       /* find and auto-config slaves */
-      if (ecx_config_init(&ctx, FALSE) > 0)
+      if (ecx_config_init(&ctx) > 0)
       {
          ecx_config_map_group(&ctx, &IOmap, 0);
 

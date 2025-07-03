@@ -541,6 +541,9 @@ struct ecx_context
    ec_eepromFMMUt *eepFMMU;
    /** internal, mailbox pool */
    ec_mbxpoolt *mbxpool;
+
+   /* Configuration options */
+
    /** network information hook */
    ec_enit *ENI;
    /** registered FoE hook */
@@ -551,6 +554,13 @@ struct ecx_context
    int manualstatechange;
    /** opaque pointer to application userdata, never used by SOEM. */
    void *userdata;
+   /** In overlapped mode, inputs will replace outputs in the incoming
+    * frame. Use this mode for TI ESC:s. Processdata is always aligned
+    * on a byte boundary. */
+   boolean overlappedMode;
+   /** Do not map each slave on a byte boundary. May result in smaller
+    * frame sizes. Has no effect in overlapped mode. */
+   boolean packedMode;
 };
 
 ec_adaptert *ec_find_adapters(void);
@@ -590,10 +600,8 @@ uint64 ecx_readeepromFP(ecx_contextt *context, uint16 configadr, uint16 eeproma,
 int ecx_writeeepromFP(ecx_contextt *context, uint16 configadr, uint16 eeproma, uint16 data, int timeout);
 void ecx_readeeprom1(ecx_contextt *context, uint16 slave, uint16 eeproma);
 uint32 ecx_readeeprom2(ecx_contextt *context, uint16 slave, int timeout);
-int ecx_send_overlap_processdata_group(ecx_contextt *context, uint8 group);
 int ecx_receive_processdata_group(ecx_contextt *context, uint8 group, int timeout);
 int ecx_send_processdata(ecx_contextt *context);
-int ecx_send_overlap_processdata(ecx_contextt *context);
 int ecx_receive_processdata(ecx_contextt *context, int timeout);
 int ecx_send_processdata_group(ecx_contextt *context, uint8 group);
 ec_mbxbuft *ecx_getmbx(ecx_contextt *context);

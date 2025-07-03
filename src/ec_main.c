@@ -2389,19 +2389,24 @@ static void ecx_clearindex(ecx_contextt *context)
 }
 
 /** Transmit processdata to slaves.
+ *
  * Uses LRW, or LRD/LWR if LRW is not allowed (blockLRW).
- * Both the input and output processdata are transmitted.
- * The outputs with the actual data, the inputs have a placeholder.
+ *
+ * In overlap mode, outputs are sent in the outgoing frame and inputs
+ * will replace outputs in the incoming frame.
+ *
+ * In non-overlap mode, outputs are followed by extra space for inputs
+ * in the incoming frame.
+ *
  * The inputs are gathered with the receive processdata function.
  * In contrast to the base LRW function this function is non-blocking.
  * If the processdata does not fit in one datagram, multiple are used.
  * In order to recombine the slave response, a stack is used.
  * @param[in]  context        = context struct
  * @param[in]  group          = group number
- * @param[in]  use_overlap_io = flag if overlapped iomap is used
  * @return >0 if processdata is transmitted.
  */
-static int ecx_main_send_processdata(ecx_contextt *context, uint8 group, boolean use_overlap_io)
+int ecx_send_processdata_group(ecx_contextt *context, uint8 group)
 {
    uint32 LogAdr;
    uint16 w1, w2;
@@ -2424,7 +2429,7 @@ static int ecx_main_send_processdata(ecx_contextt *context, uint8 group, boolean
    ecx_clearmbxstatus(context, group);
 
    /* For overlapping IO map use the biggest */
-   if (use_overlap_io == TRUE)
+   if (context->overlappedMode == TRUE)
    {
       /* For overlap IOmap make the frame EQ big to biggest part */
       length = (context->grouplist[group].Obytes > context->grouplist[group].Ibytes) ? context->grouplist[group].Obytes : context->grouplist[group].Ibytes;
@@ -2577,40 +2582,6 @@ static int ecx_main_send_processdata(ecx_contextt *context, uint8 group, boolean
    return wkc;
 }
 
-/** Transmit processdata to slaves.
- * Uses LRW, or LRD/LWR if LRW is not allowed (blockLRW).
- * Both the input and output processdata are transmitted in the overlapped IOmap.
- * The outputs with the actual data, the inputs replace the output data in the
- * returning frame. The inputs are gathered with the receive processdata function.
- * In contrast to the base LRW function this function is non-blocking.
- * If the processdata does not fit in one datagram, multiple are used.
- * In order to recombine the slave response, a stack is used.
- * @param[in]  context        = context struct
- * @param[in]  group          = group number
- * @return >0 if processdata is transmitted.
- */
-int ecx_send_overlap_processdata_group(ecx_contextt *context, uint8 group)
-{
-   return ecx_main_send_processdata(context, group, TRUE);
-}
-
-/** Transmit processdata to slaves.
- * Uses LRW, or LRD/LWR if LRW is not allowed (blockLRW).
- * Both the input and output processdata are transmitted.
- * The outputs with the actual data, the inputs have a placeholder.
- * The inputs are gathered with the receive processdata function.
- * In contrast to the base LRW function this function is non-blocking.
- * If the processdata does not fit in one datagram, multiple are used.
- * In order to recombine the slave response, a stack is used.
- * @param[in]  context        = context struct
- * @param[in]  group          = group number
- * @return >0 if processdata is transmitted.
- */
-int ecx_send_processdata_group(ecx_contextt *context, uint8 group)
-{
-   return ecx_main_send_processdata(context, group, FALSE);
-}
-
 /** Receive processdata from slaves.
  * Second part from ec_send_processdata().
  * Received datagrams are recombined with the processdata with help from the stack.
@@ -2707,17 +2678,6 @@ int ecx_receive_processdata_group(ecx_contextt *context, uint8 group, int timeou
 int ecx_send_processdata(ecx_contextt *context)
 {
    return ecx_send_processdata_group(context, 0);
-}
-
-/**
- * Send overlap processdata to slaves.
- * Group number is zero (default).
- * @param[in]  context        = context struct
- * @return Work counter.
- */
-int ecx_send_overlap_processdata(ecx_contextt *context)
-{
-   return ecx_send_overlap_processdata_group(context, 0);
 }
 
 /**

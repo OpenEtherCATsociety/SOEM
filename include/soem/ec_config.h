@@ -21,8 +21,6 @@ extern "C" {
 
 int ecx_config_init(ecx_contextt *context, uint8 usetable);
 int ecx_config_map_group(ecx_contextt *context, void *pIOmap, uint8 group);
-int ecx_config_overlap_map_group(ecx_contextt *context, void *pIOmap, uint8 group);
-int ecx_config_map_group_aligned(ecx_contextt *context, void *pIOmap, uint8 group);
 int ecx_recover_slave(ecx_contextt *context, uint16 slave, int timeout);
 int ecx_reconfig_slave(ecx_contextt *context, uint16 slave, int timeout);
 

@@ -13,7 +13,6 @@
 
 #include "soem/soem.h"
 
-boolean forceByteAlignment = FALSE;
 #define EC_TIMEOUTMON 500
 
 char IOmap[4096];
@@ -229,10 +228,7 @@ void ethercatstartup(char *ifname)
       ecx_config_init(&ctx, FALSE);
       if (ec_slavecount > 0)
       {
-         if (forceByteAlignment)
-            conf_io_size = ecx_config_map_group_aligned(&ctx, &IOmap, 0);
-         else
-            conf_io_size = ecx_config_map_group(&ctx, &IOmap, 0);
+         conf_io_size = ecx_config_map_group(&ctx, &IOmap, 0);
          expectedWKC = (ctx.grouplist[0].outputsWKC * 2) + ctx.grouplist[0].inputsWKC;
          mappingdone = 1;
          ecx_configdc(&ctx);

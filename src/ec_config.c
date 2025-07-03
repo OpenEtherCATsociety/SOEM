@@ -1073,7 +1073,7 @@ static void ecx_config_create_mbxstatus_mappings(ecx_contextt *context, void *pI
    context->slavelist[slave].FMMUunused = FMMUc;
 }
 
-static int ecx_main_config_map_group(ecx_contextt *context, void *pIOmap, uint8 group, boolean forceByteAlignment)
+static int ecx_main_config_map_group(ecx_contextt *context, void *pIOmap, uint8 group)
 {
    uint16 slave, configadr;
    uint8 BitPos;
@@ -1109,7 +1109,7 @@ static int ecx_main_config_map_group(ecx_contextt *context, void *pIOmap, uint8 
             {
                ecx_config_create_output_mappings(context, pIOmap, group, slave, &LogAddr, &BitPos);
 
-               if (forceByteAlignment)
+               if (context->packedMode == FALSE)
                {
                   /* Force byte alignment if the output is < 8 bits */
                   if (BitPos)
@@ -1179,7 +1179,7 @@ static int ecx_main_config_map_group(ecx_contextt *context, void *pIOmap, uint8 
 
                ecx_config_create_input_mappings(context, pIOmap, group, slave, &LogAddr, &BitPos);
 
-               if (forceByteAlignment)
+               if (context->packedMode == FALSE)
                {
                   /* Force byte alignment if the input is < 8 bits */
                   if (BitPos)
@@ -1310,34 +1310,6 @@ static int ecx_main_config_map_group(ecx_contextt *context, void *pIOmap, uint8 
 }
 
 /** Map all PDOs in one group of slaves to IOmap with Outputs/Inputs
- * in sequential order (legacy SOEM way).
- *
- *
- * @param[in]  context    = context struct
- * @param[out] pIOmap     = pointer to IOmap
- * @param[in]  group      = group to map, 0 = all groups
- * @return IOmap size
- */
-int ecx_config_map_group(ecx_contextt *context, void *pIOmap, uint8 group)
-{
-   return ecx_main_config_map_group(context, pIOmap, group, FALSE);
-}
-
-/** Map all PDOs in one group of slaves to IOmap with Outputs/Inputs
- * in sequential order (legacy SOEM way) and force byte alignement.
- *
- *
- * @param[in]  context    = context struct
- * @param[out] pIOmap     = pointer to IOmap
- * @param[in]  group      = group to map, 0 = all groups
- * @return IOmap size
- */
-int ecx_config_map_group_aligned(ecx_contextt *context, void *pIOmap, uint8 group)
-{
-   return ecx_main_config_map_group(context, pIOmap, group, TRUE);
-}
-
-/** Map all PDOs in one group of slaves to IOmap with Outputs/Inputs
  * overlapping. NOTE: Must use this for TI ESC when using LRW.
  *
  * @param[in]  context    = context struct
@@ -1345,7 +1317,7 @@ int ecx_config_map_group_aligned(ecx_contextt *context, void *pIOmap, uint8 grou
  * @param[in]  group      = group to map, 0 = all groups
  * @return IOmap size
  */
-int ecx_config_overlap_map_group(ecx_contextt *context, void *pIOmap, uint8 group)
+static int ecx_config_overlap_map_group(ecx_contextt *context, void *pIOmap, uint8 group)
 {
    uint16 slave, configadr;
    uint8 BitPos;
@@ -1543,6 +1515,31 @@ int ecx_config_overlap_map_group(ecx_contextt *context, void *pIOmap, uint8 grou
    }
 
    return 0;
+}
+
+/** Map all PDOs in one group of slaves to IOmap
+ *
+ * In packed mode, processdata for a slave may not start at a byte
+ * boundary.
+ *
+ * In non-overlapped mode, inputs follow outputs in sequential order.
+ *
+ * In overlapped mode, inputs will replace outputs in the incoming
+ * frame. Use this mode for TI ESC when using LRW. Packed mode is not
+ * possible when overlapped mode is enabled.
+ *
+ * @param[in]  context    = context struct
+ * @param[out] pIOmap     = pointer to IOmap
+ * @param[in]  group      = group to map, 0 = all groups
+ * @return IOmap size
+ */
+int ecx_config_map_group(ecx_contextt *context, void *pIOmap, uint8 group)
+{
+   if (context->overlappedMode)
+   {
+      return ecx_config_overlap_map_group(context, pIOmap, group);
+   }
+   return ecx_main_config_map_group(context, pIOmap, group);
 }
 
 /** Recover slave.

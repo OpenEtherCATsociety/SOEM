@@ -24,7 +24,6 @@ boolean needlf;
 volatile int wkc;
 boolean inOP;
 uint8 currentgroup = 0;
-boolean forceByteAlignment = FALSE;
 
 static ec_slavet ec_slave[EC_MAXSLAVE];
 static int ec_slavecount;
@@ -85,14 +84,7 @@ void simpletest(char *ifname)
       /* find and auto-config slaves */
       if (ecx_config_init(&ctx, FALSE) > 0)
       {
-         if (forceByteAlignment)
-         {
-            ecx_config_map_group_aligned(&ctx, &IOmap, 0);
-         }
-         else
-         {
-            ecx_config_map_group(&ctx, &IOmap, 0);
-         }
+         ecx_config_map_group(&ctx, &IOmap, 0);
 
          ecx_configdc(&ctx);
 

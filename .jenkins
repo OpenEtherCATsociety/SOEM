@@ -1,3 +1,11 @@
+currentBuild.displayName = "#${BUILD_NUMBER}"
+if (env.GERRIT_CHANGE_SUBJECT) {
+   currentBuild.displayName += " - ${GERRIT_CHANGE_SUBJECT} (${GERRIT_CHANGE_NUMBER})"
+}
+if (env.GERRIT_REFNAME) {
+   currentBuild.displayName += " - ${GERRIT_REFNAME}"
+}
+
 def buildPrepare()
 {
    sh """

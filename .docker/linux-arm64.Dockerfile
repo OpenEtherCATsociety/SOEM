@@ -1,5 +1,5 @@
 FROM dockcross/linux-arm64-lts
-ENV DEFAULT_DOCKCROSS_IMAGE=m-bus-linux-arm64
+ENV DEFAULT_DOCKCROSS_IMAGE=soem-linux-arm64
 
 # Preinstall uv in our image
 COPY --from=ghcr.io/astral-sh/uv:0.5.9 /uv /uvx /usr/local/bin/

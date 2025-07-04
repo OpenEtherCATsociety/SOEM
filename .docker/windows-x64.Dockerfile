@@ -1,5 +1,5 @@
 FROM dockcross/windows-static-x64
-ENV DEFAULT_DOCKCROSS_IMAGE=m-bus-windows-x64
+ENV DEFAULT_DOCKCROSS_IMAGE=soem-windows-x64
 
 # Preinstall uv in our image
 COPY --from=ghcr.io/astral-sh/uv:0.5.9 /uv /uvx /usr/local/bin/

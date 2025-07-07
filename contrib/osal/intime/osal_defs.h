@@ -21,15 +21,15 @@ extern "C" {
    } while (0)
 #endif
 
-#ifndef PACKED
+#ifndef OSAL_PACKED
 #ifdef _MSC_VER
-#define PACKED_BEGIN __pragma(pack(push, 1))
-#define PACKED
-#define PACKED_END __pragma(pack(pop))
+#define OSAL_PACKED_BEGIN __pragma(pack(push, 1))
+#define OSAL_PACKED
+#define OSAL_PACKED_END __pragma(pack(pop))
 #elif defined(__GNUC__)
-#define PACKED_BEGIN
-#define PACKED __attribute__((__packed__))
-#define PACKED_END
+#define OSAL_PACKED_BEGIN
+#define OSAL_PACKED __attribute__((__packed__))
+#define OSAL_PACKED_END
 #endif
 #endif
 

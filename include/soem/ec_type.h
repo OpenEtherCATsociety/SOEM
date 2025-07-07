@@ -62,8 +62,8 @@ extern "C" {
 typedef uint8 ec_bufT[EC_BUFSIZE];
 
 /** ethernet header definition */
-PACKED_BEGIN
-typedef struct PACKED
+OSAL_PACKED_BEGIN
+typedef struct OSAL_PACKED
 {
    /** destination MAC */
    uint16 da0, da1, da2;
@@ -72,14 +72,14 @@ typedef struct PACKED
    /** ethernet type */
    uint16 etype;
 } ec_etherheadert;
-PACKED_END
+OSAL_PACKED_END
 
 /** ethernet header size */
 #define ETH_HEADERSIZE sizeof(ec_etherheadert)
 
 /** EtherCAT datagram header definition */
-PACKED_BEGIN
-typedef struct PACKED
+OSAL_PACKED_BEGIN
+typedef struct OSAL_PACKED
 {
    /** length of EtherCAT datagram */
    uint16 elength;
@@ -96,7 +96,7 @@ typedef struct PACKED
    /** interrupt, currently unused */
    uint16 irpt;
 } ec_comt;
-PACKED_END
+OSAL_PACKED_END
 
 /** EtherCAT header size */
 #define EC_HEADERSIZE      sizeof(ec_comt)

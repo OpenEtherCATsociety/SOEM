@@ -25,14 +25,14 @@ extern "C" {
    } while (0)
 #endif
 
-#ifndef PACKED
-#define PACKED
+#ifndef OSAL_PACKED
+#define OSAL_PACKED
 #ifdef __GNUC__
-#define PACKED_BEGIN _Pragma("pack(push,1)")
-#define PACKED_END   _Pragma("pack(pop)")
+#define OSAL_PACKED_BEGIN _Pragma("pack(push,1)")
+#define OSAL_PACKED_END   _Pragma("pack(pop)")
 #else
-#define PACKED_BEGIN __pragma(pack(push, 1))
-#define PACKED_END   __pragma(pack(pop))
+#define OSAL_PACKED_BEGIN __pragma(pack(push, 1))
+#define OSAL_PACKED_END   __pragma(pack(pop))
 #endif
 #endif
 

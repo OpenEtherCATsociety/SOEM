@@ -17,10 +17,10 @@
    } while (0)
 #endif
 
-#ifndef PACKED
-#define PACKED_BEGIN
-#define PACKED __attribute__((__packed__))
-#define PACKED_END
+#ifndef OSAL_PACKED
+#define OSAL_PACKED_BEGIN
+#define OSAL_PACKED __attribute__((__packed__))
+#define OSAL_PACKED_END
 #endif
 
 #define OSAL_THREAD_HANDLE  TASK_ID

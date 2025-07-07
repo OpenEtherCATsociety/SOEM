@@ -29,8 +29,8 @@ extern "C" {
 #define EC_IDN_ATCONFIG    16
 
 /** SoE name structure */
-PACKED_BEGIN
-typedef struct PACKED
+OSAL_PACKED_BEGIN
+typedef struct OSAL_PACKED
 {
    /** current length in bytes of list */
    uint16 currentlength;
@@ -38,11 +38,11 @@ typedef struct PACKED
    uint16 maxlength;
    char name[EC_SOE_MAXNAME];
 } ec_SoEnamet;
-PACKED_END
+OSAL_PACKED_END
 
 /** SoE list structure */
-PACKED_BEGIN
-typedef struct PACKED
+OSAL_PACKED_BEGIN
+typedef struct OSAL_PACKED
 {
    /** current length in bytes of list */
    uint16 currentlength;
@@ -56,11 +56,11 @@ typedef struct PACKED
       uint64 lword[1];
    };
 } ec_SoElistt;
-PACKED_END
+OSAL_PACKED_END
 
 /** SoE IDN mapping structure */
-PACKED_BEGIN
-typedef struct PACKED
+OSAL_PACKED_BEGIN
+typedef struct OSAL_PACKED
 {
    /** current length in bytes of list */
    uint16 currentlength;
@@ -68,7 +68,7 @@ typedef struct PACKED
    uint16 maxlength;
    uint16 idn[EC_SOE_MAXMAPPING];
 } ec_SoEmappingt;
-PACKED_END
+OSAL_PACKED_END
 
 #define EC_SOE_LENGTH_1       0x00
 #define EC_SOE_LENGTH_2       0x01
@@ -84,8 +84,8 @@ PACKED_END
 #define EC_SOE_TYPE_PARAMETER 0x07
 
 /** SoE attribute structure */
-PACKED_BEGIN
-typedef struct PACKED
+OSAL_PACKED_BEGIN
+typedef struct OSAL_PACKED
 {
    /** evaluation factor for display purposes */
    uint32 evafactor : 16;
@@ -108,7 +108,7 @@ typedef struct PACKED
    uint32 wpop : 1;
    uint32 reserved2 : 1;
 } ec_SoEattributet;
-PACKED_END
+OSAL_PACKED_END
 
 int ecx_SoEread(ecx_contextt *context, uint16 slave, uint8 driveNo, uint8 elementflags, uint16 idn, int *psize, void *p, int timeout);
 int ecx_SoEwrite(ecx_contextt *context, uint16 slave, uint8 driveNo, uint8 elementflags, uint16 idn, int psize, void *p, int timeout);

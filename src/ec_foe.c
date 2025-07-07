@@ -27,8 +27,8 @@
 /** FOE structure.
  * Used for Read, Write, Data, Ack and Error mailbox packets.
  */
-PACKED_BEGIN
-typedef struct PACKED
+OSAL_PACKED_BEGIN
+typedef struct OSAL_PACKED
 {
    ec_mbxheadert MbxHeader;
    uint8 OpCode;
@@ -46,7 +46,7 @@ typedef struct PACKED
       char ErrorText[EC_MAXFOEDATA];
    };
 } ec_FOEt;
-PACKED_END
+OSAL_PACKED_END
 
 /** FoE progress hook.
  *

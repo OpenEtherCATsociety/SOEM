@@ -207,9 +207,10 @@ char *SDO2string(uint16 slave, uint16 index, uint8 subidx, uint16 dtype)
    int64 *i64;
    float *sr;
    double *dr;
-   char es[32];
+   char *p;
+   size_t size;
 
-   memset(&usdo, 0, 128);
+   memset(&usdo, 0, sizeof(usdo));
    ecx_SDOread(&ctx, slave, index, subidx, FALSE, &l, &usdo, EC_TIMEOUTRXM);
    if (EcatError)
    {
@@ -217,57 +218,57 @@ char *SDO2string(uint16 slave, uint16 index, uint8 subidx, uint16 dtype)
    }
    else
    {
-      static char str[64] = {0};
+      static char str[sizeof(usdo) + 3] = {0};
       switch (dtype)
       {
       case ECT_BOOLEAN:
          u8 = (uint8 *)&usdo[0];
          if (*u8)
-            sprintf(str, "TRUE");
+            snprintf(str, sizeof(str), "TRUE");
          else
-            sprintf(str, "FALSE");
+            snprintf(str, sizeof(str), "FALSE");
          break;
       case ECT_INTEGER8:
          i8 = (int8 *)&usdo[0];
-         sprintf(str, "0x%2.2x / %d", *i8, *i8);
+         snprintf(str, sizeof(str), "0x%2.2x / %d", *i8, *i8);
          break;
       case ECT_INTEGER16:
          i16 = (int16 *)&usdo[0];
-         sprintf(str, "0x%4.4x / %d", *i16, *i16);
+         snprintf(str, sizeof(str), "0x%4.4x / %d", *i16, *i16);
          break;
       case ECT_INTEGER32:
       case ECT_INTEGER24:
          i32 = (int32 *)&usdo[0];
-         sprintf(str, "0x%8.8x / %d", *i32, *i32);
+         snprintf(str, sizeof(str), "0x%8.8x / %d", *i32, *i32);
          break;
       case ECT_INTEGER64:
          i64 = (int64 *)&usdo[0];
-         sprintf(str, "0x%16.16" PRIx64 " / %" PRId64, *i64, *i64);
+         snprintf(str, sizeof(str), "0x%16.16" PRIx64 " / %" PRId64, *i64, *i64);
          break;
       case ECT_UNSIGNED8:
          u8 = (uint8 *)&usdo[0];
-         sprintf(str, "0x%2.2x / %u", *u8, *u8);
+         snprintf(str, sizeof(str), "0x%2.2x / %u", *u8, *u8);
          break;
       case ECT_UNSIGNED16:
          u16 = (uint16 *)&usdo[0];
-         sprintf(str, "0x%4.4x / %u", *u16, *u16);
+         snprintf(str, sizeof(str), "0x%4.4x / %u", *u16, *u16);
          break;
       case ECT_UNSIGNED32:
       case ECT_UNSIGNED24:
          u32 = (uint32 *)&usdo[0];
-         sprintf(str, "0x%8.8x / %u", *u32, *u32);
+         snprintf(str, sizeof(str), "0x%8.8x / %u", *u32, *u32);
          break;
       case ECT_UNSIGNED64:
          u64 = (uint64 *)&usdo[0];
-         sprintf(str, "0x%16.16" PRIx64 " / %" PRIu64, *u64, *u64);
+         snprintf(str, sizeof(str), "0x%16.16" PRIx64 " / %" PRIu64, *u64, *u64);
          break;
       case ECT_REAL32:
          sr = (float *)&usdo[0];
-         sprintf(str, "%f", *sr);
+         snprintf(str, sizeof(str), "%f", *sr);
          break;
       case ECT_REAL64:
          dr = (double *)&usdo[0];
-         sprintf(str, "%f", *dr);
+         snprintf(str, sizeof(str), "%f", *dr);
          break;
       case ECT_BIT1:
       case ECT_BIT2:
@@ -278,24 +279,28 @@ char *SDO2string(uint16 slave, uint16 index, uint8 subidx, uint16 dtype)
       case ECT_BIT7:
       case ECT_BIT8:
          u8 = (uint8 *)&usdo[0];
-         sprintf(str, "0x%x / %u", *u8, *u8);
+         snprintf(str, sizeof(str), "0x%x / %u", *u8, *u8);
          break;
       case ECT_VISIBLE_STRING:
-         strcpy(str, "\"");
-         strcat(str, usdo);
+         snprintf(str, sizeof(str), "\"%s\"", usdo);
          strcat(str, "\"");
          break;
       case ECT_OCTET_STRING:
-         str[0] = 0x00;
+         p = str;
+         size = sizeof(str);
          for (i = 0; i < l; i++)
          {
-            sprintf(es, "0x%2.2x ", usdo[i]);
-            strcat(str, es);
+            int n = snprintf(p, size, "0x%2.2x ", usdo[i]);
+            if (n > (int)size)
+               break;
+            p += n;
+            size -= n;
          }
          break;
       default:
-         sprintf(str, "Unknown type");
+         snprintf(str, sizeof(str), "Unknown type");
       }
+      str[sizeof(str) - 1] = 0;
       return str;
    }
 }

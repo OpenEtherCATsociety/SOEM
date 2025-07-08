@@ -53,7 +53,7 @@ void ec_sync(int64 reftime, int64 cycletime, int64 *offsettime)
    }
    timeerror = -delta;
    integral += timeerror;
-   *offsettime = (timeerror * pgain) + (integral * igain);
+   *offsettime = (int64)((timeerror * pgain) + (integral * igain));
 }
 
 /* RT EtherCAT thread */

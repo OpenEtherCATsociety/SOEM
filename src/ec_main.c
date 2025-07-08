@@ -286,7 +286,7 @@ ec_mbxbuft *ecx_getmbx(ecx_contextt *context)
 int ecx_dropmbx(ecx_contextt *context, ec_mbxbuft *mbx)
 {
    ec_mbxpoolt *mbxpool = &context->mbxpool;
-   int item = mbx - &(mbxpool->mbx[0]);
+   int item = (int)(mbx - &(mbxpool->mbx[0]));
    EC_PRINT("dropmbx item:%d mbx:%p\n\r", item, mbx);
    if ((item >= 0) && (item < EC_MBXPOOLSIZE))
    {

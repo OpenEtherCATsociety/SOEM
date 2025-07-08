@@ -1,3 +1,7 @@
+# This software is dual-licensed under GPLv3 and a commercial
+# license. See the file LICENSE.md distributed with this software for
+# full license information.
+
 cmake_minimum_required(VERSION 3.9)
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_LIST_DIR}/cmake/Modules")
 project(SOEM

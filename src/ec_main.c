@@ -2104,7 +2104,7 @@ int ecx_writeeepromAP(ecx_contextt *context, uint16 aiadr, uint16 eeproma, uint1
                if (estat & EC_ESTAT_NACK)
                {
                   nackcnt++;
-                  osal_usleep(EC_LOCALDELAY * 5);
+                  osal_usleep(EC_LOCALDELAY * 25);
                }
                else
                {

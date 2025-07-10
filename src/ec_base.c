@@ -21,10 +21,10 @@
 
 /** Write data to EtherCAT datagram.
  *
- * @param[out] datagramdata   = data part of datagram
- * @param[in]  com            = command
- * @param[in]  length         = length of databuffer
- * @param[in]  data           = databuffer to be copied into datagram
+ * @param[out] datagramdata   data part of datagram
+ * @param[in]  com            command
+ * @param[in]  length         length of databuffer
+ * @param[in]  data           databuffer to be copied into datagram
  */
 static void ecx_writedatagramdata(void *datagramdata, ec_cmdtype com, uint16 length, const void *data)
 {
@@ -53,14 +53,14 @@ static void ecx_writedatagramdata(void *datagramdata, ec_cmdtype com, uint16 len
 
 /** Generate and set EtherCAT datagram in a standard ethernet frame.
  *
- * @param[in] port        = port context struct
- * @param[out] frame       = framebuffer
- * @param[in]  com         = command
- * @param[in]  idx         = index used for TX and RX buffers
- * @param[in]  ADP         = Address Position
- * @param[in]  ADO         = Address Offset
- * @param[in]  length      = length of datagram excluding EtherCAT header
- * @param[in]  data        = databuffer to be copied in datagram
+ * @param[in]  port        port context struct
+ * @param[out] frame       framebuffer
+ * @param[in]  com         command
+ * @param[in]  idx         index used for TX and RX buffers
+ * @param[in]  ADP         Address Position
+ * @param[in]  ADO         Address Offset
+ * @param[in]  length      length of datagram excluding EtherCAT header
+ * @param[in]  data        databuffer to be copied in datagram
  * @return always 0
  */
 int ecx_setupdatagram(ecx_portt *port, void *frame, uint8 com, uint8 idx, uint16 ADP, uint16 ADO, uint16 length, void *data)
@@ -90,15 +90,15 @@ int ecx_setupdatagram(ecx_portt *port, void *frame, uint8 com, uint8 idx, uint16
 
 /** Add EtherCAT datagram to a standard ethernet frame with existing datagram(s).
  *
- * @param[in] port        = port context struct
- * @param[out] frame      = framebuffer
- * @param[in]  com        = command
- * @param[in]  idx        = index used for TX and RX buffers
- * @param[in]  more       = TRUE if still more datagrams to follow
- * @param[in]  ADP        = Address Position
- * @param[in]  ADO        = Address Offset
- * @param[in]  length     = length of datagram excluding EtherCAT header
- * @param[in]  data       = databuffer to be copied in datagram
+ * @param[in]  port        port context struct
+ * @param[out] frame      framebuffer
+ * @param[in]  com        command
+ * @param[in]  idx        index used for TX and RX buffers
+ * @param[in]  more       TRUE if still more datagrams to follow
+ * @param[in]  ADP        Address Position
+ * @param[in]  ADO        Address Offset
+ * @param[in]  length     length of datagram excluding EtherCAT header
+ * @param[in]  data       databuffer to be copied in datagram
  * @return Offset to data in rx frame, useful to retrieve data after RX.
  */
 uint16 ecx_adddatagram(ecx_portt *port, void *frame, uint8 com, uint8 idx, boolean more, uint16 ADP, uint16 ADO, uint16 length, void *data)
@@ -145,12 +145,12 @@ uint16 ecx_adddatagram(ecx_portt *port, void *frame, uint8 com, uint8 idx, boole
 
 /** BRW "broadcast write" primitive. Blocking.
  *
- * @param[in] port        = port context struct
- * @param[in] ADP         = Address Position, normally 0
- * @param[in] ADO         = Address Offset, slave memory address
- * @param[in] length      = length of databuffer
- * @param[in] data        = databuffer to be written to slaves
- * @param[in] timeout     = timeout in us, standard is EC_TIMEOUTRET
+ * @param[in] port        port context struct
+ * @param[in] ADP         Address Position, normally 0
+ * @param[in] ADO         Address Offset, slave memory address
+ * @param[in] length      length of databuffer
+ * @param[in] data        databuffer to be written to slaves
+ * @param[in] timeout     timeout in us, standard is EC_TIMEOUTRET
  * @return Workcounter or EC_NOFRAME
  */
 int ecx_BWR(ecx_portt *port, uint16 ADP, uint16 ADO, uint16 length, void *data, int timeout)
@@ -172,12 +172,12 @@ int ecx_BWR(ecx_portt *port, uint16 ADP, uint16 ADO, uint16 length, void *data, 
 
 /** BRD "broadcast read" primitive. Blocking.
  *
- * @param[in] port        = port context struct
- * @param[in]  ADP        = Address Position, normally 0
- * @param[in]  ADO        = Address Offset, slave memory address
- * @param[in]  length     = length of databuffer
- * @param[out] data       = databuffer to put slave data in
- * @param[in]  timeout    = timeout in us, standard is EC_TIMEOUTRET
+ * @param[in]  port       port context struct
+ * @param[in]  ADP        Address Position, normally 0
+ * @param[in]  ADO        Address Offset, slave memory address
+ * @param[in]  length     length of databuffer
+ * @param[out] data       databuffer to put slave data in
+ * @param[in]  timeout    timeout in us, standard is EC_TIMEOUTRET
  * @return Workcounter or EC_NOFRAME
  */
 int ecx_BRD(ecx_portt *port, uint16 ADP, uint16 ADO, uint16 length, void *data, int timeout)
@@ -204,12 +204,12 @@ int ecx_BRD(ecx_portt *port, uint16 ADP, uint16 ADO, uint16 length, void *data, 
 
 /** APRD "auto increment address read" primitive. Blocking.
  *
- * @param[in] port        = port context struct
- * @param[in]  ADP        = Address Position, each slave ++, slave that has 0 executes
- * @param[in]  ADO        = Address Offset, slave memory address
- * @param[in]  length     = length of databuffer
- * @param[out] data       = databuffer to put slave data in
- * @param[in]  timeout    = timeout in us, standard is EC_TIMEOUTRET
+ * @param[in]  port       port context struct
+ * @param[in]  ADP        Address Position, each slave ++, slave that has 0 executes
+ * @param[in]  ADO        Address Offset, slave memory address
+ * @param[in]  length     length of databuffer
+ * @param[out] data       databuffer to put slave data in
+ * @param[in]  timeout    timeout in us, standard is EC_TIMEOUTRET
  * @return Workcounter or EC_NOFRAME
  */
 int ecx_APRD(ecx_portt *port, uint16 ADP, uint16 ADO, uint16 length, void *data, int timeout)
@@ -231,13 +231,13 @@ int ecx_APRD(ecx_portt *port, uint16 ADP, uint16 ADO, uint16 length, void *data,
 
 /** APRMW "auto increment address read, multiple write" primitive. Blocking.
  *
- * @param[in] port        = port context struct
- * @param[in]  ADP        = Address Position, each slave ++, slave that has 0 reads,
+ * @param[in]  port       port context struct
+ * @param[in]  ADP        Address Position, each slave ++, slave that has 0 reads,
  *                          following slaves write.
- * @param[in]  ADO        = Address Offset, slave memory address
- * @param[in]  length     = length of databuffer
- * @param[out] data       = databuffer to put slave data in
- * @param[in]  timeout    = timeout in us, standard is EC_TIMEOUTRET
+ * @param[in]  ADO        Address Offset, slave memory address
+ * @param[in]  length     length of databuffer
+ * @param[out] data       databuffer to put slave data in
+ * @param[in]  timeout    timeout in us, standard is EC_TIMEOUTRET
  * @return Workcounter or EC_NOFRAME
  */
 int ecx_ARMW(ecx_portt *port, uint16 ADP, uint16 ADO, uint16 length, void *data, int timeout)
@@ -259,13 +259,13 @@ int ecx_ARMW(ecx_portt *port, uint16 ADP, uint16 ADO, uint16 length, void *data,
 
 /** FPRMW "configured address read, multiple write" primitive. Blocking.
  *
- * @param[in] port        = port context struct
- * @param[in]  ADP        = Address Position, slave that has address reads,
+ * @param[in]  port       port context struct
+ * @param[in]  ADP        Address Position, slave that has address reads,
  *                          following slaves write.
- * @param[in]  ADO        = Address Offset, slave memory address
- * @param[in]  length     = length of databuffer
- * @param[out] data       = databuffer to put slave data in
- * @param[in]  timeout    = timeout in us, standard is EC_TIMEOUTRET
+ * @param[in]  ADO        Address Offset, slave memory address
+ * @param[in]  length     length of databuffer
+ * @param[out] data       databuffer to put slave data in
+ * @param[in]  timeout    timeout in us, standard is EC_TIMEOUTRET
  * @return Workcounter or EC_NOFRAME
  */
 int ecx_FRMW(ecx_portt *port, uint16 ADP, uint16 ADO, uint16 length, void *data, int timeout)
@@ -287,10 +287,10 @@ int ecx_FRMW(ecx_portt *port, uint16 ADP, uint16 ADO, uint16 length, void *data,
 
 /** APRDw "auto increment address read" word return primitive. Blocking.
  *
- * @param[in] port        = port context struct
- * @param[in] ADP         = Address Position, each slave ++, slave that has 0 reads.
- * @param[in] ADO         = Address Offset, slave memory address
- * @param[in] timeout     = timeout in us, standard is EC_TIMEOUTRET
+ * @param[in] port        port context struct
+ * @param[in] ADP         Address Position, each slave ++, slave that has 0 reads.
+ * @param[in] ADO         Address Offset, slave memory address
+ * @param[in] timeout     timeout in us, standard is EC_TIMEOUTRET
  * @return word data from slave
  */
 uint16 ecx_APRDw(ecx_portt *port, uint16 ADP, uint16 ADO, int timeout)
@@ -305,12 +305,12 @@ uint16 ecx_APRDw(ecx_portt *port, uint16 ADP, uint16 ADO, int timeout)
 
 /** FPRD "configured address read" primitive. Blocking.
  *
- * @param[in] port        = port context struct
- * @param[in]  ADP        = Address Position, slave that has address reads.
- * @param[in]  ADO        = Address Offset, slave memory address
- * @param[in]  length     = length of databuffer
- * @param[out] data       = databuffer to put slave data in
- * @param[in]  timeout    = timeout in us, standard is EC_TIMEOUTRET
+ * @param[in]  port       port context struct
+ * @param[in]  ADP        Address Position, slave that has address reads.
+ * @param[in]  ADO        Address Offset, slave memory address
+ * @param[in]  length     length of databuffer
+ * @param[out] data       databuffer to put slave data in
+ * @param[in]  timeout    timeout in us, standard is EC_TIMEOUTRET
  * @return Workcounter or EC_NOFRAME
  */
 int ecx_FPRD(ecx_portt *port, uint16 ADP, uint16 ADO, uint16 length, void *data, int timeout)
@@ -332,10 +332,10 @@ int ecx_FPRD(ecx_portt *port, uint16 ADP, uint16 ADO, uint16 length, void *data,
 
 /** FPRDw "configured address read" word return primitive. Blocking.
  *
- * @param[in] port        = port context struct
- * @param[in] ADP         = Address Position, slave that has address reads.
- * @param[in] ADO         = Address Offset, slave memory address
- * @param[in] timeout     = timeout in us, standard is EC_TIMEOUTRET
+ * @param[in] port        port context struct
+ * @param[in] ADP         Address Position, slave that has address reads.
+ * @param[in] ADO         Address Offset, slave memory address
+ * @param[in] timeout     timeout in us, standard is EC_TIMEOUTRET
  * @return word data from slave
  */
 uint16 ecx_FPRDw(ecx_portt *port, uint16 ADP, uint16 ADO, int timeout)
@@ -349,12 +349,12 @@ uint16 ecx_FPRDw(ecx_portt *port, uint16 ADP, uint16 ADO, int timeout)
 
 /** APWR "auto increment address write" primitive. Blocking.
  *
- * @param[in] port        = port context struct
- * @param[in] ADP         = Address Position, each slave ++, slave that has 0 writes.
- * @param[in] ADO         = Address Offset, slave memory address
- * @param[in] length      = length of databuffer
- * @param[in] data        = databuffer to write to slave.
- * @param[in] timeout     = timeout in us, standard is EC_TIMEOUTRET
+ * @param[in] port        port context struct
+ * @param[in] ADP         Address Position, each slave ++, slave that has 0 writes.
+ * @param[in] ADO         Address Offset, slave memory address
+ * @param[in] length      length of databuffer
+ * @param[in] data        databuffer to write to slave.
+ * @param[in] timeout     timeout in us, standard is EC_TIMEOUTRET
  * @return Workcounter or EC_NOFRAME
  */
 int ecx_APWR(ecx_portt *port, uint16 ADP, uint16 ADO, uint16 length, void *data, int timeout)
@@ -372,11 +372,11 @@ int ecx_APWR(ecx_portt *port, uint16 ADP, uint16 ADO, uint16 length, void *data,
 
 /** APWRw "auto increment address write" word primitive. Blocking.
  *
- * @param[in] port        = port context struct
- * @param[in] ADP         = Address Position, each slave ++, slave that has 0 writes.
- * @param[in] ADO         = Address Offset, slave memory address
- * @param[in] data        = word data to write to slave.
- * @param[in] timeout     = timeout in us, standard is EC_TIMEOUTRET
+ * @param[in] port        port context struct
+ * @param[in] ADP         Address Position, each slave ++, slave that has 0 writes.
+ * @param[in] ADO         Address Offset, slave memory address
+ * @param[in] data        word data to write to slave.
+ * @param[in] timeout     timeout in us, standard is EC_TIMEOUTRET
  * @return Workcounter or EC_NOFRAME
  */
 int ecx_APWRw(ecx_portt *port, uint16 ADP, uint16 ADO, uint16 data, int timeout)
@@ -386,12 +386,12 @@ int ecx_APWRw(ecx_portt *port, uint16 ADP, uint16 ADO, uint16 data, int timeout)
 
 /** FPWR "configured address write" primitive. Blocking.
  *
- * @param[in] port        = port context struct
- * @param[in] ADP         = Address Position, slave that has address writes.
- * @param[in] ADO         = Address Offset, slave memory address
- * @param[in] length      = length of databuffer
- * @param[in] data        = databuffer to write to slave.
- * @param[in] timeout     = timeout in us, standard is EC_TIMEOUTRET
+ * @param[in] port        port context struct
+ * @param[in] ADP         Address Position, slave that has address writes.
+ * @param[in] ADO         Address Offset, slave memory address
+ * @param[in] length      length of databuffer
+ * @param[in] data        databuffer to write to slave.
+ * @param[in] timeout     timeout in us, standard is EC_TIMEOUTRET
  * @return Workcounter or EC_NOFRAME
  */
 int ecx_FPWR(ecx_portt *port, uint16 ADP, uint16 ADO, uint16 length, void *data, int timeout)
@@ -409,11 +409,11 @@ int ecx_FPWR(ecx_portt *port, uint16 ADP, uint16 ADO, uint16 length, void *data,
 
 /** FPWR "configured address write" primitive. Blocking.
  *
- * @param[in] port        = port context struct
- * @param[in] ADP         = Address Position, slave that has address writes.
- * @param[in] ADO         = Address Offset, slave memory address
- * @param[in] data        = word to write to slave.
- * @param[in] timeout     = timeout in us, standard is EC_TIMEOUTRET
+ * @param[in] port        port context struct
+ * @param[in] ADP         Address Position, slave that has address writes.
+ * @param[in] ADO         Address Offset, slave memory address
+ * @param[in] data        word to write to slave.
+ * @param[in] timeout     timeout in us, standard is EC_TIMEOUTRET
  * @return Workcounter or EC_NOFRAME
  */
 int ecx_FPWRw(ecx_portt *port, uint16 ADP, uint16 ADO, uint16 data, int timeout)
@@ -423,11 +423,11 @@ int ecx_FPWRw(ecx_portt *port, uint16 ADP, uint16 ADO, uint16 data, int timeout)
 
 /** LRW "logical memory read / write" primitive. Blocking.
  *
- * @param[in] port        = port context struct
- * @param[in]     LogAdr  = Logical memory address
- * @param[in]     length  = length of databuffer
- * @param[in,out] data    = databuffer to write to and read from slave.
- * @param[in]     timeout = timeout in us, standard is EC_TIMEOUTRET
+ * @param[in]     port    port context struct
+ * @param[in]     LogAdr  Logical memory address
+ * @param[in]     length  length of databuffer
+ * @param[in,out] data    databuffer to write to and read from slave.
+ * @param[in]     timeout timeout in us, standard is EC_TIMEOUTRET
  * @return Workcounter or EC_NOFRAME
  */
 int ecx_LRW(ecx_portt *port, uint32 LogAdr, uint16 length, void *data, int timeout)
@@ -449,11 +449,11 @@ int ecx_LRW(ecx_portt *port, uint32 LogAdr, uint16 length, void *data, int timeo
 
 /** LRD "logical memory read" primitive. Blocking.
  *
- * @param[in] port        = port context struct
- * @param[in]  LogAdr     = Logical memory address
- * @param[in]  length     = length of bytes to read from slave.
- * @param[out] data       = databuffer to read from slave.
- * @param[in]  timeout    = timeout in us, standard is EC_TIMEOUTRET
+ * @param[in]  port       port context struct
+ * @param[in]  LogAdr     Logical memory address
+ * @param[in]  length     length of bytes to read from slave.
+ * @param[out] data       databuffer to read from slave.
+ * @param[in]  timeout    timeout in us, standard is EC_TIMEOUTRET
  * @return Workcounter or EC_NOFRAME
  */
 int ecx_LRD(ecx_portt *port, uint32 LogAdr, uint16 length, void *data, int timeout)
@@ -475,11 +475,11 @@ int ecx_LRD(ecx_portt *port, uint32 LogAdr, uint16 length, void *data, int timeo
 
 /** LWR "logical memory write" primitive. Blocking.
  *
- * @param[in] port        = port context struct
- * @param[in] LogAdr      = Logical memory address
- * @param[in] length      = length of databuffer
- * @param[in] data        = databuffer to write to slave.
- * @param[in] timeout     = timeout in us, standard is EC_TIMEOUTRET
+ * @param[in] port        port context struct
+ * @param[in] LogAdr      Logical memory address
+ * @param[in] length      length of databuffer
+ * @param[in] data        databuffer to write to slave.
+ * @param[in] timeout     timeout in us, standard is EC_TIMEOUTRET
  * @return Workcounter or EC_NOFRAME
  */
 int ecx_LWR(ecx_portt *port, uint32 LogAdr, uint16 length, void *data, int timeout)
@@ -498,13 +498,13 @@ int ecx_LWR(ecx_portt *port, uint32 LogAdr, uint16 length, void *data, int timeo
 /** LRW "logical memory read / write" primitive plus Clock Distribution. Blocking.
  * Frame consists of two datagrams, one LRW and one FPRMW.
  *
- * @param[in] port        = port context struct
- * @param[in]     LogAdr  = Logical memory address
- * @param[in]     length  = length of databuffer
- * @param[in,out] data    = databuffer to write to and read from slave.
- * @param[in]     DCrs    = Distributed Clock reference slave address.
- * @param[out]    DCtime  = DC time read from reference slave.
- * @param[in]     timeout = timeout in us, standard is EC_TIMEOUTRET
+ * @param[in]     port    port context struct
+ * @param[in]     LogAdr  Logical memory address
+ * @param[in]     length  length of databuffer
+ * @param[in,out] data    databuffer to write to and read from slave.
+ * @param[in]     DCrs    Distributed Clock reference slave address.
+ * @param[out]    DCtime  DC time read from reference slave.
+ * @param[in]     timeout timeout in us, standard is EC_TIMEOUTRET
  * @return Workcounter or EC_NOFRAME
  */
 int ecx_LRWDC(ecx_portt *port, uint32 LogAdr, uint16 length, void *data, uint16 DCrs, int64 *DCtime, int timeout)

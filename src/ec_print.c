@@ -231,7 +231,7 @@ const ec_mbxerrorlist_t ec_mbxerrorlist[] = {
 
 /** Look up text string that belongs to SDO error code.
  *
- * @param[in] sdoerrorcode   = SDO error code as defined in EtherCAT protocol
+ * @param[in] sdoerrorcode   SDO error code as defined in EtherCAT protocol
  * @return readable string
  */
 const char *ec_sdoerror2string(uint32 sdoerrorcode)
@@ -249,7 +249,7 @@ const char *ec_sdoerror2string(uint32 sdoerrorcode)
 
 /** Look up text string that belongs to AL status code.
  *
- * @param[in] ALstatuscode   = AL status code as defined in EtherCAT protocol
+ * @param[in] ALstatuscode   AL status code as defined in EtherCAT protocol
  * @return readable string
  */
 char *ec_ALstatuscode2string(uint16 ALstatuscode)
@@ -267,7 +267,7 @@ char *ec_ALstatuscode2string(uint16 ALstatuscode)
 
 /** Look up text string that belongs to SoE error code.
  *
- * @param[in] errorcode   = SoE error code as defined in EtherCAT protocol
+ * @param[in] errorcode   SoE error code as defined in EtherCAT protocol
  * @return readable string
  */
 char *ec_soeerror2string(uint16 errorcode)
@@ -285,7 +285,7 @@ char *ec_soeerror2string(uint16 errorcode)
 
 /** Look up text string that belongs to MBX error code.
  *
- * @param[in] errorcode   = MBX error code as defined in EtherCAT protocol
+ * @param[in] errorcode   MBX error code as defined in EtherCAT protocol
  * @return readable string
  */
 char *ec_mbxerror2string(uint16 errorcode)
@@ -303,7 +303,7 @@ char *ec_mbxerror2string(uint16 errorcode)
 
 /** Convert an error to text string.
  *
- * @param[in] Ec = Struct describing the error.
+ * @param[in] Ec Struct describing the error.
  * @return readable string
  */
 char *ecx_err2string(const ec_errort Ec)
@@ -360,7 +360,7 @@ char *ecx_err2string(const ec_errort Ec)
 
 /** Look up error in ec_errorlist and convert to text string.
  *
- * @param[in]  context        = context struct
+ * @param[in]  context        context struct
  * @return readable string
  */
 char *ecx_elist2string(ecx_contextt *context)

@@ -24,7 +24,7 @@
 /**
  * Set DC of slave to fire sync0 at CyclTime interval with CyclShift offset.
  *
- * @param[in]  context        = context struct
+ * @param[in]  context          context struct
  * @param [in] slave            Slave number.
  * @param [in] act              TRUE = active, FALSE = deactivated
  * @param [in] CyclTime         Cycltime in ns.
@@ -80,7 +80,7 @@ void ecx_dcsync0(ecx_contextt *context, uint16 slave, boolean act, uint32 CyclTi
 /**
  * Set DC of slave to fire sync0 and sync1 at CyclTime interval with CyclShift offset.
  *
- * @param[in]  context        = context struct
+ * @param[in]  context          context struct
  * @param [in] slave            Slave number.
  * @param [in] act              TRUE = active, FALSE = deactivated
  * @param [in] CyclTime0        Cycltime SYNC0 in ns.
@@ -244,7 +244,7 @@ static uint8 ecx_parentport(ecx_contextt *context, uint16 parent)
 /**
  * Locate DC slaves, measure propagation delays.
  *
- * @param[in]  context        = context struct
+ * @param[in]  context        context struct
  * @return boolean if slaves are found with DC
  */
 boolean ecx_configdc(ecx_contextt *context)

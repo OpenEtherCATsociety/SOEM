@@ -36,10 +36,10 @@ OSAL_PACKED_END
 
 /** Report SoE error.
  *
- * @param[in]  context        = context struct
- * @param[in]  Slave      = Slave number
- * @param[in]  idn        = IDN that generated error
- * @param[in]  Error      = Error code, see EtherCAT documentation for list
+ * @param[in]  context    context struct
+ * @param[in]  Slave      Slave number
+ * @param[in]  idn        IDN that generated error
+ * @param[in]  Error      Error code, see EtherCAT documentation for list
  */
 void ecx_SoEerror(ecx_contextt *context, uint16 Slave, uint16 idn, uint16 Error)
 {
@@ -62,14 +62,14 @@ void ecx_SoEerror(ecx_contextt *context, uint16 Slave, uint16 idn, uint16 Error)
  * is larger than the mailbox size then the response is segmented. The function
  * will combine all segments and copy them to the parameter buffer.
  *
- * @param[in]  context        = context struct
- * @param[in]  slave         = Slave number
- * @param[in]  driveNo       = Drive number in slave
- * @param[in]  elementflags  = Flags to select what properties of IDN are to be transferred.
- * @param[in]  idn           = IDN.
- * @param[in,out] psize      = Size in bytes of parameter buffer, returns bytes read from SoE.
- * @param[out] p             = Pointer to parameter buffer
- * @param[in]  timeout       = Timeout in us, standard is EC_TIMEOUTRXM
+ * @param[in]  context       context struct
+ * @param[in]  slave         Slave number
+ * @param[in]  driveNo       Drive number in slave
+ * @param[in]  elementflags  Flags to select what properties of IDN are to be transferred.
+ * @param[in]  idn           IDN.
+ * @param[in,out] psize      Size in bytes of parameter buffer, returns bytes read from SoE.
+ * @param[out] p             Pointer to parameter buffer
+ * @param[in]  timeout       Timeout in us, standard is EC_TIMEOUTRXM
  * @return Workcounter from last slave response
  */
 int ecx_SoEread(ecx_contextt *context, uint16 slave, uint8 driveNo, uint8 elementflags, uint16 idn, int *psize, void *p, int timeout)
@@ -189,14 +189,14 @@ int ecx_SoEread(ecx_contextt *context, uint16 slave, uint8 driveNo, uint8 elemen
  * The IDN object of the selected slave and DriveNo is written. If a response
  * is larger than the mailbox size then the response is segmented.
  *
- * @param[in]  context        = context struct
- * @param[in]  slave         = Slave number
- * @param[in]  driveNo       = Drive number in slave
- * @param[in]  elementflags  = Flags to select what properties of IDN are to be transferred.
- * @param[in]  idn           = IDN.
- * @param[in]  psize         = Size in bytes of parameter buffer.
- * @param[out] p             = Pointer to parameter buffer
- * @param[in]  timeout       = Timeout in us, standard is EC_TIMEOUTRXM
+ * @param[in]  context       context struct
+ * @param[in]  slave         Slave number
+ * @param[in]  driveNo       Drive number in slave
+ * @param[in]  elementflags  Flags to select what properties of IDN are to be transferred.
+ * @param[in]  idn           IDN.
+ * @param[in]  psize         Size in bytes of parameter buffer.
+ * @param[out] p             Pointer to parameter buffer
+ * @param[in]  timeout       Timeout in us, standard is EC_TIMEOUTRXM
  * @return Workcounter from last slave response
  */
 int ecx_SoEwrite(ecx_contextt *context, uint16 slave, uint8 driveNo, uint8 elementflags, uint16 idn, int psize, void *p, int timeout)
@@ -310,10 +310,10 @@ int ecx_SoEwrite(ecx_contextt *context, uint16 slave, uint8 driveNo, uint8 eleme
  * tries to read them and collect a full input and output mapping size
  * of designated slave.
  *
- * @param[in]  context = context struct
- * @param[in]  slave   = Slave number
- * @param[out] Osize   = Size in bits of output mapping (MTD) found
- * @param[out] Isize   = Size in bits of input mapping (AT) found
+ * @param[in]  context context struct
+ * @param[in]  slave   Slave number
+ * @param[out] Osize   Size in bits of output mapping (MTD) found
+ * @param[out] Isize   Size in bits of input mapping (AT) found
  * @return >0 if mapping successful.
  */
 int ecx_readIDNmap(ecx_contextt *context, uint16 slave, uint32 *Osize, uint32 *Isize)

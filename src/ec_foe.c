@@ -50,8 +50,8 @@ OSAL_PACKED_END
 
 /** FoE progress hook.
  *
- * @param[in]  context        = context struct
- * @param[in]     hook       = Pointer to hook function.
+ * @param[in]  context    context struct
+ * @param[in]  hook       Pointer to hook function.
  * @return 1
  */
 int ecx_FOEdefinehook(ecx_contextt *context, void *hook)
@@ -62,13 +62,13 @@ int ecx_FOEdefinehook(ecx_contextt *context, void *hook)
 
 /** FoE read, blocking.
  *
- * @param[in]  context        = context struct
- * @param[in]     slave      = Slave number.
- * @param[in]     filename   = Filename of file to read.
- * @param[in]     password   = password.
- * @param[in,out] psize      = Size in bytes of file buffer, returns bytes read from file.
- * @param[out]    p          = Pointer to file buffer
- * @param[in]     timeout    = Timeout per mailbox cycle in us, standard is EC_TIMEOUTRXM
+ * @param[in]     context    context struct
+ * @param[in]     slave      Slave number.
+ * @param[in]     filename   Filename of file to read.
+ * @param[in]     password   password.
+ * @param[in,out] psize      Size in bytes of file buffer, returns bytes read from file.
+ * @param[out]    p          Pointer to file buffer
+ * @param[in]     timeout    Timeout per mailbox cycle in us, standard is EC_TIMEOUTRXM
  * @return Workcounter from last slave response
  */
 int ecx_FOEread(ecx_contextt *context, uint16 slave, char *filename, uint32 password, int *psize, void *p, int timeout)
@@ -85,7 +85,7 @@ int ecx_FOEread(ecx_contextt *context, uint16 slave, char *filename, uint32 pass
    buffersize = *psize;
    MbxIn = NULL;
    MbxOut = NULL;
-   /* Empty slave out mailbox if something is in. Timeout set to 0 */
+   /* Empty slave out mailbox if something is in. Timout set to 0 */
    wkc = ecx_mbxreceive(context, slave, &MbxIn, 0);
    MbxOut = ecx_getmbx(context);
    ec_clearmbx(MbxOut);
@@ -202,13 +202,13 @@ int ecx_FOEread(ecx_contextt *context, uint16 slave, char *filename, uint32 pass
 
 /** FoE write, blocking.
  *
- * @param[in]  context        = context struct
- * @param[in]  slave      = Slave number.
- * @param[in]  filename   = Filename of file to write.
- * @param[in]  password   = password.
- * @param[in]  psize      = Size in bytes of file buffer.
- * @param[out] p          = Pointer to file buffer
- * @param[in]  timeout    = Timeout per mailbox cycle in us, standard is EC_TIMEOUTRXM
+ * @param[in]  context    context struct
+ * @param[in]  slave      Slave number.
+ * @param[in]  filename   Filename of file to write.
+ * @param[in]  password   password.
+ * @param[in]  psize      Size in bytes of file buffer.
+ * @param[out] p          Pointer to file buffer
+ * @param[in]  timeout    Timeout per mailbox cycle in us, standard is EC_TIMEOUTRXM
  * @return Workcounter from last slave response
  */
 int ecx_FOEwrite(ecx_contextt *context, uint16 slave, char *filename, uint32 password, int psize, void *p, int timeout)
@@ -225,7 +225,7 @@ int ecx_FOEwrite(ecx_contextt *context, uint16 slave, char *filename, uint32 pas
 
    MbxIn = NULL;
    MbxOut = NULL;
-   /* Empty slave out mailbox if something is in. Timeout set to 0 */
+   /* Empty slave out mailbox if something is in. Timout set to 0 */
    wkc = ecx_mbxreceive(context, slave, &MbxIn, 0);
    MbxOut = ecx_getmbx(context);
    ec_clearmbx(MbxOut);

@@ -69,7 +69,7 @@ ec_adaptert *ec_find_adapters(void)
 
 /** Free dynamically allocated list over available network adapters.
  *
- * @param[in] adapter = Struct holding adapter name, description and pointer to next.
+ * @param[in] adapter Struct holding adapter name, description and pointer to next.
  */
 void ec_free_adapters(ec_adaptert *adapter)
 {
@@ -78,7 +78,7 @@ void ec_free_adapters(ec_adaptert *adapter)
 
 /** Pushes an error on the error list.
  *
- * @param[in] context        = context struct
+ * @param[in] context        context struct
  * @param[in] Ec pointer describing the error.
  */
 void ecx_pusherror(ecx_contextt *context, const ec_errort *Ec)
@@ -103,8 +103,8 @@ void ecx_pusherror(ecx_contextt *context, const ec_errort *Ec)
 
 /** Pops an error from the list.
  *
- * @param[in] context        = context struct
- * @param[out] Ec = Struct describing the error.
+ * @param[in] context        context struct
+ * @param[out] Ec Struct describing the error.
  * @return TRUE if an error was popped.
  */
 boolean ecx_poperror(ecx_contextt *context, ec_errort *Ec)
@@ -130,7 +130,7 @@ boolean ecx_poperror(ecx_contextt *context, ec_errort *Ec)
 
 /** Check if error list has entries.
  *
- * @param[in] context        = context struct
+ * @param[in] context        context struct
  * @return TRUE if error list contains entries.
  */
 boolean ecx_iserror(ecx_contextt *context)
@@ -140,11 +140,11 @@ boolean ecx_iserror(ecx_contextt *context)
 
 /** Report packet error
  *
- * @param[in]  context        = context struct
- * @param[in]  Slave      = Slave number
- * @param[in]  Index      = Index that generated error
- * @param[in]  SubIdx     = Subindex that generated error
- * @param[in]  ErrorCode  = Error code
+ * @param[in]  context    context struct
+ * @param[in]  Slave      Slave number
+ * @param[in]  Index      Index that generated error
+ * @param[in]  SubIdx     Subindex that generated error
+ * @param[in]  ErrorCode  Error code
  */
 void ecx_packeterror(ecx_contextt *context, uint16 Slave, uint16 Index, uint8 SubIdx, uint16 ErrorCode)
 {
@@ -163,9 +163,9 @@ void ecx_packeterror(ecx_contextt *context, uint16 Slave, uint16 Index, uint8 Su
 
 /** Report Mailbox Error
  *
- * @param[in]  context        = context struct
- * @param[in]  Slave        = Slave number
- * @param[in]  Detail       = Following EtherCAT specification
+ * @param[in]  context      context struct
+ * @param[in]  Slave        Slave number
+ * @param[in]  Detail       Following EtherCAT specification
  */
 static void ecx_mbxerror(ecx_contextt *context, uint16 Slave, uint16 Detail)
 {
@@ -183,9 +183,9 @@ static void ecx_mbxerror(ecx_contextt *context, uint16 Slave, uint16 Detail)
 
 /** Report Mailbox Emergency Error
  *
- * @param[in]  context        = context struct
- * @param[in]  Slave      = Slave number
- * @param[in]  ErrorCode  = Following EtherCAT specification
+ * @param[in]  context    context struct
+ * @param[in]  Slave      Slave number
+ * @param[in]  ErrorCode  Following EtherCAT specification
  * @param[in]  ErrorReg
  * @param[in]  b1
  * @param[in]  w1
@@ -211,8 +211,8 @@ static void ecx_mbxemergencyerror(ecx_contextt *context, uint16 Slave, uint16 Er
 }
 
 /** Initialise lib in single NIC mode
- * @param[in]  context = context struct
- * @param[in] ifname   = Dev name, f.e. "eth0"
+ * @param[in]  context context struct
+ * @param[in] ifname   Dev name, f.e. "eth0"
  * @return >0 if OK
  */
 int ecx_init(ecx_contextt *context, const char *ifname)
@@ -222,10 +222,10 @@ int ecx_init(ecx_contextt *context, const char *ifname)
 }
 
 /** Initialise lib in redundant NIC mode
- * @param[in]  context  = context struct
- * @param[in]  redport  = pointer to redport, redundant port data
- * @param[in]  ifname   = Primary Dev name, f.e. "eth0"
- * @param[in]  if2name  = Secondary Dev name, f.e. "eth1"
+ * @param[in]  context  context struct
+ * @param[in]  redport  pointer to redport, redundant port data
+ * @param[in]  ifname   Primary Dev name, f.e. "eth0"
+ * @param[in]  if2name  Secondary Dev name, f.e. "eth1"
  * @return >0 if OK
  */
 int ecx_init_redundant(ecx_contextt *context, ecx_redportt *redport, const char *ifname, char *if2name)
@@ -248,7 +248,7 @@ int ecx_init_redundant(ecx_contextt *context, ecx_redportt *redport, const char 
 }
 
 /** Close lib.
- * @param[in]  context        = context struct
+ * @param[in]  context   context struct
  */
 void ecx_close(ecx_contextt *context)
 {
@@ -258,7 +258,7 @@ void ecx_close(ecx_contextt *context)
 
 /**
  * Get a mailbox from the mailbox pool.
- * @param[in]  context   = context struct
+ * @param[in]  context   context struct
  * @return Pointer to the mailbox if available, otherwise NULL.
  */
 ec_mbxbuft *ecx_getmbx(ecx_contextt *context)
@@ -279,8 +279,8 @@ ec_mbxbuft *ecx_getmbx(ecx_contextt *context)
 }
 
 /** Drop a mailbox back to the mailbox pool.
- * @param[in]  context   = context struct
- * @param[in]  mbx       = Pointer to mailbox to be dropped
+ * @param[in]  context   context struct
+ * @param[in]  mbx       Pointer to mailbox to be dropped
  * @return 1 on success, 0 if the mailbox is invalid.
  */
 int ecx_dropmbx(ecx_contextt *context, ec_mbxbuft *mbx)
@@ -306,7 +306,7 @@ int ecx_dropmbx(ecx_contextt *context, ec_mbxbuft *mbx)
  * Sets up the mailbox pool mutex and initializes the empty list with
  * all available mailboxes.
  *
- * @param[in] context        = context struct
+ * @param[in] context        context struct
  * @return 0 on success.
  */
 int ecx_initmbxpool(ecx_contextt *context)
@@ -326,8 +326,8 @@ int ecx_initmbxpool(ecx_contextt *context)
 }
 
 /** Initialize mailbox queue.
- * @param[in]  context        = context struct
- * @param[in]  group          = group number
+ * @param[in]  context        context struct
+ * @param[in]  group          group number
  * @return 0 on success.
  */
 int ecx_initmbxqueue(ecx_contextt *context, uint8 group)
@@ -345,9 +345,9 @@ int ecx_initmbxqueue(ecx_contextt *context, uint8 group)
 }
 
 /** Add a mailbox to the queue for a specific slave.
- * @param[in]  context        = context struct
- * @param[in]  slave          = Slave number
- * @param[in]  mbx            = Pointer to mailbox
+ * @param[in]  context        context struct
+ * @param[in]  slave          Slave number
+ * @param[in]  mbx            Pointer to mailbox
  * @return Ticket number of the added mailbox, or -1 on failure.
  */
 int ecx_mbxaddqueue(ecx_contextt *context, uint16 slave, ec_mbxbuft *mbx)
@@ -377,9 +377,9 @@ int ecx_mbxaddqueue(ecx_contextt *context, uint16 slave, ec_mbxbuft *mbx)
 }
 
 /** Mark a mailbox in the queue as done.
- * @param[in]  context        = context struct
- * @param[in]  slave          = Slave number
- * @param[in]  ticket         = Ticket number of the mailbox
+ * @param[in]  context        context struct
+ * @param[in]  slave          Slave number
+ * @param[in]  ticket         Ticket number of the mailbox
  * @return 1 on success, 0 if the ticket is invalid or not done.
  */
 int ecx_mbxdonequeue(ecx_contextt *context, uint16 slave, int ticket)
@@ -402,9 +402,9 @@ int ecx_mbxdonequeue(ecx_contextt *context, uint16 slave, int ticket)
 }
 
 /** Expire a mailbox in the queue.
- * @param[in]  context        = context struct
- * @param[in]  slave          = Slave number
- * @param[in]  ticket         = Ticket number of the mailbox
+ * @param[in]  context        context struct
+ * @param[in]  slave          Slave number
+ * @param[in]  ticket         Ticket number of the mailbox
  * @return 1 on success, 0 if the ticket is invalid or not expired.
  */
 int ecx_mbxexpirequeue(ecx_contextt *context, uint16 slave, int ticket)
@@ -427,9 +427,9 @@ int ecx_mbxexpirequeue(ecx_contextt *context, uint16 slave, int ticket)
 }
 
 /** Rotate a mailbox in the queue.
- * @param[in]  context        = context struct
- * @param[in]  group          = Group number
- * @param[in]  ticketloc      = Ticket location in the queue
+ * @param[in]  context        context struct
+ * @param[in]  group          Group number
+ * @param[in]  ticketloc      Ticket location in the queue
  * @return 1 on success, 0 if rotation is not possible.
  */
 int ecx_mbxrotatequeue(ecx_contextt *context, uint8 group, int ticketloc)
@@ -469,8 +469,8 @@ int ecx_mbxrotatequeue(ecx_contextt *context, uint8 group, int ticketloc)
 }
 
 /** Set a slave's mailbox to be cyclic.
- * @param[in]  context        = context struct
- * @param[in]  slave          = Slave number
+ * @param[in]  context        context struct
+ * @param[in]  slave          Slave number
  * @return 1 if the mailbox was set to cyclic, 0 if it cannot be set.
  */
 int ecx_slavembxcyclic(ecx_contextt *context, uint16 slave)
@@ -485,9 +485,9 @@ int ecx_slavembxcyclic(ecx_contextt *context, uint16 slave)
 }
 
 /** Drop a mailbox from the queue.
- * @param[in]  context        = context struct
- * @param[in]  group          = Group number
- * @param[in]  ticketloc      = Ticket location in the queue
+ * @param[in]  context        context struct
+ * @param[in]  group          Group number
+ * @param[in]  ticketloc      Ticket location in the queue
  * @return Pointer to the dropped mailbox
  */
 ec_mbxbuft *ecx_mbxdropqueue(ecx_contextt *context, uint8 group, int ticketloc)
@@ -510,9 +510,9 @@ ec_mbxbuft *ecx_mbxdropqueue(ecx_contextt *context, uint8 group, int ticketloc)
 /** Read one byte from slave EEPROM via cache.
  *  If the cache location is empty then a read request is made to the slave.
  *  Depending on the slave capabilities the request is 4 or 8 bytes.
- *  @param[in] context = context struct
- *  @param[in] slave   = slave number
- *  @param[in] address = eeprom address in bytes (slave uses words)
+ *  @param[in] context context struct
+ *  @param[in] slave   slave number
+ *  @param[in] address eeprom address in bytes (slave uses words)
  *  @return requested byte, if not available then 0xff
  */
 uint8 ecx_siigetbyte(ecx_contextt *context, uint16 slave, uint16 address)
@@ -581,9 +581,9 @@ uint8 ecx_siigetbyte(ecx_contextt *context, uint16 slave, uint16 address)
 }
 
 /** Find SII section header in slave EEPROM.
- *  @param[in]  context        = context struct
- *  @param[in] slave   = slave number
- *  @param[in] cat     = section category
+ *  @param[in] context context struct
+ *  @param[in] slave   slave number
+ *  @param[in] cat     section category
  *  @return byte address of section at section length entry, if not available then 0
  */
 int16 ecx_siifind(ecx_contextt *context, uint16 slave, uint16 cat)
@@ -621,10 +621,10 @@ int16 ecx_siifind(ecx_contextt *context, uint16 slave, uint16 cat)
 }
 
 /** Get string from SII string section in slave EEPROM.
- *  @param[in]  context = context struct
- *  @param[out] str     = requested string, 0x00 if not found
- *  @param[in]  slave   = slave number
- *  @param[in]  Sn      = string number
+ *  @param[in]  context context struct
+ *  @param[out] str     requested string, 0x00 if not found
+ *  @param[in]  slave   slave number
+ *  @param[in]  Sn      string number
  */
 void ecx_siistring(ecx_contextt *context, char *str, uint16 slave, uint16 Sn)
 {
@@ -679,9 +679,9 @@ void ecx_siistring(ecx_contextt *context, char *str, uint16 slave, uint16 Sn)
 }
 
 /** Get FMMU data from SII FMMU section in slave EEPROM.
- *  @param[in]  context = context struct
- *  @param[in]  slave   = slave number
- *  @param[out] FMMU    = FMMU struct from SII, max. 4 FMMU's
+ *  @param[in]  context context struct
+ *  @param[in]  slave   slave number
+ *  @param[out] FMMU    FMMU struct from SII, max. 4 FMMU's
  *  @return number of FMMU's defined in section
  */
 uint16 ecx_siiFMMU(ecx_contextt *context, uint16 slave, ec_eepromFMMUt *FMMU)
@@ -719,9 +719,9 @@ uint16 ecx_siiFMMU(ecx_contextt *context, uint16 slave, ec_eepromFMMUt *FMMU)
 }
 
 /** Get SM data from SII SM section in slave EEPROM.
- *  @param[in]  context = context struct
- *  @param[in]  slave   = slave number
- *  @param[out] SM      = first SM struct from SII
+ *  @param[in]  context context struct
+ *  @param[in]  slave   slave number
+ *  @param[out] SM      first SM struct from SII
  *  @return number of SM's defined in section
  */
 uint16 ecx_siiSM(ecx_contextt *context, uint16 slave, ec_eepromSMt *SM)
@@ -755,10 +755,10 @@ uint16 ecx_siiSM(ecx_contextt *context, uint16 slave, ec_eepromSMt *SM)
 }
 
 /** Get next SM data from SII SM section in slave EEPROM.
- *  @param[in]  context = context struct
- *  @param[in]  slave   = slave number
- *  @param[out] SM      = first SM struct from SII
- *  @param[in]  n       = SM number
+ *  @param[in]  context context struct
+ *  @param[in]  slave   slave number
+ *  @param[out] SM      first SM struct from SII
+ *  @param[in]  n       SM number
  *  @return >0 if OK
  */
 uint16 ecx_siiSMnext(ecx_contextt *context, uint16 slave, ec_eepromSMt *SM, uint16 n)
@@ -789,10 +789,10 @@ uint16 ecx_siiSMnext(ecx_contextt *context, uint16 slave, ec_eepromSMt *SM, uint
 }
 
 /** Get PDO data from SII PDO section in slave EEPROM.
- *  @param[in]  context = context struct
- *  @param[in]  slave   = slave number
- *  @param[out] PDO     = PDO struct from SII
- *  @param[in]  t       = 0=RXPDO 1=TXPDO
+ *  @param[in]  context context struct
+ *  @param[in]  slave   slave number
+ *  @param[out] PDO     PDO struct from SII
+ *  @param[in]  t       0=RXPDO 1=TXPDO
  *  @return mapping size in bits of PDO
  */
 uint32 ecx_siiPDO(ecx_contextt *context, uint16 slave, ec_eepromPDOt *PDO, uint8 t)
@@ -902,7 +902,7 @@ int ecx_FPRD_multi(ecx_contextt *context, int n, uint16 *configlst, ec_alstatust
 
 /** Read all slave states in slavelist.
  * @warning The BOOT state is actually higher than INIT and PRE_OP (see state representation)
- * @param[in] context = context struct
+ * @param[in] context context struct
  * @return lowest state found
  */
 int ecx_readstate(ecx_contextt *context)
@@ -1010,8 +1010,8 @@ int ecx_readstate(ecx_contextt *context)
 
 /** Write slave state, if slave = 0 then write to all slaves.
  * The function does not check if the actual state is changed.
- * @param[in]  context        = context struct
- * @param[in] slave    = Slave number, 0 = master
+ * @param[in]  context context struct
+ * @param[in] slave    Slave number, 0 master
  * @return Workcounter or EC_NOFRAME
  */
 int ecx_writestate(ecx_contextt *context, uint16 slave)
@@ -1043,10 +1043,10 @@ int ecx_writestate(ecx_contextt *context, uint16 slave)
  * This has some implications for the BOOT state. The Boot state representation collides with INIT | PRE_OP so this
  * function cannot be used for slave = 0 and reqstate = EC_STATE_BOOT and also, if the returned state is BOOT, some
  * slaves might actually be in INIT and PRE_OP and not in BOOT.
- * @param[in] context     = context struct
- * @param[in] slave       = Slave number, 0 = all slaves (only the "slavelist[0].state" is refreshed)
- * @param[in] reqstate    = Requested state
- * @param[in] timeout     = Timeout value in us
+ * @param[in] context     context struct
+ * @param[in] slave       Slave number, 0 all slaves (only the "slavelist[0].state" is refreshed)
+ * @param[in] reqstate    Requested state
+ * @param[in] timeout     Timeout value in us
  * @return Requested state, or found state after timeout.
  */
 uint16 ecx_statecheck(ecx_contextt *context, uint16 slave, uint16 reqstate, int timeout)
@@ -1090,7 +1090,7 @@ uint16 ecx_statecheck(ecx_contextt *context, uint16 slave, uint16 reqstate, int 
 
 /** Get index of next mailbox counter value.
  * Used for Mailbox Link Layer.
- * @param[in] cnt     = Mailbox counter value [0..7]
+ * @param[in] cnt     Mailbox counter value [0..7]
  * @return next mailbox counter value
  */
 uint8 ec_nextmbxcnt(uint8 cnt)
@@ -1105,7 +1105,7 @@ uint8 ec_nextmbxcnt(uint8 cnt)
 }
 
 /** Clear mailbox buffer.
- * @param[out] Mbx     = Mailbox buffer to clear
+ * @param[out] Mbx     Mailbox buffer to clear
  */
 void ec_clearmbx(ec_mbxbuft *Mbx)
 {
@@ -1114,8 +1114,8 @@ void ec_clearmbx(ec_mbxbuft *Mbx)
 }
 
 /** Clear mailbox status for a specific group.
- * @param[in]  context = context struct
- * @param[in] group   = Group number
+ * @param[in] context context struct
+ * @param[in] group   Group number
  * @return 1 if successfully cleared, 0 otherwise
  */
 int ecx_clearmbxstatus(ecx_contextt *context, uint8 group)
@@ -1131,9 +1131,9 @@ int ecx_clearmbxstatus(ecx_contextt *context, uint8 group)
 /**
  * Read mailbox status from slave.
  *
- * @param[in]  context  = context struct
- * @param[in]  slave    = Slave number
- * @param[out] SMstat   = Pointer to store mailbox status
+ * @param[in]  context  context struct
+ * @param[in]  slave    Slave number
+ * @param[out] SMstat   Pointer to store mailbox status
  * @return Workcounter or EC_NOFRAME
  */
 int ecx_readmbxstatus(ecx_contextt *context, uint16 slave, uint8 *SMstat)
@@ -1154,9 +1154,9 @@ int ecx_readmbxstatus(ecx_contextt *context, uint16 slave, uint8 *SMstat)
 
 /**
  * Read extended mailbox status for a specified slave.
- * @param[in]  context        = context struct
- * @param[in]  slave          = Slave number
- * @param[out] SMstatex       = Pointer to store extended mailbox status
+ * @param[in]  context        context struct
+ * @param[in]  slave          Slave number
+ * @param[out] SMstatex       Pointer to store extended mailbox status
  * @return Workcounter from slave response
  */
 int ecx_readmbxstatusex(ecx_contextt *context, uint16 slave, uint16 *SMstatex)
@@ -1169,9 +1169,9 @@ int ecx_readmbxstatusex(ecx_contextt *context, uint16 slave, uint16 *SMstatex)
 }
 
 /** Check if IN mailbox of slave is empty.
- * @param[in] context  = context struct
- * @param[in] slave    = Slave number
- * @param[in] timeout  = Timeout in us
+ * @param[in] context  context struct
+ * @param[in] slave    Slave number
+ * @param[in] timeout  Timeout in us
  * @return >0 is success
  */
 int ecx_mbxempty(ecx_contextt *context, uint16 slave, int timeout)
@@ -1212,9 +1212,9 @@ int ecx_mbxempty(ecx_contextt *context, uint16 slave, int timeout)
  * track of a work limit to prevent excessive processing in a single
  * call.
  *
- * @param[in]  context  = context struct
- * @param[in]  group    = group number
- * @param[in]  limit    = maximum number of mailbox operations to process
+ * @param[in]  context  context struct
+ * @param[in]  group    group number
+ * @param[in]  limit    maximum number of mailbox operations to process
  * @return Number of mailbox operations processed
  */
 int ecx_mbxinhandler(ecx_contextt *context, uint8 group, int limit)
@@ -1430,9 +1430,9 @@ int ecx_mbxinhandler(ecx_contextt *context, uint8 group, int limit)
  * checking the state of each message in the queue and sending appropriate
  * requests to the slaves. It supports retrying for failed requests.
  *
- * @param[in] context = context struct
- * @param[in] group   = group number
- * @param[in] limit   = maximum number of mailboxes to process
+ * @param[in] context context struct
+ * @param[in] group   group number
+ * @param[in] limit   maximum number of mailboxes to process
  * @return Number of processed mailboxes
  */
 int ecx_mbxouthandler(ecx_contextt *context, uint8 group, int limit)
@@ -1497,7 +1497,7 @@ int ecx_mbxouthandler(ecx_contextt *context, uint8 group, int limit)
  * It first handles incoming messages and then uses the remaining limit
  * for outgoing messages.
  *
- * @param[in] context Pointer to the context structure.
+ * @param[in] context context tructure.
  * @param[in] group Group number.
  * @param[in] limit The maximum number of mailboxes to process.
  *
@@ -1512,10 +1512,10 @@ int ecx_mbxhandler(ecx_contextt *context, uint8 group, int limit)
 
 /** Write IN mailbox to slave.
  * Mailbox is fetched from pool by caller, ownership is transferred and dropped back to pool automatically.
- * @param[in]  context    = context struct
- * @param[in]  slave      = Slave number
- * @param[out] mbx        = Pointer to mailbox data
- * @param[in]  timeout    = Timeout in us
+ * @param[in]  context    context struct
+ * @param[in]  slave      Slave number
+ * @param[out] mbx        Pointer to mailbox data
+ * @param[in]  timeout    Timeout in us
  * @return Work counter (>0 is success)
  */
 int ecx_mbxsend(ecx_contextt *context, uint16 slave, ec_mbxbuft *mbx, int timeout)
@@ -1583,10 +1583,10 @@ int ecx_mbxsend(ecx_contextt *context, uint16 slave, ec_mbxbuft *mbx, int timeou
  * Supports Mailbox Link Layer with repeat requests.
  * Mailbox is fetched from pool, caller is owner after return
  * and therefore should drop it back to the pool when finished.
- * @param[in]  context    = context struct
- * @param[in]  slave      = Slave number
- * @param[out] mbx        = Double pointer to mailbox data
- * @param[in]  timeout    = Timeout in us
+ * @param[in]  context    context struct
+ * @param[in]  slave      Slave number
+ * @param[out] mbx        Double pointer to mailbox data
+ * @param[in]  timeout    Timeout in us
  * @return Work counter (>0 is success)
  */
 int ecx_mbxreceive(ecx_contextt *context, uint16 slave, ec_mbxbuft **mbx, int timeout)
@@ -1761,9 +1761,9 @@ int ecx_mbxreceive(ecx_contextt *context, uint16 slave, ec_mbxbuft **mbx, int ti
 
 /** Send ENI mailbox protocol initcmds to a slave for a given transition.
  * Currently, only CoE commands are supported.
- * @param[in]  context    = context struct
- * @param[in]  slave      = Slave number
- * @param[in]  transition = transition (ECT_ESMTRANS_*) for which to send commands
+ * @param[in]  context    context struct
+ * @param[in]  slave      Slave number
+ * @param[in]  transition transition (ECT_ESMTRANS_*) for which to send commands
  * @return 1 on success, 0 on failure
  */
 int ecx_mbxENIinitcmds(ecx_contextt *context, uint16 slave, uint16_t transition)
@@ -1829,9 +1829,9 @@ int ecx_mbxENIinitcmds(ecx_contextt *context, uint16 slave, uint16_t transition)
 }
 
 /** Dump complete EEPROM data from slave in buffer.
- * @param[in]  context  = context struct
- * @param[in]  slave    = Slave number
- * @param[out] esibuf   = EEPROM data buffer, make sure it is big enough.
+ * @param[in]  context  context struct
+ * @param[in]  slave    Slave number
+ * @param[out] esibuf   EEPROM data buffer, make sure it is big enough.
  */
 void ecx_esidump(ecx_contextt *context, uint16 slave, uint8 *esibuf)
 {
@@ -1869,10 +1869,10 @@ void ecx_esidump(ecx_contextt *context, uint16 slave, uint8 *esibuf)
 }
 
 /** Read EEPROM from slave bypassing cache.
- * @param[in] context   = context struct
- * @param[in] slave     = Slave number
- * @param[in] eeproma   = (WORD) Address in the EEPROM
- * @param[in] timeout   = Timeout in us.
+ * @param[in] context   context struct
+ * @param[in] slave     Slave number
+ * @param[in] eeproma   (WORD) Address in the EEPROM
+ * @param[in] timeout   Timeout in us.
  * @return EEPROM data 32bit
  */
 uint32 ecx_readeeprom(ecx_contextt *context, uint16 slave, uint16 eeproma, int timeout)
@@ -1886,11 +1886,11 @@ uint32 ecx_readeeprom(ecx_contextt *context, uint16 slave, uint16 eeproma, int t
 }
 
 /** Write EEPROM to slave bypassing cache.
- * @param[in] context   = context struct
- * @param[in] slave     = Slave number
- * @param[in] eeproma   = (WORD) Address in the EEPROM
- * @param[in] data      = 16bit data
- * @param[in] timeout   = Timeout in us.
+ * @param[in] context   context struct
+ * @param[in] slave     Slave number
+ * @param[in] eeproma   (WORD) Address in the EEPROM
+ * @param[in] data      16bit data
+ * @param[in] timeout   Timeout in us.
  * @return >0 if OK
  */
 int ecx_writeeeprom(ecx_contextt *context, uint16 slave, uint16 eeproma, uint16 data, int timeout)
@@ -1903,8 +1903,8 @@ int ecx_writeeeprom(ecx_contextt *context, uint16 slave, uint16 eeproma, uint16 
 }
 
 /** Set eeprom control to master. Only if set to PDI.
- * @param[in] context   = context struct
- * @param[in] slave     = Slave number
+ * @param[in] context   context struct
+ * @param[in] slave     Slave number
  * @return >0 if OK
  */
 int ecx_eeprom2master(ecx_contextt *context, uint16 slave)
@@ -1934,8 +1934,8 @@ int ecx_eeprom2master(ecx_contextt *context, uint16 slave)
 }
 
 /** Set eeprom control to PDI. Only if set to master.
- * @param[in]  context        = context struct
- * @param[in] slave     = Slave number
+ * @param[in]  context  context struct
+ * @param[in] slave     Slave number
  * @return >0 if OK
  */
 int ecx_eeprom2pdi(ecx_contextt *context, uint16 slave)
@@ -1984,10 +1984,10 @@ uint16 ecx_eeprom_waitnotbusyAP(ecx_contextt *context, uint16 aiadr, uint16 *est
 }
 
 /** Read EEPROM from slave bypassing cache. APRD method.
- * @param[in] context     = context struct
- * @param[in] aiadr       = auto increment address of slave
- * @param[in] eeproma     = (WORD) Address in the EEPROM
- * @param[in] timeout     = Timeout in us.
+ * @param[in] context     context struct
+ * @param[in] aiadr       auto increment address of slave
+ * @param[in] eeproma     (WORD) Address in the EEPROM
+ * @param[in] timeout     Timeout in us.
  * @return EEPROM data 64bit or 32bit
  */
 uint64 ecx_readeepromAP(ecx_contextt *context, uint16 aiadr, uint16 eeproma, int timeout)
@@ -2059,11 +2059,11 @@ uint64 ecx_readeepromAP(ecx_contextt *context, uint16 aiadr, uint16 eeproma, int
 }
 
 /** Write EEPROM to slave bypassing cache. APWR method.
- * @param[in] context   = context struct
- * @param[in] aiadr     = configured address of slave
- * @param[in] eeproma   = (WORD) Address in the EEPROM
- * @param[in] data      = 16bit data
- * @param[in] timeout   = Timeout in us.
+ * @param[in] context   context struct
+ * @param[in] aiadr     configured address of slave
+ * @param[in] eeproma   (WORD) Address in the EEPROM
+ * @param[in] data      16bit data
+ * @param[in] timeout   Timeout in us.
  * @return >0 if OK
  */
 int ecx_writeeepromAP(ecx_contextt *context, uint16 aiadr, uint16 eeproma, uint16 data, int timeout)
@@ -2146,10 +2146,10 @@ uint16 ecx_eeprom_waitnotbusyFP(ecx_contextt *context, uint16 configadr, uint16 
 }
 
 /** Read EEPROM from slave bypassing cache. FPRD method.
- * @param[in] context     = context struct
- * @param[in] configadr   = configured address of slave
- * @param[in] eeproma     = (WORD) Address in the EEPROM
- * @param[in] timeout     = Timeout in us.
+ * @param[in] context     context struct
+ * @param[in] configadr   configured address of slave
+ * @param[in] eeproma     (WORD) Address in the EEPROM
+ * @param[in] timeout     Timeout in us.
  * @return EEPROM data 64bit or 32bit
  */
 uint64 ecx_readeepromFP(ecx_contextt *context, uint16 configadr, uint16 eeproma, int timeout)
@@ -2221,11 +2221,11 @@ uint64 ecx_readeepromFP(ecx_contextt *context, uint16 configadr, uint16 eeproma,
 }
 
 /** Write EEPROM to slave bypassing cache. FPWR method.
- * @param[in]  context        = context struct
- * @param[in] configadr   = configured address of slave
- * @param[in] eeproma     = (WORD) Address in the EEPROM
- * @param[in] data        = 16bit data
- * @param[in] timeout     = Timeout in us.
+ * @param[in]  context    context struct
+ * @param[in] configadr   configured address of slave
+ * @param[in] eeproma     (WORD) Address in the EEPROM
+ * @param[in] data        16bit data
+ * @param[in] timeout     Timeout in us.
  * @return >0 if OK
  */
 int ecx_writeeepromFP(ecx_contextt *context, uint16 configadr, uint16 eeproma, uint16 data, int timeout)
@@ -2282,9 +2282,9 @@ int ecx_writeeepromFP(ecx_contextt *context, uint16 configadr, uint16 eeproma, u
 
 /** Read EEPROM from slave bypassing cache.
  * Parallel read step 1, make request to slave.
- * @param[in] context     = context struct
- * @param[in] slave       = Slave number
- * @param[in] eeproma     = (WORD) Address in the EEPROM
+ * @param[in] context     context struct
+ * @param[in] slave       Slave number
+ * @param[in] eeproma     (WORD) Address in the EEPROM
  */
 void ecx_readeeprom1(ecx_contextt *context, uint16 slave, uint16 eeproma)
 {
@@ -2313,9 +2313,9 @@ void ecx_readeeprom1(ecx_contextt *context, uint16 slave, uint16 eeproma)
 
 /** Read EEPROM from slave bypassing cache.
  * Parallel read step 2, actual read from slave.
- * @param[in]  context        = context struct
- * @param[in] slave       = Slave number
- * @param[in] timeout     = Timeout in us.
+ * @param[in]  context    context struct
+ * @param[in] slave       Slave number
+ * @param[in] timeout     Timeout in us.
  * @return EEPROM data 32bit
  */
 uint32 ecx_readeeprom2(ecx_contextt *context, uint16 slave, int timeout)
@@ -2339,11 +2339,11 @@ uint32 ecx_readeeprom2(ecx_contextt *context, uint16 slave, int timeout)
 }
 
 /** Push index of segmented LRD/LWR/LRW combination.
- * @param[in]  context        = context struct
- * @param[in] idx         = Used datagram index.
- * @param[in] data        = Pointer to process data segment.
- * @param[in] length      = Length of data segment in bytes.
- * @param[in] DCO         = Offset position of DC frame.
+ * @param[in]  context    context struct
+ * @param[in] idx         Used datagram index.
+ * @param[in] data        Pointer to process data segment.
+ * @param[in] length      Length of data segment in bytes.
+ * @param[in] DCO         Offset position of DC frame.
  */
 static void ecx_pushindex(ecx_contextt *context, uint8 idx, void *data, uint16 length, uint16 DCO)
 {
@@ -2358,7 +2358,7 @@ static void ecx_pushindex(ecx_contextt *context, uint8 idx, void *data, uint16 l
 }
 
 /** Pull index of segmented LRD/LWR/LRW combination.
- * @param[in]  context        = context struct
+ * @param[in]  context        context struct
  * @return Stack location, -1 if stack is empty.
  */
 static int ecx_pullindex(ecx_contextt *context)
@@ -2376,7 +2376,7 @@ static int ecx_pullindex(ecx_contextt *context)
 /**
  * Clear the idx stack.
  *
- * @param context           = context struct
+ * @param context           context struct
  */
 static void ecx_clearindex(ecx_contextt *context)
 {
@@ -2399,8 +2399,8 @@ static void ecx_clearindex(ecx_contextt *context)
  * In contrast to the base LRW function this function is non-blocking.
  * If the processdata does not fit in one datagram, multiple are used.
  * In order to recombine the slave response, a stack is used.
- * @param[in]  context        = context struct
- * @param[in]  group          = group number
+ * @param[in]  context        context struct
+ * @param[in]  group          group number
  * @return >0 if processdata is transmitted.
  */
 int ecx_send_processdata_group(ecx_contextt *context, uint8 group)
@@ -2583,9 +2583,9 @@ int ecx_send_processdata_group(ecx_contextt *context, uint8 group)
  * Second part from ec_send_processdata().
  * Received datagrams are recombined with the processdata with help from the stack.
  * If a datagram contains input processdata it copies it to the processdata structure.
- * @param[in]  context        = context struct
- * @param[in]  group          = group number
- * @param[in]  timeout        = Timeout in us.
+ * @param[in]  context        context struct
+ * @param[in]  group          group number
+ * @param[in]  timeout        Timeout in us.
  * @return Work counter.
  */
 int ecx_receive_processdata_group(ecx_contextt *context, uint8 group, int timeout)
@@ -2669,7 +2669,7 @@ int ecx_receive_processdata_group(ecx_contextt *context, uint8 group, int timeou
 /**
  * Send processdata to slaves.
  * Group number is zero (default).
- * @param[in]  context        = context struct
+ * @param[in]  context        context struct
  * @return Work counter.
  */
 int ecx_send_processdata(ecx_contextt *context)
@@ -2680,8 +2680,8 @@ int ecx_send_processdata(ecx_contextt *context)
 /**
  * Receive processdata from slaves.
  * Group number is zero (default).
- * @param[in]  context        = context struct
- * @param[in]  timeout        = Timeout in us.
+ * @param[in]  context        context struct
+ * @param[in]  timeout        Timeout in us.
  * @return Work counter.
  */
 int ecx_receive_processdata(ecx_contextt *context, int timeout)

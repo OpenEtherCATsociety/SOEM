@@ -54,11 +54,11 @@ OSAL_PACKED_END
 
 /** Report SDO error.
  *
- * @param[in]  context    = context struct
- * @param[in]  Slave      = Slave number
- * @param[in]  Index      = Index that generated error
- * @param[in]  SubIdx     = Subindex that generated error
- * @param[in]  AbortCode  = Abortcode, see EtherCAT documentation for list
+ * @param[in]  context    context struct
+ * @param[in]  Slave      Slave number
+ * @param[in]  Index      Index that generated error
+ * @param[in]  SubIdx     Subindex that generated error
+ * @param[in]  AbortCode  Abortcode, see EtherCAT documentation for list
  */
 void ecx_SDOerror(ecx_contextt *context, uint16 Slave, uint16 Index, uint8 SubIdx, int32 AbortCode)
 {
@@ -77,11 +77,11 @@ void ecx_SDOerror(ecx_contextt *context, uint16 Slave, uint16 Index, uint8 SubId
 
 /** Report SDO info error
  *
- * @param[in]  context    = context struct
- * @param[in]  Slave      = Slave number
- * @param[in]  Index      = Index that generated error
- * @param[in]  SubIdx     = Subindex that generated error
- * @param[in]  AbortCode  = Abortcode, see EtherCAT documentation for list
+ * @param[in]  context    context struct
+ * @param[in]  Slave      Slave number
+ * @param[in]  Index      Index that generated error
+ * @param[in]  SubIdx     Subindex that generated error
+ * @param[in]  AbortCode  Abortcode, see EtherCAT documentation for list
  */
 static void ecx_SDOinfoerror(ecx_contextt *context, uint16 Slave, uint16 Index, uint8 SubIdx, int32 AbortCode)
 {
@@ -104,14 +104,14 @@ static void ecx_SDOinfoerror(ecx_contextt *context, uint16 Slave, uint16 Index, 
  * response is larger than the mailbox size then the response is segmented. The function
  * will combine all segments and copy them to the parameter buffer.
  *
- * @param[in]  context    = context struct
- * @param[in]  slave      = Slave number
- * @param[in]  index      = Index to read
- * @param[in]  subindex   = Subindex to read, must be 0 or 1 if CA is used.
- * @param[in]  CA         = FALSE = single subindex. TRUE = Complete Access, all subindexes read.
- * @param[in,out] psize   = Size in bytes of parameter buffer, returns bytes read from SDO.
- * @param[out] p          = Pointer to parameter buffer
- * @param[in]  timeout    = Timeout in us, standard is EC_TIMEOUTRXM
+ * @param[in]  context    context struct
+ * @param[in]  slave      Slave number
+ * @param[in]  index      Index to read
+ * @param[in]  subindex   Subindex to read, must be 0 or 1 if CA is used.
+ * @param[in]  CA         FALSE = single subindex. TRUE = Complete Access, all subindexes read.
+ * @param[in,out] psize   Size in bytes of parameter buffer, returns bytes read from SDO.
+ * @param[out] p          Pointer to parameter buffer
+ * @param[in]  timeout    Timeout in us, standard is EC_TIMEOUTRXM
  * @return Workcounter from last slave response
  */
 int ecx_SDOread(ecx_contextt *context, uint16 slave, uint16 index, uint8 subindex,
@@ -330,14 +330,14 @@ int ecx_SDOread(ecx_contextt *context, uint16 slave, uint16 index, uint8 subinde
  * the mailbox size then the download is segmented. The function will split the
  * parameter data in segments and send them to the slave one by one.
  *
- * @param[in]  context    = context struct
- * @param[in]  Slave      = Slave number
- * @param[in]  Index      = Index to write
- * @param[in]  SubIndex   = Subindex to write, must be 0 or 1 if CA is used.
- * @param[in]  CA         = FALSE = single subindex. TRUE = Complete Access, all subindexes written.
- * @param[in]  psize      = Size in bytes of parameter buffer.
- * @param[out] p          = Pointer to parameter buffer
- * @param[in]  Timeout    = Timeout in us, standard is EC_TIMEOUTRXM
+ * @param[in]  context    context struct
+ * @param[in]  Slave      Slave number
+ * @param[in]  Index      Index to write
+ * @param[in]  SubIndex   Subindex to write, must be 0 or 1 if CA is used.
+ * @param[in]  CA         FALSE = single subindex. TRUE = Complete Access, all subindexes written.
+ * @param[in]  psize      Size in bytes of parameter buffer.
+ * @param[out] p          Pointer to parameter buffer
+ * @param[in]  Timeout    Timeout in us, standard is EC_TIMEOUTRXM
  * @return Workcounter from last slave response
  */
 int ecx_SDOwrite(ecx_contextt *context, uint16 Slave, uint16 Index, uint8 SubIndex,
@@ -573,11 +573,11 @@ int ecx_SDOwrite(ecx_contextt *context, uint16 Slave, uint16 Index, uint8 SubInd
  *
  * A RxPDO download request is issued.
  *
- * @param[in]  context       = context struct
- * @param[in]  Slave         = Slave number
- * @param[in]  RxPDOnumber   = Related RxPDO number
- * @param[in]  psize         = Size in bytes of PDO buffer.
- * @param[out] p             = Pointer to PDO buffer
+ * @param[in]  context       context struct
+ * @param[in]  Slave         Slave number
+ * @param[in]  RxPDOnumber   Related RxPDO number
+ * @param[in]  psize         Size in bytes of PDO buffer.
+ * @param[out] p             Pointer to PDO buffer
  * @return Workcounter from last slave response
  */
 int ecx_RxPDO(ecx_contextt *context, uint16 Slave, uint16 RxPDOnumber, int psize, const void *p)
@@ -621,12 +621,12 @@ int ecx_RxPDO(ecx_contextt *context, uint16 Slave, uint16 RxPDOnumber, int psize
  *
  * A TxPDO download request is issued.
  *
- * @param[in]  context       = context struct
- * @param[in]  slave         = Slave number
- * @param[in]  TxPDOnumber   = Related TxPDO number
- * @param[in,out] psize      = Size in bytes of PDO buffer, returns bytes read from PDO.
- * @param[out] p             = Pointer to PDO buffer
- * @param[in]  timeout       = Timeout in us, standard is EC_TIMEOUTRXM
+ * @param[in]  context       context struct
+ * @param[in]  slave         Slave number
+ * @param[in]  TxPDOnumber   Related TxPDO number
+ * @param[in,out] psize      Size in bytes of PDO buffer, returns bytes read from PDO.
+ * @param[out] p             Pointer to PDO buffer
+ * @param[in]  timeout       Timeout in us, standard is EC_TIMEOUTRXM
  * @return Workcounter from last slave response
  */
 int ecx_TxPDO(ecx_contextt *context, uint16 slave, uint16 TxPDOnumber, int *psize, void *p, int timeout)
@@ -705,9 +705,9 @@ int ecx_TxPDO(ecx_contextt *context, uint16 slave, uint16 TxPDOnumber, int *psiz
 }
 
 /** Read PDO assign structure
- * @param[in]  context       = context struct
- * @param[in]  Slave         = Slave number
- * @param[in]  PDOassign     = PDO assign object
+ * @param[in]  context       context struct
+ * @param[in]  Slave         Slave number
+ * @param[in]  PDOassign     PDO assign object
  * @return total bitlength of PDO assign
  */
 uint32 ecx_readPDOassign(ecx_contextt *context, uint16 Slave, uint16 PDOassign)
@@ -775,10 +775,10 @@ uint32 ecx_readPDOassign(ecx_contextt *context, uint16 Slave, uint16 PDOassign)
 }
 
 /** Read PDO assign structure in Complete Access mode
- * @param[in]  context       = context struct
- * @param[in]  Slave         = Slave number
- * @param[in]  Thread_n      = Calling thread index
- * @param[in]  PDOassign     = PDO assign object
+ * @param[in]  context       context struct
+ * @param[in]  Slave         Slave number
+ * @param[in]  Thread_n      Calling thread index
+ * @param[in]  PDOassign     PDO assign object
  * @return total bitlength of PDO assign
  */
 uint32 ecx_readPDOassignCA(ecx_contextt *context, uint16 Slave, int Thread_n,
@@ -847,10 +847,10 @@ uint32 ecx_readPDOassignCA(ecx_contextt *context, uint16 Slave, int Thread_n,
  * 1A00:00 is number of object defined for this PDO\n
  * 1A00:01 object mapping #1, f.e. 60100710 (SDO 6010 SI 07 bitlength 0x10)
  *
- * @param[in]  context = context struct
- * @param[in]  Slave   = Slave number
- * @param[out] Osize   = Size in bits of output mapping (rxPDO) found
- * @param[out] Isize   = Size in bits of input mapping (txPDO) found
+ * @param[in]  context context struct
+ * @param[in]  Slave   Slave number
+ * @param[out] Osize   Size in bits of output mapping (rxPDO) found
+ * @param[out] Isize   Size in bits of input mapping (txPDO) found
  * @return >0 if mapping successful.
  */
 int ecx_readPDOmap(ecx_contextt *context, uint16 Slave, uint32 *Osize, uint32 *Isize)
@@ -948,11 +948,11 @@ int ecx_readPDOmap(ecx_contextt *context, uint16 Slave, uint32 *Osize, uint32 *I
  * tries to read them and collect a full input and output mapping size
  * of designated slave. Slave has to support CA, otherwise use ec_readPDOmap().
  *
- * @param[in]  context  = context struct
- * @param[in]  Slave    = Slave number
- * @param[in]  Thread_n = Calling thread index
- * @param[out] Osize    = Size in bits of output mapping (rxPDO) found
- * @param[out] Isize    = Size in bits of input mapping (txPDO) found
+ * @param[in]  context  context struct
+ * @param[in]  Slave    Slave number
+ * @param[in]  Thread_n Calling thread index
+ * @param[out] Osize    Size in bits of output mapping (rxPDO) found
+ * @param[out] Isize    Size in bits of input mapping (txPDO) found
  * @return >0 if mapping successful.
  */
 int ecx_readPDOmapCA(ecx_contextt *context, uint16 Slave, int Thread_n, uint32 *Osize, uint32 *Isize)
@@ -1038,9 +1038,9 @@ int ecx_readPDOmapCA(ecx_contextt *context, uint16 Slave, int Thread_n, uint32 *
 
 /** CoE read Object Description List.
  *
- * @param[in]  context  = context struct
- * @param[in]  Slave    = Slave number.
- * @param[out] pODlist  = resulting Object Description list.
+ * @param[in]  context  context struct
+ * @param[in]  Slave    Slave number.
+ * @param[out] pODlist  resulting Object Description list.
  * @return Workcounter of slave response.
  */
 int ecx_readODlist(ecx_contextt *context, uint16 Slave, ec_ODlistt *pODlist)
@@ -1164,9 +1164,9 @@ int ecx_readODlist(ecx_contextt *context, uint16 Slave, ec_ODlistt *pODlist)
 
 /** CoE read Object Description. Adds textual description to object indexes.
  *
- * @param[in]  context       = context struct
- * @param[in] Item           = Item number in ODlist.
- * @param[in,out] pODlist    = referencing Object Description list.
+ * @param[in]  context       context struct
+ * @param[in] Item           Item number in ODlist.
+ * @param[in,out] pODlist    referencing Object Description list.
  * @return Workcounter of slave response.
  */
 int ecx_readODdescription(ecx_contextt *context, uint16 Item, ec_ODlistt *pODlist)
@@ -1255,11 +1255,11 @@ int ecx_readODdescription(ecx_contextt *context, uint16 Item, ec_ODlistt *pODlis
 /** CoE read SDO service object entry, single subindex.
  * Used in ec_readOE().
  *
- * @param[in]  context       = context struct
- * @param[in] Item           = Item in ODlist.
- * @param[in] SubI           = Subindex of item in ODlist.
- * @param[in] pODlist        = Object description list for reference.
- * @param[out] pOElist       = resulting object entry structure.
+ * @param[in]  context       context struct
+ * @param[in] Item           Item in ODlist.
+ * @param[in] SubI           Subindex of item in ODlist.
+ * @param[in] pODlist        Object description list for reference.
+ * @param[out] pOElist       resulting object entry structure.
  * @return Workcounter of slave response.
  */
 int ecx_readOEsingle(ecx_contextt *context, uint16 Item, uint8 SubI, ec_ODlistt *pODlist, ec_OElistt *pOElist)
@@ -1354,10 +1354,10 @@ int ecx_readOEsingle(ecx_contextt *context, uint16 Item, uint8 SubI, ec_ODlistt 
 
 /** CoE read SDO service object entry.
  *
- * @param[in] context        = context struct
- * @param[in] Item           = Item in ODlist.
- * @param[in] pODlist        = Object description list for reference.
- * @param[out] pOElist       = resulting object entry structure.
+ * @param[in] context        context struct
+ * @param[in] Item           Item in ODlist.
+ * @param[in] pODlist        Object description list for reference.
+ * @param[out] pOElist       resulting object entry structure.
  * @return Workcounter of slave response.
  */
 int ecx_readOE(ecx_contextt *context, uint16 Item, ec_ODlistt *pODlist, ec_OElistt *pOElist)

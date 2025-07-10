@@ -166,7 +166,7 @@ static int ecx_lookup_prev_sii(ecx_contextt *context, uint16 slave)
 
 /** Enumerate and init all slaves.
  *
- * @param[in] context      = context struct
+ * @param[in] context      context struct
  * @return Workcounter of slave discover datagram = number of slaves found
  */
 int ecx_config_init(ecx_contextt *context)
@@ -1298,9 +1298,9 @@ static int ecx_main_config_map_group(ecx_contextt *context, void *pIOmap, uint8 
 /** Map all PDOs in one group of slaves to IOmap with Outputs/Inputs
  * overlapping. NOTE: Must use this for TI ESC when using LRW.
  *
- * @param[in]  context    = context struct
- * @param[out] pIOmap     = pointer to IOmap
- * @param[in]  group      = group to map, 0 = all groups
+ * @param[in]  context    context struct
+ * @param[out] pIOmap     pointer to IOmap
+ * @param[in]  group      = group to map, 0 all groups
  * @return IOmap size
  */
 static int ecx_config_overlap_map_group(ecx_contextt *context, void *pIOmap, uint8 group)
@@ -1514,9 +1514,9 @@ static int ecx_config_overlap_map_group(ecx_contextt *context, void *pIOmap, uin
  * frame. Use this mode for TI ESC when using LRW. Packed mode is not
  * possible when overlapped mode is enabled.
  *
- * @param[in]  context    = context struct
- * @param[out] pIOmap     = pointer to IOmap
- * @param[in]  group      = group to map, 0 = all groups
+ * @param[in]  context    context struct
+ * @param[out] pIOmap     pointer to IOmap
+ * @param[in]  group      group to map, 0 = all groups
  * @return IOmap size
  */
 int ecx_config_map_group(ecx_contextt *context, void *pIOmap, uint8 group)
@@ -1530,9 +1530,9 @@ int ecx_config_map_group(ecx_contextt *context, void *pIOmap, uint8 group)
 
 /** Recover slave.
  *
- * @param[in] context = context struct
- * @param[in] slave   = slave to recover
- * @param[in] timeout = local timeout f.e. EC_TIMEOUTRET3
+ * @param[in] context context struct
+ * @param[in] slave   slave to recover
+ * @param[in] timeout local timeout f.e. EC_TIMEOUTRET3
  * @return >0 if successful
  */
 int ecx_recover_slave(ecx_contextt *context, uint16 slave, int timeout)
@@ -1593,9 +1593,9 @@ int ecx_recover_slave(ecx_contextt *context, uint16 slave, int timeout)
 
 /** Reconfigure slave.
  *
- * @param[in] context = context struct
- * @param[in] slave   = slave to reconfigure
- * @param[in] timeout = local timeout f.e. EC_TIMEOUTRET3
+ * @param[in] context context struct
+ * @param[in] slave   slave to reconfigure
+ * @param[in] timeout local timeout f.e. EC_TIMEOUTRET3
  * @return Slave state
  */
 int ecx_reconfig_slave(ecx_contextt *context, uint16 slave, int timeout)

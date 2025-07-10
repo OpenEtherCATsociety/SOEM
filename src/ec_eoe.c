@@ -20,8 +20,8 @@
 #include "oshw.h"
 
 /** EoE utility function to convert uint32 to eoe ip bytes.
- * @param[in] ip       = ip in uint32
- * @param[out] byte_ip = eoe ip 4th octet, 3ed octet, 2nd octet, 1st octet
+ * @param[in] ip       ip in uint32
+ * @param[out] byte_ip eoe ip 4th octet, 3ed octet, 2nd octet, 1st octet
  */
 static void EOE_ip_uint32_to_byte(eoe_ip4_addr_t *ip, uint8_t *byte_ip)
 {
@@ -32,8 +32,8 @@ static void EOE_ip_uint32_to_byte(eoe_ip4_addr_t *ip, uint8_t *byte_ip)
 }
 
 /** EoE utility function to convert eoe ip bytes to uint32.
- * @param[in] byte_ip = eoe ip 4th octet, 3ed octet, 2nd octet, 1st octet
- * @param[out] ip     = ip in uint32
+ * @param[in] byte_ip eoe ip 4th octet, 3ed octet, 2nd octet, 1st octet
+ * @param[out] ip     ip in uint32
  */
 static void EOE_ip_byte_to_uint32(uint8_t *byte_ip, eoe_ip4_addr_t *ip)
 {
@@ -46,8 +46,8 @@ static void EOE_ip_byte_to_uint32(uint8_t *byte_ip, eoe_ip4_addr_t *ip)
 
 /** EoE fragment data handler hook. Should not block.
  *
- * @param[in]  context = context struct
- * @param[in]  hook    = Pointer to hook function.
+ * @param[in]  context context struct
+ * @param[in]  hook    Pointer to hook function.
  * @return 1
  */
 int ecx_EOEdefinehook(ecx_contextt *context, void *hook)
@@ -58,11 +58,11 @@ int ecx_EOEdefinehook(ecx_contextt *context, void *hook)
 
 /** EoE EOE set IP, blocking. Waits for response from the slave.
  *
- * @param[in]  context    = Context struct
- * @param[in]  slave      = Slave number
- * @param[in]  port       = Port number on slave if applicable
- * @param[in]  ipparam    = IP parameter data to be sent
- * @param[in]  timeout    = Timeout in us, standard is EC_TIMEOUTRXM
+ * @param[in]  context    Context struct
+ * @param[in]  slave      Slave number
+ * @param[in]  port       Port number on slave if applicable
+ * @param[in]  ipparam    IP parameter data to be sent
+ * @param[in]  timeout    Timeout in us, standard is EC_TIMEOUTRXM
  * @return Workcounter from last slave response or returned result code
  */
 int ecx_EOEsetIp(ecx_contextt *context, uint16 slave, uint8 port, eoe_param_t *ipparam, int timeout)
@@ -177,11 +177,11 @@ int ecx_EOEsetIp(ecx_contextt *context, uint16 slave, uint8 port, eoe_param_t *i
 
 /** EoE EOE get IP, blocking. Waits for response from the slave.
  *
- * @param[in]  context    = Context struct
- * @param[in]  slave      = Slave number
- * @param[in]  port       = Port number on slave if applicable
- * @param[out] ipparam    = IP parameter data retrieved from slave
- * @param[in]  timeout    = Timeout in us, standard is EC_TIMEOUTRXM
+ * @param[in]  context    Context struct
+ * @param[in]  slave      Slave number
+ * @param[in]  port       Port number on slave if applicable
+ * @param[out] ipparam    IP parameter data retrieved from slave
+ * @param[in]  timeout    Timeout in us, standard is EC_TIMEOUTRXM
  * @return Workcounter from last slave response or returned result code
  */
 int ecx_EOEgetIp(ecx_contextt *context, uint16 slave, uint8 port, eoe_param_t *ipparam, int timeout)
@@ -321,12 +321,12 @@ int ecx_EOEgetIp(ecx_contextt *context, uint16 slave, uint8 port, eoe_param_t *i
  * several fragments. The function will split the buf data in fragments and
  * send them to the slave one by one.
  *
- * @param[in]  context    = context struct
- * @param[in]  slave      = Slave number
- * @param[in]  port       = Port number on slave if applicable
- * @param[in]  psize      = Size in bytes of parameter buffer.
- * @param[in]  p          = Pointer to parameter buffer
- * @param[in]  timeout    = Timeout in us, standard is EC_TIMEOUTRXM
+ * @param[in]  context    context struct
+ * @param[in]  slave      Slave number
+ * @param[in]  port       Port number on slave if applicable
+ * @param[in]  psize      Size in bytes of parameter buffer.
+ * @param[in]  p          Pointer to parameter buffer
+ * @param[in]  timeout    Timeout in us, standard is EC_TIMEOUTRXM
  * @return Workcounter from last slave transmission
  */
 int ecx_EOEsend(ecx_contextt *context, uint16 slave, uint8 port, int psize, void *p, int timeout)
@@ -426,12 +426,12 @@ int ecx_EOEsend(ecx_contextt *context, uint16 slave, uint8 port, int psize, void
  * by several fragments. The function will assamble the fragments into
  * a complete Ethernet buffer.
  *
- * @param[in]     context = context struct
- * @param[in]     slave   = Slave number
- * @param[in]     port    = Port number on slave if applicable
- * @param[in,out] psize   = Size in bytes of parameter buffer.
- * @param[in]     p       = Pointer to parameter buffer
- * @param[in]     timeout = Timeout in us, standard is EC_TIMEOUTRXM
+ * @param[in]     context context struct
+ * @param[in]     slave   Slave number
+ * @param[in]     port    Port number on slave if applicable
+ * @param[in,out] psize   Size in bytes of parameter buffer.
+ * @param[in]     p       Pointer to parameter buffer
+ * @param[in]     timeout Timeout in us, standard is EC_TIMEOUTRXM
  * @return Workcounter from last slave response or error code
  */
 int ecx_EOErecv(ecx_contextt *context, uint16 slave, uint8 port, int *psize, void *p, int timeout)
@@ -547,13 +547,13 @@ int ecx_EOErecv(ecx_contextt *context, uint16 slave, uint8 port, int *psize, voi
  * Will take the data in incoming mailbox buffer and copy to destination
  * Ethernet frame buffer at given offset and update current fragment variables
  *
- * @param[in] MbxIn             = Received mailbox containing fragment data
- * @param[in,out] rxfragmentno  = Fragment number
- * @param[in,out] rxframesize   = Frame size
- * @param[in,out] rxframeoffset = Frame offset
- * @param[in,out] rxframeno     = Frame number
- * @param[in,out] psize         = Size in bytes of frame buffer.
- * @param[out] p                = Pointer to frame buffer
+ * @param[in] MbxIn             Received mailbox containing fragment data
+ * @param[in,out] rxfragmentno  Fragment number
+ * @param[in,out] rxframesize   Frame size
+ * @param[in,out] rxframeoffset Frame offset
+ * @param[in,out] rxframeno     Frame number
+ * @param[in,out] psize         Size in bytes of frame buffer.
+ * @param[out] p                Pointer to frame buffer
  * @return 0= if fragment OK, >0 if last fragment, <0 on error
  */
 int ecx_EOEreadfragment(

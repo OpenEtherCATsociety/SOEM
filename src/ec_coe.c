@@ -69,7 +69,7 @@ void ecx_SDOerror(ecx_contextt *context, uint16 Slave, uint16 Index, uint8 SubId
    Ec.Slave = Slave;
    Ec.Index = Index;
    Ec.SubIdx = SubIdx;
-   *(context->ecaterror) = TRUE;
+   context->ecaterror = TRUE;
    Ec.Etype = EC_ERR_TYPE_SDO_ERROR;
    Ec.AbortCode = AbortCode;
    ecx_pusherror(context, &Ec);
@@ -91,7 +91,7 @@ static void ecx_SDOinfoerror(ecx_contextt *context, uint16 Slave, uint16 Index, 
    Ec.Slave = Slave;
    Ec.Index = Index;
    Ec.SubIdx = SubIdx;
-   *(context->ecaterror) = TRUE;
+   context->ecaterror = TRUE;
    Ec.Etype = EC_ERR_TYPE_SDOINFO_ERROR;
    Ec.AbortCode = AbortCode;
    ecx_pusherror(context, &Ec);

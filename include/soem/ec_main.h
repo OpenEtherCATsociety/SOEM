@@ -113,7 +113,10 @@ typedef struct ecx_context ecx_contextt;
 #define ECT_MBXH_CYCLIC 1
 #define ECT_MBXH_LOST   2
 
-/** for list of ethercat slaves detected */
+/** Slave state
+ * All slave information is put in this structure. Needed for most
+ * user interaction with slaves.
+ */
 typedef struct ec_slave
 {
    /** state of slave */
@@ -500,49 +503,53 @@ typedef struct OSAL_PACKED ec_PDOdesc
 } ec_PDOdesct;
 OSAL_PACKED_END
 
-/** Context structure , referenced by all ecx functions*/
+/** Context structure, referenced by all ecx functions*/
 struct ecx_context
 {
-   /** port reference, may include red_port */
-   ecx_portt *port;
-   /** slavelist reference */
-   ec_slavet *slavelist;
+   /** @publicsection */
+   /* Network state */
+
+   /** port, may include red_port */
+   ecx_portt port;
+   /** list of detected slaves */
+   ec_slavet slavelist[EC_MAXSLAVE];
    /** number of slaves found in configuration */
-   int *slavecount;
-   /** maximum number of slaves allowed in slavelist */
-   int maxslave;
-   /** grouplist reference */
-   ec_groupt *grouplist;
-   /** maximum number of groups allowed in grouplist */
-   int maxgroup;
-   /** internal, reference to eeprom cache buffer */
-   uint8 *esibuf;
-   /** internal, reference to eeprom cache map */
-   uint32 *esimap;
+   int slavecount;
+   /** list of groups */
+   ec_groupt grouplist[EC_MAXGROUP];
+   /** ecaterror state */
+   boolean ecaterror;
+   /** last DC time from slaves */
+   int64 DCtime;
+
+   /** @privatesection */
+   /* Internal state */
+
+   /** internal, eeprom cache buffer */
+   uint8 esibuf[EC_MAXEEPBUF];
+   /** internal, eeprom cache map */
+   uint32 esimap[EC_MAXEEPBITMAP];
    /** internal, current slave for eeprom cache */
    uint16 esislave;
-   /** internal, reference to error list */
-   ec_eringt *elist;
-   /** internal, reference to processdata stack buffer info */
-   ec_idxstackT *idxstack;
-   /** reference to ecaterror state */
-   boolean *ecaterror;
-   /** reference to last DC time from slaves */
-   int64 *DCtime;
+   /** internal, error list */
+   ec_eringt elist;
+   /** internal, processdata stack buffer info */
+   ec_idxstackT idxstack;
    /** internal, SM buffer */
-   ec_SMcommtypet *SMcommtype;
+   ec_SMcommtypet SMcommtype[EC_MAX_MAPT];
    /** internal, PDO assign list */
-   ec_PDOassignt *PDOassign;
+   ec_PDOassignt PDOassign[EC_MAX_MAPT];
    /** internal, PDO description list */
-   ec_PDOdesct *PDOdesc;
+   ec_PDOdesct PDOdesc[EC_MAX_MAPT];
    /** internal, SM list from eeprom */
-   ec_eepromSMt *eepSM;
+   ec_eepromSMt eepSM;
    /** internal, FMMU list from eeprom */
-   ec_eepromFMMUt *eepFMMU;
+   ec_eepromFMMUt eepFMMU;
    /** internal, mailbox pool */
-   ec_mbxpoolt *mbxpool;
+   ec_mbxpoolt mbxpool;
 
-   /* Configuration options */
+   /** @publicsection */
+   /* Configurable settings */
 
    /** network information hook */
    ec_enit *ENI;

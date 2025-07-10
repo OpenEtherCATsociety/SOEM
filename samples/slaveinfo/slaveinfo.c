@@ -17,55 +17,14 @@
 
 #include "soem/soem.h"
 
-static char IOmap[4096];
+static uint8 IOmap[4096];
 static ec_ODlistt ODlist;
 static ec_OElistt OElist;
 static boolean printSDO = FALSE;
 static boolean printMAP = FALSE;
 static char usdo[128];
 
-static ec_slavet ec_slave[EC_MAXSLAVE];
-static int ec_slavecount;
-static ec_groupt ec_group[EC_MAXGROUP];
-static uint8 ec_esibuf[EC_MAXEEPBUF];
-static uint32 ec_esimap[EC_MAXEEPBITMAP];
-static ec_eringt ec_elist;
-static ec_idxstackT ec_idxstack;
-static ec_SMcommtypet ec_SMcommtype[EC_MAX_MAPT];
-static ec_PDOassignt ec_PDOassign[EC_MAX_MAPT];
-static ec_PDOdesct ec_PDOdesc[EC_MAX_MAPT];
-static ec_eepromSMt ec_SM;
-static ec_eepromFMMUt ec_FMMU;
-static boolean EcatError = FALSE;
-static int64 ec_DCtime;
-static ecx_portt ecx_port;
-static ec_mbxpoolt ec_mbxpool;
-
-static ecx_contextt ctx = {
-    .port = &ecx_port,
-    .slavelist = &ec_slave[0],
-    .slavecount = &ec_slavecount,
-    .maxslave = EC_MAXSLAVE,
-    .grouplist = &ec_group[0],
-    .maxgroup = EC_MAXGROUP,
-    .esibuf = &ec_esibuf[0],
-    .esimap = &ec_esimap[0],
-    .esislave = 0,
-    .elist = &ec_elist,
-    .idxstack = &ec_idxstack,
-    .ecaterror = &EcatError,
-    .DCtime = &ec_DCtime,
-    .SMcommtype = &ec_SMcommtype[0],
-    .PDOassign = &ec_PDOassign[0],
-    .PDOdesc = &ec_PDOdesc[0],
-    .eepSM = &ec_SM,
-    .eepFMMU = &ec_FMMU,
-    .mbxpool = &ec_mbxpool,
-    .FOEhook = NULL,
-    .EOEhook = NULL,
-    .manualstatechange = 0,
-    .userdata = NULL,
-};
+static ecx_contextt ctx;
 
 #define OTYPE_VAR    0x0007
 #define OTYPE_ARRAY  0x0008
@@ -212,7 +171,7 @@ char *SDO2string(uint16 slave, uint16 index, uint8 subidx, uint16 dtype)
 
    memset(&usdo, 0, sizeof(usdo));
    ecx_SDOread(&ctx, slave, index, subidx, FALSE, &l, &usdo, EC_TIMEOUTRXM);
-   if (EcatError)
+   if (ctx.ecaterror)
    {
       return ecx_elist2string(&ctx);
    }
@@ -426,14 +385,15 @@ int si_map_sdo(int slave)
             {
                /* read the assign RXPDO */
                printf("  SM%1d outputs\n     addr b   index: sub bitl data_type    name\n", iSM);
-               Tsize = si_PDOassign(slave, ECT_SDO_PDOASSIGN + iSM, (int)(ec_slave[slave].outputs - (uint8 *)&IOmap[0]), outputs_bo);
+               Tsize = si_PDOassign(slave, ECT_SDO_PDOASSIGN + iSM, (int)(ctx.slavelist[slave].outputs - IOmap), outputs_bo);
                outputs_bo += Tsize;
             }
             if (tSM == 4) // inputs
             {
                /* read the assign TXPDO */
                printf("  SM%1d inputs\n     addr b   index: sub bitl data_type    name\n", iSM);
-               Tsize = si_PDOassign(slave, ECT_SDO_PDOASSIGN + iSM, (int)(ec_slave[slave].inputs - (uint8 *)&IOmap[0]), inputs_bo);
+
+               Tsize = si_PDOassign(slave, ECT_SDO_PDOASSIGN + iSM, (int)(ctx.slavelist[slave].inputs - IOmap), inputs_bo);
                inputs_bo += Tsize;
             }
          }
@@ -461,7 +421,7 @@ int si_siiPDO(uint16 slave, uint8 t, int mapoffset, int bitoffset)
    int abs_offset, abs_bit;
    char str_name[EC_MAXNAME + 1];
 
-   eectl = ec_slave[slave].eep_pdi;
+   eectl = ctx.slavelist[slave].eep_pdi;
 
    totalsize = 0;
    PDO = &eepPDO;
@@ -560,10 +520,10 @@ int si_map_sii(int slave)
    outputs_bo = 0;
    inputs_bo = 0;
    /* read the assign RXPDOs */
-   Tsize = si_siiPDO(slave, 1, (int)(ec_slave[slave].outputs - (uint8 *)&IOmap), outputs_bo);
+   Tsize = si_siiPDO(slave, 1, (int)(ctx.slavelist[slave].outputs - IOmap), outputs_bo);
    outputs_bo += Tsize;
    /* read the assign TXPDOs */
-   Tsize = si_siiPDO(slave, 0, (int)(ec_slave[slave].inputs - (uint8 *)&IOmap), inputs_bo);
+   Tsize = si_siiPDO(slave, 0, (int)(ctx.slavelist[slave].inputs - IOmap), inputs_bo);
    inputs_bo += Tsize;
    /* found some I/O bits ? */
    if ((outputs_bo > 0) || (inputs_bo > 0))
@@ -586,7 +546,7 @@ void si_sdo(int cnt)
          char name[128] = {0};
 
          ecx_readODdescription(&ctx, i, &ODlist);
-         while (EcatError)
+         while (ctx.ecaterror)
             printf(" - %s\n", ecx_elist2string(&ctx));
          snprintf(name, sizeof(name) - 1, "\"%s\"", ODlist.Name[i]);
          if (ODlist.ObjectCode[i] == OTYPE_VAR)
@@ -602,7 +562,7 @@ void si_sdo(int cnt)
          }
          memset(&OElist, 0, sizeof(OElist));
          ecx_readOE(&ctx, i, &ODlist, &OElist);
-         while (EcatError)
+         while (ctx.ecaterror)
             printf("- %s\n", ecx_elist2string(&ctx));
 
          if (ODlist.ObjectCode[i] != OTYPE_VAR)
@@ -634,7 +594,7 @@ void si_sdo(int cnt)
    }
    else
    {
-      while (EcatError)
+      while (ctx.ecaterror)
          printf("%s", ecx_elist2string(&ctx));
    }
 }
@@ -655,85 +615,87 @@ void slaveinfo(char *ifname)
       /* find and auto-config slaves */
       if (ecx_config_init(&ctx) > 0)
       {
-         ecx_config_map_group(&ctx, &IOmap, 0);
+         ec_groupt *group = &ctx.grouplist[0];
+
+         ecx_config_map_group(&ctx, IOmap, 0);
 
          ecx_configdc(&ctx);
-         while (EcatError)
+         while (ctx.ecaterror)
             printf("%s", ecx_elist2string(&ctx));
-         printf("%d slaves found and configured.\n", ec_slavecount);
-         expectedWKC = (ec_group[0].outputsWKC * 2) + ec_group[0].inputsWKC;
+         printf("%d slaves found and configured.\n", ctx.slavecount);
+         expectedWKC = (group->outputsWKC * 2) + group->inputsWKC;
          printf("Calculated workcounter %d\n", expectedWKC);
          /* wait for all slaves to reach SAFE_OP state */
          ecx_statecheck(&ctx, 0, EC_STATE_SAFE_OP, EC_TIMEOUTSTATE * 3);
-         if (ec_slave[0].state != EC_STATE_SAFE_OP)
+         if (ctx.slavelist[0].state != EC_STATE_SAFE_OP)
          {
             printf("Not all slaves reached safe operational state.\n");
             ecx_readstate(&ctx);
-            for (i = 1; i <= ec_slavecount; i++)
+            for (i = 1; i <= ctx.slavecount; i++)
             {
-               if (ec_slave[i].state != EC_STATE_SAFE_OP)
+               if (ctx.slavelist[i].state != EC_STATE_SAFE_OP)
                {
                   printf("Slave %d State=%2x StatusCode=%4x : %s\n",
-                         i, ec_slave[i].state, ec_slave[i].ALstatuscode, ec_ALstatuscode2string(ec_slave[i].ALstatuscode));
+                         i, ctx.slavelist[i].state, ctx.slavelist[i].ALstatuscode, ec_ALstatuscode2string(ctx.slavelist[i].ALstatuscode));
                }
             }
          }
 
          ecx_readstate(&ctx);
-         for (cnt = 1; cnt <= ec_slavecount; cnt++)
+         for (cnt = 1; cnt <= ctx.slavecount; cnt++)
          {
             printf("\nSlave:%d\n Name:%s\n Output size: %dbits\n Input size: %dbits\n State: %d\n Delay: %d[ns]\n Has DC: %d\n",
-                   cnt, ec_slave[cnt].name, ec_slave[cnt].Obits, ec_slave[cnt].Ibits,
-                   ec_slave[cnt].state, ec_slave[cnt].pdelay, ec_slave[cnt].hasdc);
-            if (ec_slave[cnt].hasdc) printf(" DCParentport:%d\n", ec_slave[cnt].parentport);
-            printf(" Activeports:%d.%d.%d.%d\n", (ec_slave[cnt].activeports & 0x01) > 0,
-                   (ec_slave[cnt].activeports & 0x02) > 0,
-                   (ec_slave[cnt].activeports & 0x04) > 0,
-                   (ec_slave[cnt].activeports & 0x08) > 0);
-            printf(" Configured address: %4.4x\n", ec_slave[cnt].configadr);
-            printf(" Man: %8.8x ID: %8.8x Rev: %8.8x\n", (int)ec_slave[cnt].eep_man, (int)ec_slave[cnt].eep_id, (int)ec_slave[cnt].eep_rev);
+                   cnt, ctx.slavelist[cnt].name, ctx.slavelist[cnt].Obits, ctx.slavelist[cnt].Ibits,
+                   ctx.slavelist[cnt].state, ctx.slavelist[cnt].pdelay, ctx.slavelist[cnt].hasdc);
+            if (ctx.slavelist[cnt].hasdc) printf(" DCParentport:%d\n", ctx.slavelist[cnt].parentport);
+            printf(" Activeports:%d.%d.%d.%d\n", (ctx.slavelist[cnt].activeports & 0x01) > 0,
+                   (ctx.slavelist[cnt].activeports & 0x02) > 0,
+                   (ctx.slavelist[cnt].activeports & 0x04) > 0,
+                   (ctx.slavelist[cnt].activeports & 0x08) > 0);
+            printf(" Configured address: %4.4x\n", ctx.slavelist[cnt].configadr);
+            printf(" Man: %8.8x ID: %8.8x Rev: %8.8x\n", (int)ctx.slavelist[cnt].eep_man, (int)ctx.slavelist[cnt].eep_id, (int)ctx.slavelist[cnt].eep_rev);
             for (nSM = 0; nSM < EC_MAXSM; nSM++)
             {
-               if (ec_slave[cnt].SM[nSM].StartAddr > 0)
-                  printf(" SM%1d A:%4.4x L:%4d F:%8.8x Type:%d\n", nSM, etohs(ec_slave[cnt].SM[nSM].StartAddr), etohs(ec_slave[cnt].SM[nSM].SMlength),
-                         etohl(ec_slave[cnt].SM[nSM].SMflags), ec_slave[cnt].SMtype[nSM]);
+               if (ctx.slavelist[cnt].SM[nSM].StartAddr > 0)
+                  printf(" SM%1d A:%4.4x L:%4d F:%8.8x Type:%d\n", nSM, etohs(ctx.slavelist[cnt].SM[nSM].StartAddr), etohs(ctx.slavelist[cnt].SM[nSM].SMlength),
+                         etohl(ctx.slavelist[cnt].SM[nSM].SMflags), ctx.slavelist[cnt].SMtype[nSM]);
             }
-            for (j = 0; j < ec_slave[cnt].FMMUunused; j++)
+            for (j = 0; j < ctx.slavelist[cnt].FMMUunused; j++)
             {
                printf(" FMMU%1d Ls:%8.8x Ll:%4d Lsb:%d Leb:%d Ps:%4.4x Psb:%d Ty:%2.2x Act:%2.2x\n", j,
-                      etohl(ec_slave[cnt].FMMU[j].LogStart), etohs(ec_slave[cnt].FMMU[j].LogLength), ec_slave[cnt].FMMU[j].LogStartbit,
-                      ec_slave[cnt].FMMU[j].LogEndbit, etohs(ec_slave[cnt].FMMU[j].PhysStart), ec_slave[cnt].FMMU[j].PhysStartBit,
-                      ec_slave[cnt].FMMU[j].FMMUtype, ec_slave[cnt].FMMU[j].FMMUactive);
+                      etohl(ctx.slavelist[cnt].FMMU[j].LogStart), etohs(ctx.slavelist[cnt].FMMU[j].LogLength), ctx.slavelist[cnt].FMMU[j].LogStartbit,
+                      ctx.slavelist[cnt].FMMU[j].LogEndbit, etohs(ctx.slavelist[cnt].FMMU[j].PhysStart), ctx.slavelist[cnt].FMMU[j].PhysStartBit,
+                      ctx.slavelist[cnt].FMMU[j].FMMUtype, ctx.slavelist[cnt].FMMU[j].FMMUactive);
             }
             printf(" FMMUfunc 0:%d 1:%d 2:%d 3:%d\n",
-                   ec_slave[cnt].FMMU0func, ec_slave[cnt].FMMU1func, ec_slave[cnt].FMMU2func, ec_slave[cnt].FMMU3func);
-            printf(" MBX length wr: %d rd: %d MBX protocols : %2.2x\n", ec_slave[cnt].mbx_l, ec_slave[cnt].mbx_rl, ec_slave[cnt].mbx_proto);
+                   ctx.slavelist[cnt].FMMU0func, ctx.slavelist[cnt].FMMU1func, ctx.slavelist[cnt].FMMU2func, ctx.slavelist[cnt].FMMU3func);
+            printf(" MBX length wr: %d rd: %d MBX protocols : %2.2x\n", ctx.slavelist[cnt].mbx_l, ctx.slavelist[cnt].mbx_rl, ctx.slavelist[cnt].mbx_proto);
             ssigen = ecx_siifind(&ctx, cnt, ECT_SII_GENERAL);
             /* SII general section */
             if (ssigen)
             {
-               ec_slave[cnt].CoEdetails = ecx_siigetbyte(&ctx, cnt, ssigen + 0x07);
-               ec_slave[cnt].FoEdetails = ecx_siigetbyte(&ctx, cnt, ssigen + 0x08);
-               ec_slave[cnt].EoEdetails = ecx_siigetbyte(&ctx, cnt, ssigen + 0x09);
-               ec_slave[cnt].SoEdetails = ecx_siigetbyte(&ctx, cnt, ssigen + 0x0a);
+               ctx.slavelist[cnt].CoEdetails = ecx_siigetbyte(&ctx, cnt, ssigen + 0x07);
+               ctx.slavelist[cnt].FoEdetails = ecx_siigetbyte(&ctx, cnt, ssigen + 0x08);
+               ctx.slavelist[cnt].EoEdetails = ecx_siigetbyte(&ctx, cnt, ssigen + 0x09);
+               ctx.slavelist[cnt].SoEdetails = ecx_siigetbyte(&ctx, cnt, ssigen + 0x0a);
                if ((ecx_siigetbyte(&ctx, cnt, ssigen + 0x0d) & 0x02) > 0)
                {
-                  ec_slave[cnt].blockLRW = 1;
-                  ec_slave[0].blockLRW++;
+                  ctx.slavelist[cnt].blockLRW = 1;
+                  ctx.slavelist[0].blockLRW++;
                }
-               ec_slave[cnt].Ebuscurrent = ecx_siigetbyte(&ctx, cnt, ssigen + 0x0e);
-               ec_slave[cnt].Ebuscurrent += ecx_siigetbyte(&ctx, cnt, ssigen + 0x0f) << 8;
-               ec_slave[0].Ebuscurrent += ec_slave[cnt].Ebuscurrent;
+               ctx.slavelist[cnt].Ebuscurrent = ecx_siigetbyte(&ctx, cnt, ssigen + 0x0e);
+               ctx.slavelist[cnt].Ebuscurrent += ecx_siigetbyte(&ctx, cnt, ssigen + 0x0f) << 8;
+               ctx.slavelist[0].Ebuscurrent += ctx.slavelist[cnt].Ebuscurrent;
             }
             printf(" CoE details: %2.2x FoE details: %2.2x EoE details: %2.2x SoE details: %2.2x\n",
-                   ec_slave[cnt].CoEdetails, ec_slave[cnt].FoEdetails, ec_slave[cnt].EoEdetails, ec_slave[cnt].SoEdetails);
+                   ctx.slavelist[cnt].CoEdetails, ctx.slavelist[cnt].FoEdetails, ctx.slavelist[cnt].EoEdetails, ctx.slavelist[cnt].SoEdetails);
             printf(" Ebus current: %d[mA]\n only LRD/LWR:%d\n",
-                   ec_slave[cnt].Ebuscurrent, ec_slave[cnt].blockLRW);
-            if ((ec_slave[cnt].mbx_proto & ECT_MBXPROT_COE) && printSDO)
+                   ctx.slavelist[cnt].Ebuscurrent, ctx.slavelist[cnt].blockLRW);
+            if ((ctx.slavelist[cnt].mbx_proto & ECT_MBXPROT_COE) && printSDO)
                si_sdo(cnt);
             if (printMAP)
             {
-               if (ec_slave[cnt].mbx_proto & ECT_MBXPROT_COE)
+               if (ctx.slavelist[cnt].mbx_proto & ECT_MBXPROT_COE)
                   si_map_sdo(cnt);
                else
                   si_map_sii(cnt);

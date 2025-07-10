@@ -17,58 +17,18 @@
 
 #define EC_TIMEOUTMON 500
 
-char IOmap[4096];
-OSAL_THREAD_HANDLE thread1;
-int expectedWKC;
-boolean needlf;
-volatile int wkc;
-boolean inOP;
-uint8 currentgroup = 0;
-
-static ec_slavet ec_slave[EC_MAXSLAVE];
-static int ec_slavecount;
-static ec_groupt ec_group[EC_MAXGROUP];
-static uint8 ec_esibuf[EC_MAXEEPBUF];
-static uint32 ec_esimap[EC_MAXEEPBITMAP];
-static ec_eringt ec_elist;
-static ec_idxstackT ec_idxstack;
-static ec_SMcommtypet ec_SMcommtype[EC_MAX_MAPT];
-static ec_PDOassignt ec_PDOassign[EC_MAX_MAPT];
-static ec_PDOdesct ec_PDOdesc[EC_MAX_MAPT];
-static ec_eepromSMt ec_SM;
-static ec_eepromFMMUt ec_FMMU;
-static boolean EcatError = FALSE;
-static int64 ec_DCtime;
-static ecx_portt ecx_port;
-static ec_mbxpoolt ec_mbxpool;
+static uint8 IOmap[4096];
+static OSAL_THREAD_HANDLE thread1;
+static int expectedWKC;
+static boolean needlf;
+static volatile int wkc;
+static boolean inOP;
+static uint8 currentgroup = 0;
 
 extern ec_enit ec_eni;
 
 static ecx_contextt ctx = {
-    .port = &ecx_port,
-    .slavelist = &ec_slave[0],
-    .slavecount = &ec_slavecount,
-    .maxslave = EC_MAXSLAVE,
-    .grouplist = &ec_group[0],
-    .maxgroup = EC_MAXGROUP,
-    .esibuf = &ec_esibuf[0],
-    .esimap = &ec_esimap[0],
-    .esislave = 0,
-    .elist = &ec_elist,
-    .idxstack = &ec_idxstack,
-    .ecaterror = &EcatError,
-    .DCtime = &ec_DCtime,
-    .SMcommtype = &ec_SMcommtype[0],
-    .PDOassign = &ec_PDOassign[0],
-    .PDOdesc = &ec_PDOdesc[0],
-    .eepSM = &ec_SM,
-    .eepFMMU = &ec_FMMU,
-    .mbxpool = &ec_mbxpool,
-    .ENI = &ec_eni,
-    .FOEhook = NULL,
-    .EOEhook = NULL,
-    .manualstatechange = 0,
-    .userdata = NULL,
+   .ENI = &ec_eni,
 };
 
 void eni_test(char *ifname)
@@ -87,26 +47,28 @@ void eni_test(char *ifname)
       /* find and auto-config slaves */
       if (ecx_config_init(&ctx) > 0)
       {
-         ecx_config_map_group(&ctx, &IOmap, 0);
+         ec_groupt *group = &ctx.grouplist[0];
+
+         ecx_config_map_group(&ctx, IOmap, 0);
 
          ecx_configdc(&ctx);
 
-         printf("%d slaves found and configured.\n", ec_slavecount);
+         printf("%d slaves found and configured.\n", ctx.slavecount);
 
          /* wait for all slaves to reach SAFE_OP state */
          ecx_statecheck(&ctx, 0, EC_STATE_SAFE_OP, EC_TIMEOUTSTATE * 4);
 
-         oloop = ec_group[0].Obytes;
+         oloop = group->Obytes;
          if (oloop > 8) oloop = 8;
-         iloop = ec_group[0].Ibytes;
+         iloop = group->Ibytes;
          if (iloop > 8) iloop = 8;
 
-         printf("segments : %d : %d %d %d %d\n", ec_group[0].nsegments, ec_group[0].IOsegment[0], ec_group[0].IOsegment[1], ec_group[0].IOsegment[2], ec_group[0].IOsegment[3]);
+         printf("segments : %d : %d %d %d %d\n", group->nsegments, group->IOsegment[0], group->IOsegment[1], group->IOsegment[2], group->IOsegment[3]);
 
          printf("Request operational state for all slaves\n");
-         expectedWKC = (ec_group[0].outputsWKC * 2) + ec_group[0].inputsWKC;
+         expectedWKC = (group->outputsWKC * 2) + group->inputsWKC;
          printf("Calculated workcounter %d\n", expectedWKC);
-         ec_slave[0].state = EC_STATE_OPERATIONAL;
+         ctx.slavelist[0].state = EC_STATE_OPERATIONAL;
          /* send one valid process data to make outputs in slaves happy*/
          ecx_send_processdata(&ctx);
          ecx_receive_processdata(&ctx, EC_TIMEOUTRET);
@@ -119,8 +81,8 @@ void eni_test(char *ifname)
             ecx_send_processdata(&ctx);
             ecx_receive_processdata(&ctx, EC_TIMEOUTRET);
             ecx_statecheck(&ctx, 0, EC_STATE_OPERATIONAL, 50000);
-         } while (chk-- && (ec_slave[0].state != EC_STATE_OPERATIONAL));
-         if (ec_slave[0].state == EC_STATE_OPERATIONAL)
+         } while (chk-- && (ctx.slavelist[0].state != EC_STATE_OPERATIONAL));
+         if (ctx.slavelist[0].state == EC_STATE_OPERATIONAL)
          {
             printf("Operational state reached for all slaves.\n");
             inOP = TRUE;
@@ -136,15 +98,15 @@ void eni_test(char *ifname)
 
                   for (j = 0; j < oloop; j++)
                   {
-                     printf(" %2.2x", *(ec_slave[0].outputs + j));
+                     printf(" %2.2x", *(ctx.slavelist[0].outputs + j));
                   }
 
                   printf(" I:");
                   for (j = 0; j < iloop; j++)
                   {
-                     printf(" %2.2x", *(ec_slave[0].inputs + j));
+                     printf(" %2.2x", *(ctx.slavelist[0].inputs + j));
                   }
-                  printf(" T:%" PRId64 "\r", ec_DCtime);
+                  printf(" T:%" PRId64 "\r", ctx.DCtime);
                   needlf = TRUE;
                }
                osal_usleep(5000);
@@ -155,17 +117,18 @@ void eni_test(char *ifname)
          {
             printf("Not all slaves reached operational state.\n");
             ecx_readstate(&ctx);
-            for (i = 1; i <= ec_slavecount; i++)
+            for (i = 1; i <= ctx.slavecount; i++)
             {
-               if (ec_slave[i].state != EC_STATE_OPERATIONAL)
+               ec_slavet *slave = &ctx.slavelist[i];
+               if (slave->state != EC_STATE_OPERATIONAL)
                {
                   printf("Slave %d State=0x%2.2x StatusCode=0x%4.4x : %s\n",
-                         i, ec_slave[i].state, ec_slave[i].ALstatuscode, ec_ALstatuscode2string(ec_slave[i].ALstatuscode));
+                         i, slave->state, slave->ALstatuscode, ec_ALstatuscode2string(slave->ALstatuscode));
                }
             }
          }
          printf("\nRequest init state for all slaves\n");
-         ec_slave[0].state = EC_STATE_INIT;
+         ctx.slavelist[0].state = EC_STATE_INIT;
          /* request INIT state for all slaves */
          ecx_writestate(&ctx, 0);
       }
@@ -185,84 +148,86 @@ void eni_test(char *ifname)
 
 OSAL_THREAD_FUNC ecatcheck(void *ptr)
 {
-   int slave;
+   int slaveix;
    (void)ptr; /* Not used */
 
    while (1)
    {
-      if (inOP && ((wkc < expectedWKC) || ec_group[currentgroup].docheckstate))
+      if (inOP && ((wkc < expectedWKC) || ctx.grouplist[currentgroup].docheckstate))
       {
-         printf("check wkc=%d/%d docheckstate=%d!\n", wkc, expectedWKC, ec_group[currentgroup].docheckstate);
+         printf("check wkc=%d/%d docheckstate=%d!\n", wkc, expectedWKC, ctx.grouplist[currentgroup].docheckstate);
          if (needlf)
          {
             needlf = FALSE;
             printf("\n");
          }
          /* one ore more slaves are not responding */
-         ec_group[currentgroup].docheckstate = FALSE;
+         ctx.grouplist[currentgroup].docheckstate = FALSE;
          ecx_readstate(&ctx);
-         for (slave = 1; slave <= ec_slavecount; slave++)
+         for (slaveix = 1; slaveix <= ctx.slavecount; slaveix++)
          {
-            if ((ec_slave[slave].group == currentgroup) && (ec_slave[slave].state != EC_STATE_OPERATIONAL))
+            ec_slavet *slave = &ctx.slavelist[slaveix];
+
+            if ((slave->group == currentgroup) && (slave->state != EC_STATE_OPERATIONAL))
             {
-               ec_group[currentgroup].docheckstate = TRUE;
-               if (ec_slave[slave].state == (EC_STATE_SAFE_OP + EC_STATE_ERROR))
+               ctx.grouplist[currentgroup].docheckstate = TRUE;
+               if (slave->state == (EC_STATE_SAFE_OP + EC_STATE_ERROR))
                {
-                  printf("ERROR : slave %d is in SAFE_OP + ERROR, attempting ack.\n", slave);
-                  ec_slave[slave].state = (EC_STATE_SAFE_OP + EC_STATE_ACK);
-                  ecx_writestate(&ctx, slave);
+                  printf("ERROR : slave %d is in SAFE_OP + ERROR, attempting ack.\n", slaveix);
+                  slave->state = (EC_STATE_SAFE_OP + EC_STATE_ACK);
+                  ecx_writestate(&ctx, slaveix);
                }
-               else if (ec_slave[slave].state == EC_STATE_SAFE_OP)
+               else if (slave->state == EC_STATE_SAFE_OP)
                {
-                  printf("WARNING : slave %d is in SAFE_OP, change to OPERATIONAL.\n", slave);
-                  ec_slave[slave].state = EC_STATE_OPERATIONAL;
-                  if (ec_slave[slave].mbxhandlerstate == ECT_MBXH_LOST) ec_slave[slave].mbxhandlerstate = ECT_MBXH_CYCLIC;
-                  ecx_writestate(&ctx, slave);
+                  printf("WARNING : slave %d is in SAFE_OP, change to OPERATIONAL.\n", slaveix);
+                  slave->state = EC_STATE_OPERATIONAL;
+                  if (slave->mbxhandlerstate == ECT_MBXH_LOST) slave->mbxhandlerstate = ECT_MBXH_CYCLIC;
+                  ecx_writestate(&ctx, slaveix);
                }
-               else if (ec_slave[slave].state > EC_STATE_NONE)
+               else if (slave->state > EC_STATE_NONE)
                {
-                  if (ecx_reconfig_slave(&ctx, slave, EC_TIMEOUTMON) >= EC_STATE_PRE_OP)
+                  if (ecx_reconfig_slave(&ctx, slaveix, EC_TIMEOUTMON) >= EC_STATE_PRE_OP)
                   {
-                     ec_slave[slave].islost = FALSE;
-                     printf("MESSAGE : slave %d reconfigured\n", slave);
+                     slave->islost = FALSE;
+                     printf("MESSAGE : slave %d reconfigured\n", slaveix);
                   }
                }
-               else if (!ec_slave[slave].islost)
+               else if (!slave->islost)
                {
                   /* re-check state */
-                  ecx_statecheck(&ctx, slave, EC_STATE_OPERATIONAL, EC_TIMEOUTRET);
-                  if (ec_slave[slave].state == EC_STATE_NONE)
+                  ecx_statecheck(&ctx, slaveix, EC_STATE_OPERATIONAL, EC_TIMEOUTRET);
+                  if (slave->state == EC_STATE_NONE)
                   {
-                     ec_slave[slave].islost = TRUE;
-                     ec_slave[slave].mbxhandlerstate = ECT_MBXH_LOST;
+                     slave->islost = TRUE;
+                     slave->mbxhandlerstate = ECT_MBXH_LOST;
                      /* zero input data for this slave */
-                     if (ec_slave[slave].Ibytes)
+                     if (slave->Ibytes)
                      {
-                        memset(ec_slave[slave].inputs, 0x00, ec_slave[slave].Ibytes);
-                        printf("zero inputs %p %d\n\r", ec_slave[slave].inputs, ec_slave[slave].Ibytes);
+                        memset(slave->inputs, 0x00, slave->Ibytes);
+                        printf("zero inputs %p %d\n\r", slave->inputs, slave->Ibytes);
                      }
-                     printf("ERROR : slave %d lost\n", slave);
+                     printf("ERROR : slave %d lost\n", slaveix);
                   }
                }
             }
-            if (ec_slave[slave].islost)
+            if (slave->islost)
             {
-               if (ec_slave[slave].state <= EC_STATE_INIT)
+               if (slave->state <= EC_STATE_INIT)
                {
-                  if (ecx_recover_slave(&ctx, slave, EC_TIMEOUTMON))
+                  if (ecx_recover_slave(&ctx, slaveix, EC_TIMEOUTMON))
                   {
-                     ec_slave[slave].islost = FALSE;
-                     printf("MESSAGE : slave %d recovered\n", slave);
+                     slave->islost = FALSE;
+                     printf("MESSAGE : slave %d recovered\n", slaveix);
                   }
                }
                else
                {
-                  ec_slave[slave].islost = FALSE;
-                  printf("MESSAGE : slave %d found\n", slave);
+                  slave->islost = FALSE;
+                  printf("MESSAGE : slave %d found\n", slaveix);
                }
             }
          }
-         if (!ec_group[currentgroup].docheckstate)
+         if (!ctx.grouplist[currentgroup].docheckstate)
             printf("OK : all slaves resumed OPERATIONAL.\n");
       }
       osal_usleep(10000);

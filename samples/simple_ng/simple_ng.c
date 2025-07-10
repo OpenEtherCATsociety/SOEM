@@ -18,64 +18,18 @@ typedef struct
    char *iface;
    uint8 group;
    int roundtrip_time;
-
-   /* Used by the context */
    uint8 map[4096];
-   ecx_portt port;
-   ec_slavet slavelist[EC_MAXSLAVE];
-   int slavecount;
-   ec_groupt grouplist[EC_MAXGROUP];
-   uint8 esibuf[EC_MAXEEPBUF];
-   uint32 esimap[EC_MAXEEPBITMAP];
-   ec_eringt elist;
-   ec_idxstackT idxstack;
-   boolean ecaterror;
-   int64 DCtime;
-   ec_SMcommtypet SMcommtype[EC_MAX_MAPT];
-   ec_PDOassignt PDOassign[EC_MAX_MAPT];
-   ec_PDOdesct PDOdesc[EC_MAX_MAPT];
-   ec_eepromSMt eepSM;
-   ec_eepromFMMUt eepFMMU;
-   ec_mbxpoolt mbxpool;
 } Fieldbus;
 
 static void
 fieldbus_initialize(Fieldbus *fieldbus, char *iface)
 {
-   ecx_contextt *context;
-
    /* Let's start by 0-filling `fieldbus` to avoid surprises */
    memset(fieldbus, 0, sizeof(*fieldbus));
 
    fieldbus->iface = iface;
    fieldbus->group = 0;
    fieldbus->roundtrip_time = 0;
-   fieldbus->ecaterror = FALSE;
-
-   /* Initialize the ecx_contextt data structure */
-   context = &fieldbus->context;
-   context->port = &fieldbus->port;
-   context->slavelist = fieldbus->slavelist;
-   context->slavecount = &fieldbus->slavecount;
-   context->maxslave = EC_MAXSLAVE;
-   context->grouplist = fieldbus->grouplist;
-   context->maxgroup = EC_MAXGROUP;
-   context->esibuf = fieldbus->esibuf;
-   context->esimap = fieldbus->esimap;
-   context->esislave = 0;
-   context->elist = &fieldbus->elist;
-   context->idxstack = &fieldbus->idxstack;
-   context->ecaterror = &fieldbus->ecaterror;
-   context->DCtime = &fieldbus->DCtime;
-   context->SMcommtype = fieldbus->SMcommtype;
-   context->PDOassign = fieldbus->PDOassign;
-   context->PDOdesc = fieldbus->PDOdesc;
-   context->eepSM = &fieldbus->eepSM;
-   context->eepFMMU = &fieldbus->eepFMMU;
-   context->mbxpool = &fieldbus->mbxpool;
-   context->FOEhook = NULL;
-   context->EOEhook = NULL;
-   context->manualstatechange = 0;
 }
 
 static int
@@ -106,7 +60,7 @@ fieldbus_start(Fieldbus *fieldbus)
    int i;
 
    context = &fieldbus->context;
-   grp = fieldbus->grouplist + fieldbus->group;
+   grp = context->grouplist + fieldbus->group;
 
    printf("Initializing SOEM on '%s'... ", fieldbus->iface);
    if (!ecx_init(context, fieldbus->iface))
@@ -122,7 +76,7 @@ fieldbus_start(Fieldbus *fieldbus)
       printf("no slaves found\n");
       return FALSE;
    }
-   printf("%d slaves found\n", fieldbus->slavecount);
+   printf("%d slaves found\n", context->slavecount);
 
    printf("Sequential mapping of I/O... ");
    ecx_config_map_group(context, fieldbus->map, fieldbus->group);
@@ -153,7 +107,7 @@ fieldbus_start(Fieldbus *fieldbus)
 
    printf("Setting operational state..");
    /* Act on slave 0 (a virtual slave used for broadcasting) */
-   slave = fieldbus->slavelist;
+   slave = context->slavelist;
    slave->state = EC_STATE_OPERATIONAL;
    ecx_writestate(context, 0);
    /* Poll the result ten times before giving up */
@@ -171,9 +125,9 @@ fieldbus_start(Fieldbus *fieldbus)
 
    printf(" failed,");
    ecx_readstate(context);
-   for (i = 1; i <= fieldbus->slavecount; ++i)
+   for (i = 1; i <= context->slavecount; ++i)
    {
-      slave = fieldbus->slavelist + i;
+      slave = context->slavelist + i;
       if (slave->state != EC_STATE_OPERATIONAL)
       {
          printf(" slave %d is 0x%04X (AL-status=0x%04X %s)",
@@ -194,7 +148,7 @@ fieldbus_stop(Fieldbus *fieldbus)
 
    context = &fieldbus->context;
    /* Act on slave 0 (a virtual slave used for broadcasting) */
-   slave = fieldbus->slavelist;
+   slave = context->slavelist;
 
    printf("Requesting init state on all slaves... ");
    slave->state = EC_STATE_INIT;
@@ -209,11 +163,13 @@ fieldbus_stop(Fieldbus *fieldbus)
 static boolean
 fieldbus_dump(Fieldbus *fieldbus)
 {
+   ecx_contextt *context;
    ec_groupt *grp;
    uint32 n;
    int wkc, expected_wkc;
 
-   grp = fieldbus->grouplist + fieldbus->group;
+   context = &fieldbus->context;
+   grp = context->grouplist + fieldbus->group;
 
    wkc = fieldbus_roundtrip(fieldbus);
    expected_wkc = grp->outputsWKC * 2 + grp->inputsWKC;
@@ -234,7 +190,7 @@ fieldbus_dump(Fieldbus *fieldbus)
    {
       printf(" %02X", grp->inputs[n]);
    }
-   printf("  T: %lld\r", (long long)fieldbus->DCtime);
+   printf("  T: %lld\r", (long long)context->DCtime);
    return TRUE;
 }
 
@@ -250,7 +206,7 @@ fieldbus_check_state(Fieldbus *fieldbus)
    grp = context->grouplist + fieldbus->group;
    grp->docheckstate = FALSE;
    ecx_readstate(context);
-   for (i = 1; i <= fieldbus->slavecount; ++i)
+   for (i = 1; i <= context->slavecount; ++i)
    {
       slave = context->slavelist + i;
       if (slave->group != fieldbus->group)

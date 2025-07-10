@@ -30,48 +30,7 @@ int j;
 uint16 argslave;
 boolean forceByteAlignment = FALSE;
 
-static ec_slavet ec_slave[EC_MAXSLAVE];
-static int ec_slavecount;
-static ec_groupt ec_group[EC_MAXGROUP];
-static uint8 ec_esibuf[EC_MAXEEPBUF];
-static uint32 ec_esimap[EC_MAXEEPBITMAP];
-static ec_eringt ec_elist;
-static ec_idxstackT ec_idxstack;
-static ec_SMcommtypet ec_SMcommtype[EC_MAX_MAPT];
-static ec_PDOassignt ec_PDOassign[EC_MAX_MAPT];
-static ec_PDOdesct ec_PDOdesc[EC_MAX_MAPT];
-static ec_eepromSMt ec_SM;
-static ec_eepromFMMUt ec_FMMU;
-static boolean EcatError = FALSE;
-static int64 ec_DCtime;
-static ecx_portt ecx_port;
-static ec_mbxpoolt ec_mbxpool;
-
-static ecx_contextt ctx = {
-    .port = &ecx_port,
-    .slavelist = &ec_slave[0],
-    .slavecount = &ec_slavecount,
-    .maxslave = EC_MAXSLAVE,
-    .grouplist = &ec_group[0],
-    .maxgroup = EC_MAXGROUP,
-    .esibuf = &ec_esibuf[0],
-    .esimap = &ec_esimap[0],
-    .esislave = 0,
-    .elist = &ec_elist,
-    .idxstack = &ec_idxstack,
-    .ecaterror = &EcatError,
-    .DCtime = &ec_DCtime,
-    .SMcommtype = &ec_SMcommtype[0],
-    .PDOassign = &ec_PDOassign[0],
-    .PDOdesc = &ec_PDOdesc[0],
-    .eepSM = &ec_SM,
-    .eepFMMU = &ec_FMMU,
-    .mbxpool = &ec_mbxpool,
-    .FOEhook = NULL,
-    .EOEhook = NULL,
-    .manualstatechange = 0,
-    .userdata = NULL,
-};
+static ecx_contextt ctx;
 
 int input_bin(char *fname, int *length)
 {
@@ -101,13 +60,13 @@ void boottest(char *ifname, uint16 slave, char *filename)
       /* find and auto-config slaves */
       if (ecx_config_init(&ctx) > 0)
       {
-         printf("%d slaves found and configured.\n", ec_slavecount);
+         printf("%d slaves found and configured.\n", ctx.slavecount);
 
          /* wait for all slaves to reach PRE_OP state */
          ecx_statecheck(&ctx, 0, EC_STATE_PRE_OP, EC_TIMEOUTSTATE * 4);
 
          printf("Request init state for slave %d\n", slave);
-         ec_slave[slave].state = EC_STATE_INIT;
+         ctx.slavelist[slave].state = EC_STATE_INIT;
          ecx_writestate(&ctx, slave);
 
          /* wait for slave to reach INIT state */
@@ -116,33 +75,33 @@ void boottest(char *ifname, uint16 slave, char *filename)
 
          /* read BOOT mailbox data, master -> slave */
          data = ecx_readeeprom(&ctx, slave, ECT_SII_BOOTRXMBX, EC_TIMEOUTEEP);
-         ec_slave[slave].SM[0].StartAddr = (uint16)LO_WORD(data);
-         ec_slave[slave].SM[0].SMlength = (uint16)HI_WORD(data);
+         ctx.slavelist[slave].SM[0].StartAddr = (uint16)LO_WORD(data);
+         ctx.slavelist[slave].SM[0].SMlength = (uint16)HI_WORD(data);
          /* store boot write mailbox address */
-         ec_slave[slave].mbx_wo = (uint16)LO_WORD(data);
+         ctx.slavelist[slave].mbx_wo = (uint16)LO_WORD(data);
          /* store boot write mailbox size */
-         ec_slave[slave].mbx_l = (uint16)HI_WORD(data);
+         ctx.slavelist[slave].mbx_l = (uint16)HI_WORD(data);
 
          /* read BOOT mailbox data, slave -> master */
          data = ecx_readeeprom(&ctx, slave, ECT_SII_BOOTTXMBX, EC_TIMEOUTEEP);
-         ec_slave[slave].SM[1].StartAddr = (uint16)LO_WORD(data);
-         ec_slave[slave].SM[1].SMlength = (uint16)HI_WORD(data);
+         ctx.slavelist[slave].SM[1].StartAddr = (uint16)LO_WORD(data);
+         ctx.slavelist[slave].SM[1].SMlength = (uint16)HI_WORD(data);
          /* store boot read mailbox address */
-         ec_slave[slave].mbx_ro = (uint16)LO_WORD(data);
+         ctx.slavelist[slave].mbx_ro = (uint16)LO_WORD(data);
          /* store boot read mailbox size */
-         ec_slave[slave].mbx_rl = (uint16)HI_WORD(data);
+         ctx.slavelist[slave].mbx_rl = (uint16)HI_WORD(data);
 
-         printf(" SM0 A:%4.4x L:%4d F:%8.8x\n", ec_slave[slave].SM[0].StartAddr, ec_slave[slave].SM[0].SMlength,
-                (int)ec_slave[slave].SM[0].SMflags);
-         printf(" SM1 A:%4.4x L:%4d F:%8.8x\n", ec_slave[slave].SM[1].StartAddr, ec_slave[slave].SM[1].SMlength,
-                (int)ec_slave[slave].SM[1].SMflags);
+         printf(" SM0 A:%4.4x L:%4d F:%8.8x\n", ctx.slavelist[slave].SM[0].StartAddr, ctx.slavelist[slave].SM[0].SMlength,
+                (int)ctx.slavelist[slave].SM[0].SMflags);
+         printf(" SM1 A:%4.4x L:%4d F:%8.8x\n", ctx.slavelist[slave].SM[1].StartAddr, ctx.slavelist[slave].SM[1].SMlength,
+                (int)ctx.slavelist[slave].SM[1].SMflags);
          /* program SM0 mailbox in for slave */
-         ecx_FPWR(ctx.port, ec_slave[slave].configadr, ECT_REG_SM0, sizeof(ec_smt), &ec_slave[slave].SM[0], EC_TIMEOUTRET);
+         ecx_FPWR(&ctx.port, ctx.slavelist[slave].configadr, ECT_REG_SM0, sizeof(ec_smt), &ctx.slavelist[slave].SM[0], EC_TIMEOUTRET);
          /* program SM1 mailbox out for slave */
-         ecx_FPWR(ctx.port, ec_slave[slave].configadr, ECT_REG_SM1, sizeof(ec_smt), &ec_slave[slave].SM[1], EC_TIMEOUTRET);
+         ecx_FPWR(&ctx.port, ctx.slavelist[slave].configadr, ECT_REG_SM1, sizeof(ec_smt), &ctx.slavelist[slave].SM[1], EC_TIMEOUTRET);
 
          printf("Request BOOT state for slave %d\n", slave);
-         ec_slave[slave].state = EC_STATE_BOOT;
+         ctx.slavelist[slave].state = EC_STATE_BOOT;
          ecx_writestate(&ctx, slave);
 
          /* wait for slave to reach BOOT state */
@@ -157,7 +116,7 @@ void boottest(char *ifname, uint16 slave, char *filename)
                j = ecx_FOEwrite(&ctx, slave, filename, 0, filesize, &filebuffer, EC_TIMEOUTSTATE);
                printf("result %d.\n", j);
                printf("Request init state for slave %d\n", slave);
-               ec_slave[slave].state = EC_STATE_INIT;
+               ctx.slavelist[slave].state = EC_STATE_INIT;
                ecx_writestate(&ctx, slave);
             }
             else

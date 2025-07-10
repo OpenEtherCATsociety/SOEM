@@ -41,15 +41,15 @@ void ecx_dcsync0(ecx_contextt *context, uint16 slave, boolean act, uint32 CyclTi
    RA = 0;
 
    /* stop cyclic operation, ready for next trigger */
-   (void)ecx_FPWR(context->port, slaveh, ECT_REG_DCSYNCACT, sizeof(RA), &RA, EC_TIMEOUTRET);
+   (void)ecx_FPWR(&context->port, slaveh, ECT_REG_DCSYNCACT, sizeof(RA), &RA, EC_TIMEOUTRET);
    if (act)
    {
       RA = 1 + 2; /* act cyclic operation and sync0, sync1 deactivated */
    }
    h = 0;
-   (void)ecx_FPWR(context->port, slaveh, ECT_REG_DCCUC, sizeof(h), &h, EC_TIMEOUTRET); /* write access to ethercat */
+   (void)ecx_FPWR(&context->port, slaveh, ECT_REG_DCCUC, sizeof(h), &h, EC_TIMEOUTRET); /* write access to ethercat */
    t1 = 0;
-   (void)ecx_FPRD(context->port, slaveh, ECT_REG_DCSYSTIME, sizeof(t1), &t1, EC_TIMEOUTRET); /* read local time of slave */
+   (void)ecx_FPRD(&context->port, slaveh, ECT_REG_DCSYSTIME, sizeof(t1), &t1, EC_TIMEOUTRET); /* read local time of slave */
    t1 = etohll(t1);
 
    /* Calculate first trigger time, always a whole multiple of CyclTime rounded up
@@ -66,10 +66,10 @@ void ecx_dcsync0(ecx_contextt *context, uint16 slave, boolean act, uint32 CyclTi
       /* first trigger at T1 + CyclTime + SyncDelay + CyclShift in ns */
    }
    t = htoell(t);
-   (void)ecx_FPWR(context->port, slaveh, ECT_REG_DCSTART0, sizeof(t), &t, EC_TIMEOUTRET); /* SYNC0 start time */
+   (void)ecx_FPWR(&context->port, slaveh, ECT_REG_DCSTART0, sizeof(t), &t, EC_TIMEOUTRET); /* SYNC0 start time */
    tc = htoel(CyclTime);
-   (void)ecx_FPWR(context->port, slaveh, ECT_REG_DCCYCLE0, sizeof(tc), &tc, EC_TIMEOUTRET);  /* SYNC0 cycle time */
-   (void)ecx_FPWR(context->port, slaveh, ECT_REG_DCSYNCACT, sizeof(RA), &RA, EC_TIMEOUTRET); /* activate cyclic operation */
+   (void)ecx_FPWR(&context->port, slaveh, ECT_REG_DCCYCLE0, sizeof(tc), &tc, EC_TIMEOUTRET);  /* SYNC0 cycle time */
+   (void)ecx_FPWR(&context->port, slaveh, ECT_REG_DCSYNCACT, sizeof(RA), &RA, EC_TIMEOUTRET); /* activate cyclic operation */
 
    // update ec_slave state
    context->slavelist[slave].DCactive = (uint8)act;
@@ -104,15 +104,15 @@ void ecx_dcsync01(ecx_contextt *context, uint16 slave, boolean act, uint32 CyclT
    RA = 0;
 
    /* stop cyclic operation, ready for next trigger */
-   (void)ecx_FPWR(context->port, slaveh, ECT_REG_DCSYNCACT, sizeof(RA), &RA, EC_TIMEOUTRET);
+   (void)ecx_FPWR(&context->port, slaveh, ECT_REG_DCSYNCACT, sizeof(RA), &RA, EC_TIMEOUTRET);
    if (act)
    {
       RA = 1 + 2 + 4; /* act cyclic operation and sync0 + sync1 */
    }
    h = 0;
-   (void)ecx_FPWR(context->port, slaveh, ECT_REG_DCCUC, sizeof(h), &h, EC_TIMEOUTRET); /* write access to ethercat */
+   (void)ecx_FPWR(&context->port, slaveh, ECT_REG_DCCUC, sizeof(h), &h, EC_TIMEOUTRET); /* write access to ethercat */
    t1 = 0;
-   (void)ecx_FPRD(context->port, slaveh, ECT_REG_DCSYSTIME, sizeof(t1), &t1, EC_TIMEOUTRET); /* read local time of slave */
+   (void)ecx_FPRD(&context->port, slaveh, ECT_REG_DCSYSTIME, sizeof(t1), &t1, EC_TIMEOUTRET); /* read local time of slave */
    t1 = etohll(t1);
 
    /* Calculate first trigger time, always a whole multiple of TrueCyclTime rounded up
@@ -129,12 +129,12 @@ void ecx_dcsync01(ecx_contextt *context, uint16 slave, boolean act, uint32 CyclT
       /* first trigger at T1 + CyclTime + SyncDelay + CyclShift in ns */
    }
    t = htoell(t);
-   (void)ecx_FPWR(context->port, slaveh, ECT_REG_DCSTART0, sizeof(t), &t, EC_TIMEOUTRET); /* SYNC0 start time */
+   (void)ecx_FPWR(&context->port, slaveh, ECT_REG_DCSTART0, sizeof(t), &t, EC_TIMEOUTRET); /* SYNC0 start time */
    tc = htoel(CyclTime0);
-   (void)ecx_FPWR(context->port, slaveh, ECT_REG_DCCYCLE0, sizeof(tc), &tc, EC_TIMEOUTRET); /* SYNC0 cycle time */
+   (void)ecx_FPWR(&context->port, slaveh, ECT_REG_DCCYCLE0, sizeof(tc), &tc, EC_TIMEOUTRET); /* SYNC0 cycle time */
    tc = htoel(CyclTime1);
-   (void)ecx_FPWR(context->port, slaveh, ECT_REG_DCCYCLE1, sizeof(tc), &tc, EC_TIMEOUTRET);  /* SYNC1 cycle time */
-   (void)ecx_FPWR(context->port, slaveh, ECT_REG_DCSYNCACT, sizeof(RA), &RA, EC_TIMEOUTRET); /* activate cyclic operation */
+   (void)ecx_FPWR(&context->port, slaveh, ECT_REG_DCCYCLE1, sizeof(tc), &tc, EC_TIMEOUTRET);  /* SYNC1 cycle time */
+   (void)ecx_FPWR(&context->port, slaveh, ECT_REG_DCSYNCACT, sizeof(RA), &RA, EC_TIMEOUTRET); /* activate cyclic operation */
 
    // update ec_slave state
    context->slavelist[slave].DCactive = (uint8)act;
@@ -265,11 +265,11 @@ boolean ecx_configdc(ecx_contextt *context)
    context->grouplist[0].hasdc = FALSE;
    ht = 0;
 
-   ecx_BWR(context->port, 0, ECT_REG_DCTIME0, sizeof(ht), &ht, EC_TIMEOUTRET); /* latch DCrecvTimeA of all slaves */
+   ecx_BWR(&context->port, 0, ECT_REG_DCTIME0, sizeof(ht), &ht, EC_TIMEOUTRET); /* latch DCrecvTimeA of all slaves */
    mastertime = osal_current_time();
    mastertime.tv_sec -= 946684800UL; /* EtherCAT uses 2000-01-01 as epoch start instead of 1970-01-01 */
    mastertime64 = ((uint64)mastertime.tv_sec * 1000 * 1000 * 1000) + (uint64)mastertime.tv_nsec;
-   for (i = 1; i <= *(context->slavecount); i++)
+   for (i = 1; i <= context->slavecount; i++)
    {
       context->slavelist[i].consumedports = context->slavelist[i].activeports;
       if (context->slavelist[i].hasdc)
@@ -291,19 +291,19 @@ boolean ecx_configdc(ecx_contextt *context)
          parenthold = 0;
          prevDCslave = i;
          slaveh = context->slavelist[i].configadr;
-         (void)ecx_FPRD(context->port, slaveh, ECT_REG_DCTIME0, sizeof(ht), &ht, EC_TIMEOUTRET);
+         (void)ecx_FPRD(&context->port, slaveh, ECT_REG_DCTIME0, sizeof(ht), &ht, EC_TIMEOUTRET);
          context->slavelist[i].DCrtA = etohl(ht);
          /* 64bit latched DCrecvTimeA of each specific slave */
-         (void)ecx_FPRD(context->port, slaveh, ECT_REG_DCSOF, sizeof(hrt), &hrt, EC_TIMEOUTRET);
+         (void)ecx_FPRD(&context->port, slaveh, ECT_REG_DCSOF, sizeof(hrt), &hrt, EC_TIMEOUTRET);
          /* use it as offset in order to set local time around 0 + mastertime */
          hrt = htoell(-etohll(hrt) + mastertime64);
          /* save it in the offset register */
-         (void)ecx_FPWR(context->port, slaveh, ECT_REG_DCSYSOFFSET, sizeof(hrt), &hrt, EC_TIMEOUTRET);
-         (void)ecx_FPRD(context->port, slaveh, ECT_REG_DCTIME1, sizeof(ht), &ht, EC_TIMEOUTRET);
+         (void)ecx_FPWR(&context->port, slaveh, ECT_REG_DCSYSOFFSET, sizeof(hrt), &hrt, EC_TIMEOUTRET);
+         (void)ecx_FPRD(&context->port, slaveh, ECT_REG_DCTIME1, sizeof(ht), &ht, EC_TIMEOUTRET);
          context->slavelist[i].DCrtB = etohl(ht);
-         (void)ecx_FPRD(context->port, slaveh, ECT_REG_DCTIME2, sizeof(ht), &ht, EC_TIMEOUTRET);
+         (void)ecx_FPRD(&context->port, slaveh, ECT_REG_DCTIME2, sizeof(ht), &ht, EC_TIMEOUTRET);
          context->slavelist[i].DCrtC = etohl(ht);
-         (void)ecx_FPRD(context->port, slaveh, ECT_REG_DCTIME3, sizeof(ht), &ht, EC_TIMEOUTRET);
+         (void)ecx_FPRD(&context->port, slaveh, ECT_REG_DCTIME3, sizeof(ht), &ht, EC_TIMEOUTRET);
          context->slavelist[i].DCrtD = etohl(ht);
 
          /* make list of active ports and their time stamps */
@@ -402,7 +402,7 @@ boolean ecx_configdc(ecx_contextt *context)
                                            context->slavelist[parent].pdelay;
             ht = htoel(context->slavelist[i].pdelay);
             /* write propagation delay*/
-            (void)ecx_FPWR(context->port, slaveh, ECT_REG_DCSYSDELAY, sizeof(ht), &ht, EC_TIMEOUTRET);
+            (void)ecx_FPWR(&context->port, slaveh, ECT_REG_DCSYSDELAY, sizeof(ht), &ht, EC_TIMEOUTRET);
          }
       }
       else

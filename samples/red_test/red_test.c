@@ -219,7 +219,7 @@ OSAL_THREAD_FUNC_RT ecatthread(void *ptr)
 
          if (ctx.slavelist[0].hasdc)
          {
-            /* calulate toff to get linux time and DC synced */
+            /* calculate toff to get linux time and DC synced */
             ec_sync(ctx.DCtime, cycletime, &toff);
          }
          ecx_send_processdata(&ctx);
@@ -241,7 +241,7 @@ OSAL_THREAD_FUNC ecatcheck(void *ptr)
             needlf = FALSE;
             printf("\n");
          }
-         /* one ore more slaves are not responding */
+         /* one or more slaves are not responding */
          ctx.grouplist[currentgroup].docheckstate = FALSE;
          ecx_readstate(&ctx);
          for (slaveix = 1; slaveix <= ctx.slavecount; slaveix++)

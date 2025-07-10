@@ -1582,7 +1582,7 @@ int ecx_mbxsend(ecx_contextt *context, uint16 slave, ec_mbxbuft *mbx, int timeou
 /** Read OUT mailbox from slave.
  * Supports Mailbox Link Layer with repeat requests.
  * Mailbox is fetched from pool, caller is owner after return
- * and therefore should drop it back to the pool whe finished.
+ * and therefore should drop it back to the pool when finished.
  * @param[in]  context    = context struct
  * @param[in]  slave      = Slave number
  * @param[out] mbx        = Double pointer to mailbox data

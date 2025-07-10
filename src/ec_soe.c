@@ -86,7 +86,7 @@ int ecx_SoEread(ecx_contextt *context, uint16 slave, uint8 driveNo, uint8 elemen
 
    MbxIn = NULL;
    MbxOut = NULL;
-   /* Empty slave out mailbox if something is in. Timout set to 0 */
+   /* Empty slave out mailbox if something is in. Timeout set to 0 */
    wkc = ecx_mbxreceive(context, slave, &MbxIn, 0);
    MbxOut = ecx_getmbx(context);
    ec_clearmbx(MbxOut);
@@ -213,7 +213,7 @@ int ecx_SoEwrite(ecx_contextt *context, uint16 slave, uint8 driveNo, uint8 eleme
 
    MbxIn = NULL;
    MbxOut = NULL;
-   /* Empty slave out mailbox if something is in. Timout set to 0 */
+   /* Empty slave out mailbox if something is in. Timeout set to 0 */
    wkc = ecx_mbxreceive(context, slave, &MbxIn, 0);
    hp = p;
    maxdata = context->slavelist[slave].mbx_l - sizeof(ec_SoEt);

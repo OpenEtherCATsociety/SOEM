@@ -155,7 +155,7 @@ void test_eoe(ecx_contextt *context)
    /* Set the HOOK */
    ecx_EOEdefinehook(context, eoe_hook);
 
-   /* Create a asyncronous EoE reader */
+   /* Create an asynchronous EoE reader */
    osal_thread_create(&thread2, 128000, &mailbox_writer, context);
 }
 
@@ -306,7 +306,7 @@ OSAL_THREAD_FUNC ecatcheck(void *ptr)
             needlf = FALSE;
             printf("\n");
          }
-         /* one ore more slaves are not responding */
+         /* one or more slaves are not responding */
          ctx.grouplist[currentgroup].docheckstate = FALSE;
          ecx_readstate(&ctx);
          for (slaveix = 1; slaveix <= ctx.slavecount; slaveix++)

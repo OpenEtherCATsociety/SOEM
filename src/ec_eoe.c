@@ -76,7 +76,7 @@ int ecx_EOEsetIp(ecx_contextt *context, uint16 slave, uint8 port, eoe_param_t *i
 
    MbxIn = NULL;
    MbxOut = NULL;
-   /* Empty slave out mailbox if something is in. Timout set to 0 */
+   /* Empty slave out mailbox if something is in. Timeout set to 0 */
    wkc = ecx_mbxreceive(context, slave, &MbxIn, 0);
    MbxOut = ecx_getmbx(context);
    ec_clearmbx(MbxOut);
@@ -180,7 +180,7 @@ int ecx_EOEsetIp(ecx_contextt *context, uint16 slave, uint8 port, eoe_param_t *i
  * @param[in]  context    = Context struct
  * @param[in]  slave      = Slave number
  * @param[in]  port       = Port number on slave if applicable
- * @param[out] ipparam    = IP parameter data retrived from slave
+ * @param[out] ipparam    = IP parameter data retrieved from slave
  * @param[in]  timeout    = Timeout in us, standard is EC_TIMEOUTRXM
  * @return Workcounter from last slave response or returned result code
  */
@@ -195,7 +195,7 @@ int ecx_EOEgetIp(ecx_contextt *context, uint16 slave, uint8 port, eoe_param_t *i
 
    MbxIn = NULL;
    MbxOut = NULL;
-   /* Empty slave out mailbox if something is in. Timout set to 0 */
+   /* Empty slave out mailbox if something is in. Timeout set to 0 */
    wkc = ecx_mbxreceive(context, slave, &MbxIn, 0);
    MbxOut = ecx_getmbx(context);
    ec_clearmbx(MbxOut);
@@ -573,7 +573,7 @@ int ecx_EOEreadfragment(
       frameinfo1 = etohs(aEOEp->frameinfo1);
       frameinfo2 = etohs(aEOEp->frameinfo2);
 
-      /* Retrive fragment number, is it what we expect? */
+      /* Retrieve fragment number, is it what we expect? */
       if (*rxfragmentno != EOE_HDR_FRAG_NO_GET(frameinfo2))
       {
          /* If expected fragment number is not 0, reset working variables */

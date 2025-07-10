@@ -99,7 +99,7 @@ int ecx_setupdatagram(ecx_portt *port, void *frame, uint8 com, uint8 idx, uint16
  * @param[in]  ADO        = Address Offset
  * @param[in]  length     = length of datagram excluding EtherCAT header
  * @param[in]  data       = databuffer to be copied in datagram
- * @return Offset to data in rx frame, usefull to retrieve data after RX.
+ * @return Offset to data in rx frame, useful to retrieve data after RX.
  */
 uint16 ecx_adddatagram(ecx_portt *port, void *frame, uint8 com, uint8 idx, boolean more, uint16 ADP, uint16 ADO, uint16 length, void *data)
 {

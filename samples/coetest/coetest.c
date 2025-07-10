@@ -87,7 +87,7 @@ OSAL_THREAD_FUNC_RT ecatthread(void)
             dowkccheck = 0;
          if (ctx.slavelist[0].hasdc && (wkc > 0))
          {
-            /* calulate toff to get linux time and DC synced */
+            /* calculate toff to get linux time and DC synced */
             ec_sync(ctx.DCtime, cycletime, &toff);
          }
          ecx_mbxhandler(&ctx, 0, 4);
@@ -104,7 +104,7 @@ OSAL_THREAD_FUNC ecatcheck(void)
    {
       if (inOP && ((dowkccheck > 2) || ctx.grouplist[currentgroup].docheckstate))
       {
-         /* one ore more slaves are not responding */
+         /* one or more slaves are not responding */
          ctx.grouplist[currentgroup].docheckstate = FALSE;
          ecx_readstate(&ctx);
          for (slaveix = 1; slaveix <= ctx.slavecount; slaveix++)

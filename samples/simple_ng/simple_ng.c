@@ -84,7 +84,7 @@ fieldbus_start(Fieldbus *fieldbus)
           grp->Obytes, grp->Ibytes, grp->nsegments);
    if (grp->nsegments > 1)
    {
-      /* Show how slaves are distrubuted */
+      /* Show how slaves are distributed */
       for (i = 0; i < grp->nsegments; ++i)
       {
          printf("%s%d", i == 0 ? " (" : "+", grp->IOsegment[i]);

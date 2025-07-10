@@ -85,7 +85,7 @@ int ecx_FOEread(ecx_contextt *context, uint16 slave, char *filename, uint32 pass
    buffersize = *psize;
    MbxIn = NULL;
    MbxOut = NULL;
-   /* Empty slave out mailbox if something is in. Timout set to 0 */
+   /* Empty slave out mailbox if something is in. Timeout set to 0 */
    wkc = ecx_mbxreceive(context, slave, &MbxIn, 0);
    MbxOut = ecx_getmbx(context);
    ec_clearmbx(MbxOut);
@@ -225,7 +225,7 @@ int ecx_FOEwrite(ecx_contextt *context, uint16 slave, char *filename, uint32 pas
 
    MbxIn = NULL;
    MbxOut = NULL;
-   /* Empty slave out mailbox if something is in. Timout set to 0 */
+   /* Empty slave out mailbox if something is in. Timeout set to 0 */
    wkc = ecx_mbxreceive(context, slave, &MbxIn, 0);
    MbxOut = ecx_getmbx(context);
    ec_clearmbx(MbxOut);

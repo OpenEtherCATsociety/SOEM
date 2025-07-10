@@ -308,7 +308,7 @@ typedef struct ec_group
    uint32 Ibytes;
    /** input pointer in IOmap buffer */
    uint8 *inputs;
-   /** has DC capabillity */
+   /** has DC capability */
    boolean hasdc;
    /** next DC slave */
    uint16 DCnext;

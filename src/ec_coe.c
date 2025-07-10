@@ -1057,7 +1057,7 @@ int ecx_readODlist(ecx_contextt *context, uint16 Slave, ec_ODlistt *pODlist)
    pODlist->Entries = 0;
    MbxIn = NULL;
    MbxOut = NULL;
-   /* Empty slave out mailbox if something is in. Timout set to 0 */
+   /* Empty slave out mailbox if something is in. Timeout set to 0 */
    wkc = ecx_mbxreceive(context, Slave, &MbxIn, 0);
    if (MbxIn) ecx_dropmbx(context, MbxIn);
    MbxOut = ecx_getmbx(context);
@@ -1184,7 +1184,7 @@ int ecx_readODdescription(ecx_contextt *context, uint16 Item, ec_ODlistt *pODlis
    pODlist->Name[Item][0] = 0;
    MbxIn = NULL;
    MbxOut = NULL;
-   /* Empty slave out mailbox if something is in. Timout set to 0 */
+   /* Empty slave out mailbox if something is in. Timeout set to 0 */
    wkc = ecx_mbxreceive(context, Slave, &MbxIn, 0);
    if (MbxIn) ecx_dropmbx(context, MbxIn);
    MbxOut = ecx_getmbx(context);
@@ -1276,7 +1276,7 @@ int ecx_readOEsingle(ecx_contextt *context, uint16 Item, uint8 SubI, ec_ODlistt 
    Index = pODlist->Index[Item];
    MbxIn = NULL;
    MbxOut = NULL;
-   /* Empty slave out mailbox if something is in. Timout set to 0 */
+   /* Empty slave out mailbox if something is in. Timeout set to 0 */
    wkc = ecx_mbxreceive(context, Slave, &MbxIn, 0);
    if (MbxIn) ecx_dropmbx(context, MbxIn);
    MbxOut = ecx_getmbx(context);

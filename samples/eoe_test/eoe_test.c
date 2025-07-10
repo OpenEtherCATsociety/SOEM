@@ -24,20 +24,14 @@
 
 #include "soem/soem.h"
 
-#define EC_TIMEOUTMON 500
-
-static uint8 IOmap[4096];
-static OSAL_THREAD_HANDLE thread1;
-static OSAL_THREAD_HANDLE thread2;
-static int expectedWKC;
-static boolean needlf;
-static volatile int wkc;
-static boolean inOP;
-static uint8 currentgroup = 0;
-
+/* Log EoE packets if set, process data otherwise */
 #ifndef PACKET_LOG
 #define PACKET_LOG 0
 #endif
+
+#define ETHERNET_FRAME_SIZE 1518
+#define EOE_SLAVE           3
+#define EC_TIMEOUTMON       500
 
 #if PACKET_LOG
 #define LOG_PKT(dir, p, size)                     \
@@ -51,22 +45,27 @@ static uint8 currentgroup = 0;
 #define LOG_PKT(dir, p, size)
 #endif
 
-#define ETHERNET_FRAME_SIZE 1518
-#define EOE_SLAVE           2
-
-int tap;
+static uint8 IOmap[4096];
+static OSAL_THREAD_HANDLE thread1;
+static OSAL_THREAD_HANDLE thread2;
+static int expectedWKC;
+static boolean needlf;
+static volatile int wkc;
+static boolean inOP;
+static uint8 currentgroup = 0;
+static int tap;
 
 /** Current RX fragment number */
-uint8_t rxfragmentno = 0;
+static uint8_t rxfragmentno = 0;
 /** Complete RX frame size of current frame */
-uint16_t rxframesize = 0;
+static uint16_t rxframesize = 0;
 /** Current RX data offset in frame */
-uint16_t rxframeoffset = 0;
+static uint16_t rxframeoffset = 0;
 /** Current RX frame number */
-uint16_t rxframeno = 0;
+static uint16_t rxframeno = 0;
 
-uint8_t rx[ETHERNET_FRAME_SIZE];
-uint8_t tx[ETHERNET_FRAME_SIZE];
+static uint8_t rx[ETHERNET_FRAME_SIZE];
+static uint8_t tx[ETHERNET_FRAME_SIZE];
 
 static ecx_contextt ctx;
 
@@ -122,13 +121,10 @@ OSAL_THREAD_FUNC mailbox_writer(void *arg)
       LOG_PKT("tx", tx, count);
 
       /* Process the read data here */
-      if (ecx_EOEsend(context, EOE_SLAVE, 0, count, tx, EC_TIMEOUTRXM))
+      int wkc = ecx_EOEsend(context, EOE_SLAVE, 0, count, tx, EC_TIMEOUTRXM);
+      if (wkc <= 0)
       {
-         // printf("EOE send returned WKC > 0\n");
-      }
-      else
-      {
-         printf("EOE send returned WKC == 0\n");
+         printf("EOE send failure (wkc=%d)\n", wkc);
       }
    }
 }
@@ -186,7 +182,7 @@ void teststarter(char *ifname)
             if (ctx.slavelist[si].CoEdetails > 0)
             {
                ecx_slavembxcyclic(&ctx, si);
-               printf(" Slave added to cyclic mailbox handler\n");
+               printf(" Slave %d added to cyclic mailbox handler\n", si);
             }
          }
 
@@ -233,7 +229,7 @@ void teststarter(char *ifname)
                wkc = ecx_receive_processdata(&ctx, EC_TIMEOUTRET);
                ecx_mbxhandler(&ctx, 0, 4);
 
-#if 1
+#if PACKET_LOG == 0
                if (wkc >= expectedWKC)
                {
                   printf("Processdata cycle %4d, WKC %d , O:", i, wkc);

@@ -1720,31 +1720,33 @@ int ecx_mbxreceive(ecx_contextt *context, uint16 slave, ec_mbxbuft **mbx, int ti
                   mbxin = NULL;
                }
             }
-            else
+            else if (wkc > 0)
             {
-               if (wkc <= 0) /* read mailbox lost */
+               *mbx = mbxin;
+               mbxin = NULL;
+            }
+            else /* read mailbox lost */
+            {
+               do /* read extended mailbox status */
                {
-                  do /* read extended mailbox status */
+                  wkc2 = ecx_readmbxstatusex(context, slave, &SMstatex);
+               } while ((wkc2 <= 0) && (osal_timer_is_expired(&timer) == FALSE));
+               SMstatex ^= 0x0200; /* toggle repeat request */
+               SMstatex = htoes(SMstatex);
+               wkc2 = ecx_FPWR(&context->port, configadr, ECT_REG_SM1STAT, sizeof(SMstatex), &SMstatex, EC_TIMEOUTRET);
+               SMstatex = etohs(SMstatex);
+               do /* wait for toggle ack */
+               {
+                  wkc2 = ecx_FPRD(&context->port, configadr, ECT_REG_SM1CONTR, sizeof(SMcontr), &SMcontr, EC_TIMEOUTRET);
+               } while (((wkc2 <= 0) || ((SMcontr & 0x02) != (HI_BYTE(SMstatex) & 0x02))) && (osal_timer_is_expired(&timer) == FALSE));
+               do /* wait for read mailbox available */
+               {
+                  wkc2 = ecx_readmbxstatusex(context, slave, &SMstatex);
+                  if (((SMstatex & 0x08) == 0) && (timeout > EC_LOCALDELAY))
                   {
-                     wkc2 = ecx_readmbxstatusex(context, slave, &SMstatex);
-                  } while ((wkc2 <= 0) && (osal_timer_is_expired(&timer) == FALSE));
-                  SMstatex ^= 0x0200; /* toggle repeat request */
-                  SMstatex = htoes(SMstatex);
-                  wkc2 = ecx_FPWR(&context->port, configadr, ECT_REG_SM1STAT, sizeof(SMstatex), &SMstatex, EC_TIMEOUTRET);
-                  SMstatex = etohs(SMstatex);
-                  do /* wait for toggle ack */
-                  {
-                     wkc2 = ecx_FPRD(&context->port, configadr, ECT_REG_SM1CONTR, sizeof(SMcontr), &SMcontr, EC_TIMEOUTRET);
-                  } while (((wkc2 <= 0) || ((SMcontr & 0x02) != (HI_BYTE(SMstatex) & 0x02))) && (osal_timer_is_expired(&timer) == FALSE));
-                  do /* wait for read mailbox available */
-                  {
-                     wkc2 = ecx_readmbxstatusex(context, slave, &SMstatex);
-                     if (((SMstatex & 0x08) == 0) && (timeout > EC_LOCALDELAY))
-                     {
-                        osal_usleep(EC_LOCALDELAY);
-                     }
-                  } while (((wkc2 <= 0) || ((SMstatex & 0x08) == 0)) && (osal_timer_is_expired(&timer) == FALSE));
-               }
+                     osal_usleep(EC_LOCALDELAY);
+                  }
+               } while (((wkc2 <= 0) || ((SMstatex & 0x08) == 0)) && (osal_timer_is_expired(&timer) == FALSE));
             }
          } while ((wkc <= 0) && (osal_timer_is_expired(&timer) == FALSE)); /* if WKC<=0 repeat */
          if (mbxin) ecx_dropmbx(context, mbxin);

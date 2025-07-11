@@ -30,7 +30,6 @@
 #endif
 
 #define ETHERNET_FRAME_SIZE 1518
-#define EOE_SLAVE           3
 #define EC_TIMEOUTMON       500
 
 #if PACKET_LOG
@@ -54,6 +53,7 @@ static volatile int wkc;
 static boolean inOP;
 static uint8 currentgroup = 0;
 static int tap;
+static int eoe_slave;
 
 /** Current RX fragment number */
 static uint8_t rxfragmentno = 0;
@@ -121,7 +121,7 @@ OSAL_THREAD_FUNC mailbox_writer(void *arg)
       LOG_PKT("tx", tx, count);
 
       /* Process the read data here */
-      int wkc = ecx_EOEsend(context, EOE_SLAVE, 0, count, tx, EC_TIMEOUTRXM);
+      int wkc = ecx_EOEsend(context, eoe_slave, 0, count, tx, EC_TIMEOUTRXM);
       if (wkc <= 0)
       {
          printf("EOE send failure (wkc=%d)\n", wkc);
@@ -379,8 +379,10 @@ int main(int argc, char *argv[])
 {
    printf("SOEM (Simple Open EtherCAT Master)\nEoE test\n");
 
-   if (argc > 1)
+   if (argc > 2)
    {
+      eoe_slave = atoi(argv[2]);
+
       /* create thread to handle slave error handling in OP */
       osal_thread_create(&thread1, 128000, &ecatcheck, NULL);
 
@@ -391,7 +393,9 @@ int main(int argc, char *argv[])
    {
       ec_adaptert *adapter = NULL;
       ec_adaptert *head = NULL;
-      printf("Usage: simple_test ifname1\nifname = eth0 for example\n");
+      printf("Usage: eoe_test ifname1 slave\n");
+      printf("ifname = eth0 for example\n");
+      printf("slave = EoE slave number in EtherCAT order 1..n\n");
 
       printf("\nAvailable adapters:\n");
       head = adapter = ec_find_adapters();

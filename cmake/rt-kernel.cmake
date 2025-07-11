@@ -11,9 +11,6 @@ target_sources(soem PRIVATE
   oshw/rtk/oshw.h
   oshw/rtk/nicdrv.c
   oshw/rtk/nicdrv.h
-  oshw/rtk/lw_mac/lw_emac.c
-  oshw/rtk/fec/fec_ecat.c
-  oshw/rtk/fec/fec_ecat.h
 )
 
 target_include_directories(soem PUBLIC

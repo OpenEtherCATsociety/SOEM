@@ -1,13 +1,7 @@
-/** \file
- * \brief Example code for Simple Open EtherCAT master EoE
- *
- * This example creates a TAP device to send and receive Ethernet
- * packets over an EtherCAT network. It has been tested with an EL6601
- * Ethernet switch.
- *
- * This is a minimal test.
- *
- * (c)Arthur Ketels 2010 - 2011
+/*
+ * This software is dual-licensed under GPLv3 and a commercial
+ * license. See the file LICENSE.md distributed with this software for
+ * full license information.
  */
 
 #include <stdio.h>

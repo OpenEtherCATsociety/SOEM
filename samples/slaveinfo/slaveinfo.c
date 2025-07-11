@@ -1,14 +1,7 @@
-/** \file
- * \brief Example code for Simple Open EtherCAT master
- *
- * Usage : slaveinfo [ifname] [-sdo] [-map]
- * Ifname is NIC interface, f.e. eth0.
- * Optional -sdo to display CoE object dictionary.
- * Optional -map to display slave PDO mapping
- *
- * This shows the configured slave data.
- *
- * (c)Arthur Ketels 2010 - 2011
+/*
+ * This software is dual-licensed under GPLv3 and a commercial
+ * license. See the file LICENSE.md distributed with this software for
+ * full license information.
  */
 
 #include <stdio.h>

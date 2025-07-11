@@ -1,17 +1,7 @@
-/** \file
- * \brief EEprom tool for Simple Open EtherCAT master
- *
- * Usage : eepromtool ifname slave OPTION fname|alias
- * ifname is NIC interface, f.e. eth0
- * slave = slave number in EtherCAT order 1..n
- * -r      read EEPROM, output binary format
- * -ri     read EEPROM, output Intel Hex format
- * -w      write EEPROM, input binary format
- * -wi     write EEPROM, input Intel Hex format
- * -i      display EEPROM information
- * -walias write slave alias in EEPROM
- *
- * (c)Arthur Ketels 2010-2012
+/*
+ * This software is dual-licensed under GPLv3 and a commercial
+ * license. See the file LICENSE.md distributed with this software for
+ * full license information.
  */
 
 #include <stdio.h>

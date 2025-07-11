@@ -1,15 +1,7 @@
-/** \file
- * \brief Example code for Simple Open EtherCAT master
- *
- * Usage: firm_update ifname1 slave fname
- * ifname is NIC interface, f.e. eth0
- * slave = slave number in EtherCAT order 1..n
- * fname = binary file to store in slave
- * CAUTION! Using the wrong file can result in a bricked slave!
- *
- * This is a slave firmware update test.
- *
- * (c)Arthur Ketels 2011
+/*
+ * This software is dual-licensed under GPLv3 and a commercial
+ * license. See the file LICENSE.md distributed with this software for
+ * full license information.
  */
 
 #include <stdio.h>

@@ -6,10 +6,10 @@
 # $ git config blame.ignoreRevsFile .git-blame-ignore-revs
 
 # Run clang-format on sources
-27539189f481129b882b941c4b4e19beab156499
+0ae3d2f056a0642712c86f7fb29c7d9c99176620
 
 # Refactor repository layout (step 2 of 2)
-f107f24ba2a9b2a5539c528f722ba281d2943218
+9582886c2cef3bf46f0e6db09e6246c84da60973
 
 # Refactor repository layout (step 1 of 2)
-0fd6a6a1e2d8cf6106b4db5962f096773f937494
+78b757b2bfd30543f0728b74907960372419b29d

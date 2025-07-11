@@ -1,58 +1,30 @@
 # Simple Open EtherCAT Master Library
-[![Build Status](https://github.com/OpenEtherCATsociety/SOEM/workflows/build/badge.svg?branch=master)](https://github.com/OpenEtherCATsociety/SOEM/actions?workflow=build)
 
-BUILDING
-========
+* Copyright (C) 2005-2017 Speciaal Machinefabriek Ketels v.o.f.
+* Copyright (C) 2005-2017 Arthur Ketels
+* Copyright (C) 2008-2009 TU/e Technische Universiteit Eindhoven
+* Copyright (C) 2009-2017 rt-labs AB, Sweden
 
+SOEM (Simple Open EtherCAT Master) is a software library for
+developing EtherCAT MainDevices.
 
-Prerequisites for all platforms
--------------------------------
+This library is specifically designed for real-time communication in
+embedded systems. Its lightweight architecture minimizes resource
+consumption, making it suitable for environments with limited
+resources. SOEM can also be utilized on both Linux and Windows
+systems.
 
- * CMake 3.9 or later
+As a library rather than a standalone application, SOEM provides
+flexibility and customization for developers looking to implement
+EtherCAT technology. 
 
+# Documentation
 
-Windows (Visual Studio)
------------------------
+See https://docs.rt-labs.com/soem
 
- * Start a Visual Studio command prompt then:
-   * `mkdir build`
-   * `cd build`
-   * `cmake .. -G "NMake Makefiles"`
-   * `nmake`
+# Contributions
 
-Linux & macOS
---------------
-
-   * `mkdir build`
-   * `cd build`
-   * `cmake ..`
-   * `make`
-
-rt-kernel
----------
-
-   * `mkdir build`
-   * `cd build`
-   * `export COMPILERS=/opt/rt-tools/compilers`
-   * `export RTK=/path/to/rt-kernel`
-   * `export BSP=<bsp>`
-   * `cmake .. -DCMAKE_TOOLCHAIN_FILE=../cmake/toolchain/rt-kernel-<arch>.cmake -G "Unix Makefiles"`
-   * `make`
-
-ERIKA Enterprise RTOS
----------------------
-
- * Refer to http://www.erika-enterprise.com/wiki/index.php?title=EtherCAT_Master
-
-Documentation
--------------
-
-See https://openethercatsociety.github.io/doc/soem/
-
-
-Want to contribute to SOEM or SOES?
------------------------------------
-
-If you want to contribute to SOEM or SOES you will need to sign a Contributor
-License Agreement and send it to us either by e-mail or by physical mail. More
-information is available in the [PDF](http://openethercatsociety.github.io/cla/cla_soem_soes.pdf).
+Contributions are welcome. If you want to contribute you will need to
+sign a Contributor License Agreement and send it to us either by
+e-mail or by physical mail. More information is available on
+[https://rt-labs.com/contribution](https://rt-labs.com/contribution).

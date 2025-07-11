@@ -2,7 +2,6 @@
 
 * Copyright (C) 2005-2025 Speciaal Machinefabriek Ketels v.o.f.
 * Copyright (C) 2005-2025 Arthur Ketels
-* Copyright (C) 2008-2009 TU/e Technische Universiteit Eindhoven
 * Copyright (C) 2009-2025 RT-Labs AB, Sweden
 
 # License

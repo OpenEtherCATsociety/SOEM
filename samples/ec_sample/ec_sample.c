@@ -1,26 +1,27 @@
-/** \file
- * \brief CoE example code for Simple Open EtherCAT master
- *
- * Usage : coetest [ifname1]
- * ifname is NIC interface, f.e. eth0
- *
- * (c)Arthur Ketels 2010 - 2024
+/*
+ * This software is dual-licensed under GPLv3 and a commercial
+ * license. See the file LICENSE.md distributed with this software for
+ * full license information.
  */
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <inttypes.h>
 
 #include "soem/soem.h"
 
 #define EC_TIMEOUTMON 500
+
 #define NSEC_PER_SEC  1000000000
 
 static uint8 IOmap[4096];
 static OSAL_THREAD_HANDLE threadrt, thread1;
 static int expectedWKC;
+static int wkc;
 static int mappingdone, dorun, inOP, dowkccheck;
-static int adapterisbound, conf_io_size, currentgroup;
+static int currentgroup = 0;
+static int cycle = 0;
 static int64_t cycletime = 1000000;
 
 static ecx_contextt ctx;
@@ -39,7 +40,7 @@ static float pgain = 0.01f;
 static float igain = 0.00002f;
 /* set linux sync point 500us later than DC sync, just as example */
 static int64 syncoffset = 500000;
-int64 timeerror;
+static int64 timeerror;
 
 /* PI calculation to get linux time synced to DC time */
 void ec_sync(int64 reftime, int64 cycletime, int64 *offsettime)
@@ -56,11 +57,11 @@ void ec_sync(int64 reftime, int64 cycletime, int64 *offsettime)
    *offsettime = (int64)((timeerror * pgain) + (integral * igain));
 }
 
-/* RT EtherCAT thread */
+/* Cyclic RT EtherCAT thread */
 OSAL_THREAD_FUNC_RT ecatthread(void)
 {
    ec_timet ts;
-   int ht, wkc;
+   int ht;
    static int64_t toff = 0;
 
    dorun = 0;
@@ -80,11 +81,13 @@ OSAL_THREAD_FUNC_RT ecatthread(void)
       osal_monotonic_sleep(&ts);
       if (dorun > 0)
       {
+         cycle++;
          wkc = ecx_receive_processdata(&ctx, EC_TIMEOUTRET);
          if (wkc != expectedWKC)
             dowkccheck++;
          else
             dowkccheck = 0;
+
          if (ctx.slavelist[0].hasdc && (wkc > 0))
          {
             /* calculate toff to get linux time and DC synced */
@@ -96,6 +99,7 @@ OSAL_THREAD_FUNC_RT ecatthread(void)
    }
 }
 
+/* Slave error handler */
 OSAL_THREAD_FUNC ecatcheck(void)
 {
    int slaveix;
@@ -147,7 +151,6 @@ OSAL_THREAD_FUNC ecatcheck(void)
                      if (slave->Ibytes)
                      {
                         memset(slave->inputs, 0x00, slave->Ibytes);
-                        printf("zero inputs %p %d\n\r", slave->inputs, slave->Ibytes);
                      }
                      printf("ERROR : slave %d lost\n", slaveix);
                   }
@@ -178,59 +181,127 @@ OSAL_THREAD_FUNC ecatcheck(void)
    }
 }
 
-void ethercatstartup(char *ifname)
+/* Transition network to operational state */
+void ecatbringup(char *ifname)
 {
    printf("EtherCAT Startup\n");
    int rv = ecx_init(&ctx, ifname);
    if (rv)
    {
-      adapterisbound = 1;
       ecx_config_init(&ctx);
       if (ctx.slavecount > 0)
       {
          ec_groupt *group = &ctx.grouplist[0];
 
-         conf_io_size = ecx_config_map_group(&ctx, IOmap, 0);
+         ecx_config_map_group(&ctx, IOmap, 0);
          expectedWKC = (group->outputsWKC * 2) + group->inputsWKC;
+         printf("%d slaves found and configured.\n", ctx.slavecount);
+
+         printf("segments : %d : %d %d %d %d\n",
+                group->nsegments,
+                group->IOsegment[0],
+                group->IOsegment[1],
+                group->IOsegment[2],
+                group->IOsegment[3]);
+
+         /* Configure distributed clocks */
          mappingdone = 1;
          ecx_configdc(&ctx);
+
+         /* Add all CoE slaves to cyclic mailbox handler */
          int sdoslave = -1;
          for (int si = 1; si <= ctx.slavecount; si++)
          {
             ec_slavet *slave = &ctx.slavelist[si];
-            printf("Slave %d name:%s man:%8.8x id:%8.8x rev:%d ser:%d\n", si, slave->name, slave->eep_man, slave->eep_id, slave->eep_rev, slave->eep_ser);
             if (slave->CoEdetails > 0)
             {
                ecx_slavembxcyclic(&ctx, si);
                sdoslave = si;
-               printf(" Slave added to cyclic mailbox handler\n");
+               printf(" Slave %d added to cyclic mailbox handler\n", si);
             }
          }
+
+         /* Let network sync to clocks */
          dorun = 1;
          osal_usleep(1000000);
+
+         /* Go to operational state */
          ctx.slavelist[0].state = EC_STATE_OPERATIONAL;
          ecx_writestate(&ctx, 0);
          ecx_statecheck(&ctx, 0, EC_STATE_OPERATIONAL, EC_TIMEOUTSTATE);
-         inOP = 1;
-         printf("EtherCAT OP\n");
-         uint32_t aval = 0;
-         int avals = sizeof(aval);
-         for (int i = 0; i < 100; i++)
+
+         if (ctx.slavelist[0].state != EC_STATE_OPERATIONAL)
          {
-            printf("Cycle %d timeerror %" PRId64 "\n", i, timeerror);
-            if (sdoslave > 0)
+            ecx_readstate(&ctx);
+            for (int si = 1; si <= ctx.slavecount; si++)
             {
-               aval = 0;
-               int rval = ecx_SDOread(&ctx, sdoslave, 0x1018, 0x02, FALSE, &avals, &aval, EC_TIMEOUTRXM);
-               printf(" Slave %d Rval %d Prodcode %8.8x\n", sdoslave, rval, aval);
+               ec_slavet *slave = &ctx.slavelist[si];
+               if (slave->state != EC_STATE_OPERATIONAL)
+               {
+                  printf("Slave %d State=0x%2.2x StatusCode=0x%4.4x : %s\n",
+                         si,
+                         slave->state,
+                         slave->ALstatuscode,
+                         ec_ALstatuscode2string(slave->ALstatuscode));
+               }
             }
-            osal_usleep(100000);
          }
-         inOP = 0;
-         printf("EtherCAT to safe-OP\n");
+         else
+         {
+            int size;
+
+            printf("EtherCAT OP\n");
+            inOP = TRUE;
+
+            /* acyclic loop 5000 x 20ms = 100s */
+            for (int i = 0; i < 5000; i++)
+            {
+               printf("Processdata cycle %5d , Wck %3d, DCtime %12" PRId64 ", dt %8" PRId64 ", O:",
+                      cycle,
+                      wkc,
+                      ctx.DCtime,
+                      timeerror);
+
+               size = group->Obytes < 8 ? group->Obytes : 8;
+               for (int j = 0; j < size; j++)
+               {
+                  printf(" %2.2x", *(ctx.slavelist[0].outputs + j));
+               }
+
+               printf(" I:");
+               size = group->Ibytes < 8 ? group->Ibytes : 8;
+               for (int j = 0; j < size; j++)
+               {
+                  printf(" %2.2x", *(ctx.slavelist[0].inputs + j));
+               }
+
+               printf("\r");
+               fflush(stdout);
+
+               /* Demonstrate SDO access from other threads */
+               uint32_t value = 0;
+               int size = sizeof(value);
+               if (sdoslave > 0)
+               {
+                  value = 0;
+                  int sdo_wkc = ecx_SDOread(&ctx, sdoslave, 0x1018, 0x02, FALSE, &size, &value, EC_TIMEOUTRXM);
+                  (void)sdo_wkc;
+               }
+
+               osal_usleep(20000);
+            }
+            printf("\n");
+            dorun = 0;
+            inOP = FALSE;
+         }
+
+         /* Go to SAFE_OP */
+         printf("EtherCAT to SAFE_OP\n");
          ctx.slavelist[0].state = EC_STATE_SAFE_OP;
          ecx_writestate(&ctx, 0);
          ecx_statecheck(&ctx, 0, EC_STATE_SAFE_OP, EC_TIMEOUTSTATE);
+
+         /* Go to INIT state */
          printf("EtherCAT to INIT\n");
          ctx.slavelist[0].state = EC_STATE_INIT;
          ecx_writestate(&ctx, 0);
@@ -241,22 +312,27 @@ void ethercatstartup(char *ifname)
 
 int main(int argc, char *argv[])
 {
-   printf("SOEM (Simple Open EtherCAT Master)\nCoEtest\n");
+   printf("SOEM (Simple Open EtherCAT Master)\nec_sample\n");
+
+   if (argc > 2)
+      cycletime = atoi(argv[2]) * 1000;
 
    if (argc > 1)
    {
-      /* create thread to handle slave error handling in OP */
+      /* create process data thread */
       osal_thread_create_rt(&threadrt, 128000, &ecatthread, NULL);
       /* create thread to handle slave error handling in OP */
       osal_thread_create(&thread1, 128000, &ecatcheck, NULL);
-      /* start cyclic part */
-      ethercatstartup(argv[1]);
+      /* bringup network */
+      ecatbringup(argv[1]);
    }
    else
    {
       ec_adaptert *adapter = NULL;
       ec_adaptert *head = NULL;
-      printf("Usage: coetest ifname1\nifname = eth0 for example\n");
+      printf("Usage: ec_sample ifname1 [cycletime]\n");
+      printf("ifname = eth0 for example\n");
+      printf("cycletime in us\n");
 
       printf("\nAvailable adapters:\n");
       head = adapter = ec_find_adapters();

@@ -28,14 +28,12 @@ target_include_directories(soem PUBLIC
 
 foreach(target IN ITEMS
     soem
-    coetest
+    ec_sample
     eepromtool
     eni_test
     eoe_test
     firm_update
-    red_test
     simple_ng
-    simple_test
     slaveinfo)
   if (TARGET ${target})
     target_compile_options(${target} PRIVATE

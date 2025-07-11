@@ -158,12 +158,10 @@ install(FILES
 )
 
 if(SOEM_BUILD_SAMPLES)
-  add_subdirectory(samples/coetest)
+  add_subdirectory(samples/ec_sample)
   add_subdirectory(samples/eepromtool)
   add_subdirectory(samples/firm_update)
-  add_subdirectory(samples/red_test)
   add_subdirectory(samples/simple_ng)
-  add_subdirectory(samples/simple_test)
   add_subdirectory(samples/slaveinfo)
 
   if (${CMAKE_SYSTEM_NAME} STREQUAL Linux)

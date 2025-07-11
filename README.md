@@ -1,9 +1,9 @@
 # Simple Open EtherCAT Master Library
 
-* Copyright (C) 2005-2017 Speciaal Machinefabriek Ketels v.o.f.
-* Copyright (C) 2005-2017 Arthur Ketels
+* Copyright (C) 2005-2025 Speciaal Machinefabriek Ketels v.o.f.
+* Copyright (C) 2005-2025 Arthur Ketels
 * Copyright (C) 2008-2009 TU/e Technische Universiteit Eindhoven
-* Copyright (C) 2009-2017 rt-labs AB, Sweden
+* Copyright (C) 2009-2025 RT-Labs AB, Sweden
 
 SOEM (Simple Open EtherCAT Master) is a software library for
 developing EtherCAT MainDevices.

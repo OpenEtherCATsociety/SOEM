@@ -157,6 +157,12 @@ install(FILES
   DESTINATION cmake
 )
 
+install(FILES
+  README.md
+  LICENSE.md
+  DESTINATION .
+)
+
 if(SOEM_BUILD_SAMPLES)
   add_subdirectory(samples/ec_sample)
   add_subdirectory(samples/eepromtool)

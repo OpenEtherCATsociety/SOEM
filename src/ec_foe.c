@@ -355,6 +355,9 @@ int ecx_FOEwrite(ecx_contextt *context, uint16 slave, char *filename, uint32 pas
                         {
                            dofinalzero = TRUE;
                         }
+                        MbxOut = ecx_getmbx(context);
+                        ec_clearmbx(MbxOut);
+                        FOEp = (ec_FOEt *)MbxOut;
                         FOEp->MbxHeader.length = htoes((uint16)(0x0006 + segmentdata));
                         FOEp->MbxHeader.address = htoes(0x0000);
                         FOEp->MbxHeader.priority = 0x00;
@@ -368,7 +371,8 @@ int ecx_FOEwrite(ecx_contextt *context, uint16 slave, char *filename, uint32 pas
                         memcpy(&FOEp->Data[0], p, segmentdata);
                         p = (uint8 *)p + segmentdata;
                         /* send FoE data to slave */
-                        wkc = ecx_mbxsend(context, slave, (ec_mbxbuft *)&MbxOut, EC_TIMEOUTTXM);
+                        wkc = ecx_mbxsend(context, slave, MbxOut, EC_TIMEOUTTXM);
+                        MbxOut = NULL;
                         if (wkc <= 0)
                         {
                            worktodo = FALSE;

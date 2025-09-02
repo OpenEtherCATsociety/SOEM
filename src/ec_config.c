@@ -179,6 +179,7 @@ int ecx_config_init(ecx_contextt *context)
    uint32 eedat;
    int wkc, nSM;
    uint16 val16;
+   uint8 siistring_idx_name = 0;
 
    EC_PRINT("ec_config_init\n");
    ecx_init_context(context);
@@ -362,6 +363,7 @@ int ecx_config_init(ecx_contextt *context)
             /* SII general section */
             if (ssigen)
             {
+               siistring_idx_name = ecx_siigetbyte(context, slave, ssigen + 0x05);
                context->slavelist[slave].CoEdetails = ecx_siigetbyte(context, slave, ssigen + 0x07);
                context->slavelist[slave].FoEdetails = ecx_siigetbyte(context, slave, ssigen + 0x08);
                context->slavelist[slave].EoEdetails = ecx_siigetbyte(context, slave, ssigen + 0x09);
@@ -376,9 +378,9 @@ int ecx_config_init(ecx_contextt *context)
                context->slavelist[0].Ebuscurrent += context->slavelist[slave].Ebuscurrent;
             }
             /* SII strings section */
-            if (ecx_siifind(context, slave, ECT_SII_STRING) > 0)
+            if ((ecx_siifind(context, slave, ECT_SII_STRING) > 0) && (siistring_idx_name != 0))
             {
-               ecx_siistring(context, context->slavelist[slave].name, slave, 1);
+               ecx_siistring(context, context->slavelist[slave].name, slave, siistring_idx_name);
             }
             /* no name for slave found, use constructed name */
             else

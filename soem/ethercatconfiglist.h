@@ -51,6 +51,7 @@ ec_configlist_t ec_configlist[] = {
       //{/*Man=*/0x00000002,/*ID=*/0x0c503052,/*Name=*/"EL3152"    ,/*dtype=*/4,/*Ibits=*/48,/*Obits=*/ 0,/*SM2a*/0x1000,/*SM2f*/0x00000024,/*SM3a*/0x1100,/*SM3f*/0x00010020,/*FM0ac*/0,/*FM1ac*/1},
       //{/*Man=*/0x00000002,/*ID=*/0x0c5a3052,/*Name=*/"EL3162"    ,/*dtype=*/4,/*Ibits=*/48,/*Obits=*/ 0,/*SM2a*/0x1000,/*SM2f*/0x00000024,/*SM3a*/0x1100,/*SM3f*/0x00010020,/*FM0ac*/0,/*FM1ac*/1},
       //{/*Man=*/0x00000002,/*ID=*/0x0fc03052,/*Name=*/"EL4032"    ,/*dtype=*/5,/*Ibits=*/ 0,/*Obits=*/32,/*SM2a*/0x1100,/*SM2f*/0x00010024,/*SM3a*/0x1180,/*SM3f*/0x00000022,/*FM0ac*/1,/*FM1ac*/0},
+      
       //{/*Man=*/0x00000002,/*ID=*/0x10063052,/*Name=*/"EL4102"    ,/*dtype=*/5,/*Ibits=*/ 0,/*Obits=*/32,/*SM2a*/0x1000,/*SM2f*/0x00010024,/*SM3a*/0x1100,/*SM3f*/0x00000022,/*FM0ac*/1,/*FM1ac*/0},
       //{/*Man=*/0x00000002,/*ID=*/0x10103052,/*Name=*/"EL4112"    ,/*dtype=*/5,/*Ibits=*/ 0,/*Obits=*/32,/*SM2a*/0x1000,/*SM2f*/0x00010024,/*SM3a*/0x1100,/*SM3f*/0x00000022,/*FM0ac*/1,/*FM1ac*/0},
       //{/*Man=*/0x00000002,/*ID=*/0x101a3052,/*Name=*/"EL4122"    ,/*dtype=*/5,/*Ibits=*/ 0,/*Obits=*/32,/*SM2a*/0x1000,/*SM2f*/0x00010024,/*SM3a*/0x1100,/*SM3f*/0x00000022,/*FM0ac*/1,/*FM1ac*/0},
@@ -59,7 +60,7 @@ ec_configlist_t ec_configlist[] = {
       {/*Man=*/0x0000AED0,/*ID=*/0x00000100,/*Name=*/"open:I/O Slaves"  ,/*dtype=*/7,/*Ibits=*/1144,/*Obits=*/680,/*SM2a*/0x1800,/*SM2f*/0x00010064,/*SM3a*/0x1c00,/*SM3f*/0x00010020,/*FM0ac*/1,/*FM1ac*/1},
       {/*Man=*/EC_CONFIGEND,/*ID=*/0x00000000,/*Name=*/""        ,/*dtype=*/0,/*Ibits=*/ 0,/*Obits=*/ 0,/*SM2a*/     0,/*SM2f*/         0,/*SM3a*/     0,/*SM3f*/         0,/*FM0ac*/0,/*FM1ac*/0}
 };
-
+//{/*Man=*/0x00000002,/*ID=*/0x0FA23052,/*Name=*/"EL4002"    ,/*dtype=*/5,/*Ibits=*/ 0,/*Obits=*/32,/*SM2a*/0x1000,/*SM2f*/0x00010024,/*SM3a*/0x1100,/*SM3f*/0x00000022,/*FM0ac*/1,/*FM1ac*/0},
 #ifdef __cplusplus
 }
 #endif

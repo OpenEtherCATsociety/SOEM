@@ -1,0 +1,39 @@
+{
+  "version": 6,
+  "configurePresets": [{
+    "name": "base",
+    "hidden": true,
+    "generator": "Ninja",
+    "binaryDir": "build/${presetName}",
+    "cacheVariables": {
+      "CMAKE_EXPORT_COMPILE_COMMANDS": true,
+      "CMAKE_COMPILE_WARNING_AS_ERROR": true,
+      "CMAKE_FIND_NO_INSTALL_PREFIX": true,
+      "CMAKE_RUNTIME_OUTPUT_DIRECTORY": "$<0:>../../bin"
+    }
+  }, {
+    "name": "docs",
+    "inherits": "base",
+    "cacheVariables": {
+      "CMAKE_BUILD_TYPE": "RelWithDebInfo"
+    }
+  }, {
+    "name": "default",
+    "inherits" : "base"
+  }],
+  "buildPresets": [{
+    "name": "default",
+    "configurePreset": "default"
+  }, {
+    "name": "docs",
+    "configurePreset": "docs",
+    "targets": ["sphinx-html"]
+  }],
+  "packagePresets": [{
+    "name": "default",
+    "configurePreset": "default",
+    "generators": [
+      "ZIP"
+    ]
+  }]
+}

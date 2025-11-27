@@ -1,6 +1,7 @@
 /*
- * Licensed under the GNU General Public License version 2 with exceptions. See
- * LICENSE file in the project root for full license information
+ * This software is dual-licensed under GPLv3 and a commercial
+ * license. See the file LICENSE.md distributed with this software for
+ * full license information.
  */
 
 /** \file
@@ -12,18 +13,16 @@
 #define _oshw_
 
 #ifdef __cplusplus
-extern "C"
-{
+extern "C" {
 #endif
 
-#include "ethercattype.h"
+#include "soem/soem.h"
 #include "nicdrv.h"
-#include "ethercatmain.h"
 
-uint16 oshw_htons (uint16 hostshort);
-uint16 oshw_ntohs (uint16 networkshort);
-ec_adaptert * oshw_find_adapters (void);
-void oshw_free_adapters (ec_adaptert * adapter);
+uint16 oshw_htons(uint16 hostshort);
+uint16 oshw_ntohs(uint16 networkshort);
+ec_adaptert *oshw_find_adapters(void);
+void oshw_free_adapters(ec_adaptert *adapter);
 
 #ifdef __cplusplus
 }

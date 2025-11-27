@@ -1,117 +1,61 @@
 /*
- * Licensed under the GNU General Public License version 2 with exceptions. See
- * LICENSE file in the project root for full license information
+ * This software is dual-licensed under GPLv3 and a commercial
+ * license. See the file LICENSE.md distributed with this software for
+ * full license information.
  */
 
 #include <osal.h>
-#include <kern.h>
-#include <time.h>
-#include <sys/time.h>
-#include <config.h>
+#include <kern/kern.h>
 
-#define  timercmp(a, b, CMP)                                \
-  (((a)->tv_sec == (b)->tv_sec) ?                           \
-   ((a)->tv_usec CMP (b)->tv_usec) :                        \
-   ((a)->tv_sec CMP (b)->tv_sec))
-#define  timeradd(a, b, result)                             \
-  do {                                                      \
-    (result)->tv_sec = (a)->tv_sec + (b)->tv_sec;           \
-    (result)->tv_usec = (a)->tv_usec + (b)->tv_usec;        \
-    if ((result)->tv_usec >= 1000000)                       \
-    {                                                       \
-       ++(result)->tv_sec;                                  \
-       (result)->tv_usec -= 1000000;                        \
-    }                                                       \
-  } while (0)
-#define  timersub(a, b, result)                             \
-  do {                                                      \
-    (result)->tv_sec = (a)->tv_sec - (b)->tv_sec;           \
-    (result)->tv_usec = (a)->tv_usec - (b)->tv_usec;        \
-    if ((result)->tv_usec < 0) {                            \
-      --(result)->tv_sec;                                   \
-      (result)->tv_usec += 1000000;                         \
-    }                                                       \
-  } while (0)
-
-#define USECS_PER_SEC   1000000
-#define USECS_PER_TICK  (USECS_PER_SEC / CFG_TICKS_PER_SECOND)
-
-
-/* Workaround for rt-labs defect 776.
- * Default implementation of udelay() didn't work correctly when tick was
- * shorter than one millisecond.
- */
-void udelay (uint32_t us)
-{
-   tick_t ticks = (us / USECS_PER_TICK) + 1;
-   task_delay (ticks);
-}
-
-int gettimeofday(struct timeval *tp, void *tzp)
+void osal_get_monotonic_time(ec_timet *tv)
 {
    tick_t tick = tick_get();
-   tick_t ticks_left;
+   uint64_t usec = (uint64_t)(tick_to_ms(tick)) * 1000;
 
-   ASSERT (tp != NULL);
-
-   tp->tv_sec = tick / CFG_TICKS_PER_SECOND;
-
-   ticks_left = tick % CFG_TICKS_PER_SECOND;
-   tp->tv_usec = ticks_left * USECS_PER_TICK;
-   ASSERT (tp->tv_usec < USECS_PER_SEC);
-
-   return 0;
+   osal_timespec_from_usec(usec, tv);
 }
 
-int osal_usleep (uint32 usec)
+ec_timet osal_current_time(void)
 {
-   udelay(usec);
-   return 0;
+   struct timeval tv;
+   struct timespec ts;
+
+   gettimeofday(&tv, NULL);
+   TIMEVAL_TO_TIMESPEC(&tv, &ts);
+   return ts;
 }
 
-int osal_gettimeofday(struct timeval *tv, struct timezone *tz)
+void osal_time_diff(ec_timet *start, ec_timet *end, ec_timet *diff)
 {
-   return gettimeofday(tv, tz);
+   osal_timespecsub(end, start, diff);
 }
 
-ec_timet osal_current_time (void)
+void osal_timer_start(osal_timert *self, uint32 timeout_usec)
 {
-   struct timeval current_time;
-   ec_timet return_value;
+   struct timespec start_time;
+   struct timespec timeout;
 
-   gettimeofday (&current_time, 0);
-   return_value.sec = current_time.tv_sec;
-   return_value.usec = current_time.tv_usec;
-   return return_value;
+   osal_get_monotonic_time(&start_time);
+   osal_timespec_from_usec(timeout_usec, &timeout);
+   osal_timespecadd(&start_time, &timeout, &self->stop_time);
 }
 
-void osal_timer_start (osal_timert * self, uint32 timeout_usec)
+boolean osal_timer_is_expired(osal_timert *self)
 {
-   struct timeval start_time;
-   struct timeval timeout;
-   struct timeval stop_time;
-
-   gettimeofday (&start_time, 0);
-   timeout.tv_sec = timeout_usec / USECS_PER_SEC;
-   timeout.tv_usec = timeout_usec % USECS_PER_SEC;
-   timeradd (&start_time, &timeout, &stop_time);
-
-   self->stop_time.sec = stop_time.tv_sec;
-   self->stop_time.usec = stop_time.tv_usec;
-}
-
-boolean osal_timer_is_expired (osal_timert * self)
-{
-   struct timeval current_time;
-   struct timeval stop_time;
+   struct timespec current_time;
    int is_not_yet_expired;
 
-   gettimeofday (&current_time, 0);
-   stop_time.tv_sec = self->stop_time.sec;
-   stop_time.tv_usec = self->stop_time.usec;
-   is_not_yet_expired = timercmp (&current_time, &stop_time, <);
+   osal_get_monotonic_time(&current_time);
+   is_not_yet_expired = osal_timespeccmp(&current_time, &self->stop_time, <);
 
-   return is_not_yet_expired == false;
+   return is_not_yet_expired == FALSE;
+}
+
+int osal_usleep(uint32 usec)
+{
+   tick_t ticks = tick_from_ms(usec / 1000) + 1;
+   task_delay(ticks);
+   return 0;
 }
 
 void *osal_malloc(size_t size)
@@ -126,8 +70,8 @@ void osal_free(void *ptr)
 
 int osal_thread_create(void *thandle, int stacksize, void *func, void *param)
 {
-   thandle = task_spawn ("worker", func, 6,stacksize, param);
-   if(!thandle)
+   thandle = task_spawn("worker", func, 6, stacksize, param);
+   if (!thandle)
    {
       return 0;
    }
@@ -136,10 +80,30 @@ int osal_thread_create(void *thandle, int stacksize, void *func, void *param)
 
 int osal_thread_create_rt(void *thandle, int stacksize, void *func, void *param)
 {
-   thandle = task_spawn ("worker_rt", func, 15 ,stacksize, param);
-   if(!thandle)
+   thandle = task_spawn("worker_rt", func, 15, stacksize, param);
+   if (!thandle)
    {
       return 0;
    }
    return 1;
+}
+
+void *osal_mutex_create(void)
+{
+   return (void *)mtx_create();
+}
+
+void osal_mutex_destroy(void *mutex)
+{
+   mtx_destroy(mutex);
+}
+
+void osal_mutex_lock(void *mutex)
+{
+   mtx_lock(mutex);
+}
+
+void osal_mutex_unlock(void *mutex)
+{
+   mtx_unlock(mutex);
 }

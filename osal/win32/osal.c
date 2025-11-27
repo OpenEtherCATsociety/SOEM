@@ -1,124 +1,123 @@
 /*
- * Licensed under the GNU General Public License version 2 with exceptions. See
- * LICENSE file in the project root for full license information
+ * This software is dual-licensed under GPLv3 and a commercial
+ * license. See the file LICENSE.md distributed with this software for
+ * full license information.
  */
 
-#include <winsock2.h>
 #include <osal.h>
-#include "osal_win32.h"
+#include <stdlib.h>
+#include <inttypes.h>
+#include <timeapi.h>
 
-static int64_t sysfrequency;
-static double qpc2usec;
+static LARGE_INTEGER sysfrequency;
 
-#define USECS_PER_SEC     1000000
-
-static int osal_getrelativetime(struct timeval *tv, struct timezone *tz)
+void osal_get_monotonic_time(ec_timet *ts)
 {
-   int64_t wintime, usecs;
-   (void)tz;
-   if(!sysfrequency)
+   LARGE_INTEGER wintime;
+   uint64_t sec;
+   uint64_t nsec;
+
+   if (!sysfrequency.QuadPart)
    {
       timeBeginPeriod(1);
-      QueryPerformanceFrequency((LARGE_INTEGER *)&sysfrequency);
-      qpc2usec = 1000000.0 / sysfrequency;
+      QueryPerformanceFrequency(&sysfrequency);
    }
-   QueryPerformanceCounter((LARGE_INTEGER *)&wintime);
-   usecs = (int64_t)((double)wintime * qpc2usec);
-   tv->tv_sec = (long)(usecs / 1000000);
-   tv->tv_usec = (long)(usecs - (tv->tv_sec * 1000000));
 
-   return 1;
+   QueryPerformanceCounter(&wintime);
+
+   /* Compute seconds */
+   sec = wintime.QuadPart / sysfrequency.QuadPart;
+   wintime.QuadPart = wintime.QuadPart - sec * sysfrequency.QuadPart;
+
+   /* Compute nanoseconds. Multiplying first acts as a guard against
+      potential loss of precision during the calculation. */
+   nsec = wintime.QuadPart * 1000000000;
+   nsec = nsec / sysfrequency.QuadPart;
+
+   ts->tv_sec = sec;
+   ts->tv_nsec = (uint32_t)nsec;
 }
 
-int osal_gettimeofday(struct timeval *tv, struct timezone *tz)
+ec_timet osal_current_time(void)
 {
-   FILETIME system_time;
-   int64 system_time64, usecs;
-   (void)tz;
-   /* The offset variable is required to switch from Windows epoch (January 1, 1601) to
-    * Unix epoch (January 1, 1970). Number of days between both epochs: 134.774
-    *
-    * The time returned by GetSystemTimeAsFileTime() changes in 100 ns steps, so the
-    * following factors are required for the conversion from days to 100 ns steps:
-    *
-    * 86.400 seconds per day; 1.000.000 microseconds per second; 10 * 100 ns per microsecond
-   */
-   int64 offset = -134774LL * 86400LL * 1000000LL * 10LL;
-
-   GetSystemTimeAsFileTime(&system_time);
-
-   system_time64 = ((int64)(system_time.dwHighDateTime) << 32) + (int64)system_time.dwLowDateTime;
-   system_time64 += offset;
-   usecs = system_time64 / 10;
-
-   tv->tv_sec = (long)(usecs / 1000000);
-   tv->tv_usec = (long)(usecs - (tv->tv_sec * 1000000));
-
-   return 1;
-}
-
-ec_timet osal_current_time (void)
-{
-   struct timeval current_time;
-   ec_timet return_value;
-
-   osal_gettimeofday (&current_time, 0);
-   return_value.sec = current_time.tv_sec;
-   return_value.usec = current_time.tv_usec;
-   return return_value;
+   struct timespec ts;
+   timespec_get(&ts, TIME_UTC);
+   return ts;
 }
 
 void osal_time_diff(ec_timet *start, ec_timet *end, ec_timet *diff)
 {
-   if (end->usec < start->usec) {
-      diff->sec = end->sec - start->sec - 1;
-      diff->usec = end->usec + 1000000 - start->usec;
-   }
-   else {
-      diff->sec = end->sec - start->sec;
-      diff->usec = end->usec - start->usec;
-   }
+   osal_timespecsub(end, start, diff);
 }
 
-void osal_timer_start (osal_timert *self, uint32 timeout_usec)
+void osal_timer_start(osal_timert *self, uint32 timeout_usec)
 {
-   struct timeval start_time;
-   struct timeval timeout;
-   struct timeval stop_time;
+   struct timespec start_time;
+   struct timespec timeout;
 
-   osal_getrelativetime (&start_time, 0);
-   timeout.tv_sec = timeout_usec / USECS_PER_SEC;
-   timeout.tv_usec = timeout_usec % USECS_PER_SEC;
-   timeradd (&start_time, &timeout, &stop_time);
-
-   self->stop_time.sec = stop_time.tv_sec;
-   self->stop_time.usec = stop_time.tv_usec;
+   osal_get_monotonic_time(&start_time);
+   osal_timespec_from_usec(timeout_usec, &timeout);
+   osal_timespecadd(&start_time, &timeout, &self->stop_time);
 }
 
-boolean osal_timer_is_expired (osal_timert *self)
+boolean osal_timer_is_expired(osal_timert *self)
 {
-   struct timeval current_time;
-   struct timeval stop_time;
+   struct timespec current_time;
    int is_not_yet_expired;
 
-   osal_getrelativetime (&current_time, 0);
-   stop_time.tv_sec = self->stop_time.sec;
-   stop_time.tv_usec = self->stop_time.usec;
-   is_not_yet_expired = timercmp (&current_time, &stop_time, <);
+   osal_get_monotonic_time(&current_time);
+   is_not_yet_expired = osal_timespeccmp(&current_time, &self->stop_time, <);
 
    return is_not_yet_expired == FALSE;
 }
 
 int osal_usleep(uint32 usec)
 {
-   osal_timert qtime;
-   osal_timer_start(&qtime, usec);
-   if(usec >= 1000)
-   {
-      SleepEx(usec / 1000, FALSE);
-   }
-   while(!osal_timer_is_expired(&qtime));
+   struct timespec wakeup;
+   struct timespec timeout;
+
+   osal_get_monotonic_time(&wakeup);
+   osal_timespec_from_usec(usec, &timeout);
+   osal_timespecadd(&wakeup, &timeout, &wakeup);
+   osal_monotonic_sleep(&wakeup);
    return 1;
+}
+
+/**
+ * @brief Suspends the execution of the calling thread until a
+ * specified absolute time.
+ *
+ * @param ts Pointer to a struct that specifies the
+ * absolute wakeup time in milliseconds.
+ * @return 0 on success, or a negative value on error.
+ */
+int osal_monotonic_sleep(ec_timet *ts)
+{
+   uint64_t millis;
+   struct timespec now;
+   struct timespec delay;
+
+   osal_get_monotonic_time(&now);
+
+   /* Delay already expired? */
+   if (!osal_timespeccmp(&now, ts, <))
+      return 0;
+
+   /* Sleep for whole milliseconds */
+   osal_timespecsub(ts, &now, &delay);
+   millis = delay.tv_sec * 1000 + delay.tv_nsec / 1000000;
+   if (millis > 0)
+   {
+      SleepEx((DWORD)millis, FALSE);
+   }
+
+   /* Busy wait for remaining time */
+   do
+   {
+      osal_get_monotonic_time(&now);
+   } while osal_timespeccmp(&now, ts, <);
+
+   return 0;
 }
 
 void *osal_malloc(size_t size)
@@ -133,8 +132,8 @@ void osal_free(void *ptr)
 
 int osal_thread_create(void *thandle, int stacksize, void *func, void *param)
 {
-   *(OSAL_THREAD_HANDLE*)thandle = CreateThread(NULL, stacksize, func, param, 0, NULL);
-   if(!thandle)
+   *(OSAL_THREAD_HANDLE *)thandle = CreateThread(NULL, stacksize, func, param, 0, NULL);
+   if (!thandle)
    {
       return 0;
    }
@@ -150,4 +149,24 @@ int osal_thread_create_rt(void *thandle, int stacksize, void *func, void *param)
       ret = SetThreadPriority(thandle, THREAD_PRIORITY_TIME_CRITICAL);
    }
    return ret;
+}
+
+void *osal_mutex_create(void)
+{
+   return CreateMutex(NULL, FALSE, NULL);
+}
+
+void osal_mutex_destroy(void *mutex)
+{
+   CloseHandle(mutex);
+}
+
+void osal_mutex_lock(void *mutex)
+{
+   WaitForSingleObject(mutex, INFINITE);
+}
+
+void osal_mutex_unlock(void *mutex)
+{
+   ReleaseMutex(mutex);
 }

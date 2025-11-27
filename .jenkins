@@ -1,0 +1,136 @@
+currentBuild.displayName = "#${BUILD_NUMBER}"
+if (env.GERRIT_CHANGE_SUBJECT) {
+   currentBuild.displayName += " - ${GERRIT_CHANGE_SUBJECT} (${GERRIT_CHANGE_NUMBER})"
+}
+if (env.GERRIT_REFNAME) {
+   currentBuild.displayName += " - ${GERRIT_REFNAME}"
+}
+
+def buildPrepare()
+{
+   sh """
+      git clean -xdff
+      uv venv --seed
+      uv pip install wheel
+      uv pip install cmake>=2.28
+   """
+}
+
+def buildPreset(String preset, Boolean archive = false)
+{
+   sh """
+      . .venv/bin/activate
+      cmake --preset ${preset}
+      cmake --build --preset ${preset}
+   """
+
+   if (archive) {
+      sh """
+         . .venv/bin/activate
+         cpack --preset ${preset} -G ZIP
+      """
+      archiveArtifacts (
+         artifacts: "build/${preset}/soem-*.zip",
+         fingerprint: true
+      )
+   }
+}
+
+def dockerBuildArgs()
+{
+   return   '''\
+   --build-arg BUILDER_UID="$( id -u )" \
+   --build-arg BUILDER_GID="$( id -g )" \
+   --build-arg BUILDER_USER="$( id -un )" \
+   --build-arg BUILDER_GROUP="$( id -gn )" \
+'''
+}
+
+def buildDocs()
+{
+   sh """
+      . .venv/bin/activate
+      uv pip install -r docs/requirements.txt
+      cmake --preset docs
+      cmake --build --preset docs
+   """
+
+   dir('build/docs') {
+      script {
+         def systemInformation = sh(script: 'cmake --system-information', returnStdout: true)
+         def versionLine = systemInformation =~ /CMAKE_PROJECT_VERSION:STATIC=(.*)/
+         if (versionLine) {
+            env.PROJECT_VERSION = versionLine[0][1].trim()
+            env.PROJECT_PREFIX = "soem-${env.PROJECT_VERSION}"
+         }
+      }
+   }
+
+   publishHTML([
+      allowMissing: false,
+      alwaysLinkToLastBuild: false,
+      keepAll: false,
+      reportDir: 'build/docs/docs/sphinx/html/',
+      reportFiles: 'index.html',
+      reportName: 'Documentation']
+   )
+   zip(dir: 'build/docs/docs/sphinx',
+      glob: 'html/**',
+      zipFile: "build/${env.PROJECT_PREFIX}-html.zip"
+   )
+   archiveArtifacts (
+      artifacts: "build/${env.PROJECT_PREFIX}-html.zip"
+   )
+   stash(
+      name: "sphinx-html",
+      includes: "build/${env.PROJECT_PREFIX}-html.zip"
+   )
+}
+
+pipeline {
+   agent any
+
+   stages {
+      stage("build") {
+         parallel {
+            stage('linux') {
+               steps {
+                  buildPrepare()
+                  buildPreset('default', true)
+                  // buildPreset('test')
+                  // buildDocs()
+               }
+            }
+
+            stage('linux-arm64') {
+               agent {
+                  dockerfile {
+                     filename 'linux-arm64.Dockerfile'
+                     dir '.docker'
+                     additionalBuildArgs dockerBuildArgs()
+                  }
+               }
+               steps {
+                  buildPrepare()
+                  buildPreset('default', true)
+               }
+            }
+
+            stage('windows-x64') {
+               agent {
+                  dockerfile {
+                     filename 'windows-x64.Dockerfile'
+                     dir '.docker'
+                     additionalBuildArgs dockerBuildArgs()
+                  }
+               }
+               steps {
+                  buildPrepare()
+                  buildPreset('default', true)
+               }
+            }
+
+         }
+      }
+   }
+}

@@ -1,0 +1,128 @@
+/*
+ * This software is dual-licensed under GPLv3 and a commercial
+ * license. See the file LICENSE.md distributed with this software for
+ * full license information.
+ */
+
+/** \file
+ * \brief
+ * Build options for SOEM
+ */
+
+#ifndef _ec_options_
+#define _ec_options_
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+/* Max sizes */
+
+/** standard frame buffer size in bytes */
+#define EC_BUFSIZE (@EC_BUFSIZE@)
+
+/** number of frame buffers per channel (tx, rx1 rx2) */
+#define EC_MAXBUF (@EC_MAXBUF@)
+
+/** size of EEPROM bitmap cache */
+#define EC_MAXEEPBITMAP (@EC_MAXEEPBITMAP@)
+
+/** size of EEPROM cache buffer */
+#define EC_MAXEEPBUF (@EC_MAXEEPBUF@)
+
+/** default group size in 2^x */
+#define EC_LOGGROUPOFFSET (@EC_LOGGROUPOFFSET@)
+
+/** max. entries in EtherCAT error list */
+#define EC_MAXELIST (@EC_MAXELIST@)
+
+/** max. length of readable name in slavelist and Object Description List */
+#define EC_MAXNAME (@EC_MAXNAME@)
+
+/** max. number of slaves in array */
+#define EC_MAXSLAVE (@EC_MAXSLAVE@)
+
+/** max. number of groups */
+#define EC_MAXGROUP (@EC_MAXGROUP@)
+
+/** max. number of IO segments per group */
+#define EC_MAXIOSEGMENTS (@EC_MAXIOSEGMENTS@)
+
+/** max. mailbox size */
+#define EC_MAXMBX (@EC_MAXMBX@)
+
+/** number of mailboxes in pool */
+#define EC_MBXPOOLSIZE (@EC_MBXPOOLSIZE@)
+
+/** max. eeprom PDO entries */
+#define EC_MAXEEPDO (@EC_MAXEEPDO@)
+
+/** max. SM used */
+#define EC_MAXSM (@EC_MAXSM@)
+
+/** max. FMMU used */
+#define EC_MAXFMMU (@EC_MAXFMMU@)
+
+/** max. adapter name length */
+#define EC_MAXLEN_ADAPTERNAME (@EC_MAXLEN_ADAPTERNAME@)
+
+/** define maximum number of concurrent threads in mapping */
+#define EC_MAX_MAPT (@EC_MAX_MAPT@)
+
+/** max entries in Object Description list */
+#define EC_MAXODLIST (@EC_MAXODLIST@)
+
+/** max entries in Object Entry list */
+#define EC_MAXOELIST (@EC_MAXOELIST@)
+
+/** max. length of readable SoE name */
+#define EC_SOE_MAXNAME (@EC_SOE_MAXNAME@)
+
+/** max. number of SoE mappings */
+#define EC_SOE_MAXMAPPING (@EC_SOE_MAXMAPPING@)
+
+/* Timeouts and retries */
+
+/** timeout value in us for tx frame to return to rx */
+#define EC_TIMEOUTRET (@EC_TIMEOUTRET@)
+
+/** timeout value in us for safe data transfer, max. triple retry */
+#define EC_TIMEOUTRET3 (@EC_TIMEOUTRET3@)
+
+/** timeout value in us for return "safe" variant (f.e. wireless) */
+#define EC_TIMEOUTSAFE (@EC_TIMEOUTSAFE@)
+
+/** timeout value in us for EEPROM access */
+#define EC_TIMEOUTEEP (@EC_TIMEOUTEEP@)
+
+/** timeout value in us for tx mailbox cycle */
+#define EC_TIMEOUTTXM (@EC_TIMEOUTTXM@)
+
+/** timeout value in us for rx mailbox cycle */
+#define EC_TIMEOUTRXM (@EC_TIMEOUTRXM@)
+
+/** timeout value in us for check statechange */
+#define EC_TIMEOUTSTATE (@EC_TIMEOUTSTATE@)
+
+/** default number of retries if wkc <= 0 */
+#define EC_DEFAULTRETRIES (@EC_DEFAULTRETRIES@)
+
+/* MAC addresses */
+
+/** Primary source MAC address used for EtherCAT.
+ *
+ * This address is not the MAC address used from the NIC.  EtherCAT
+ * does not care about MAC addressing, but it is used here to
+ * differentiate the route the packet traverses through the EtherCAT
+ * segment. This is needed to find out the packet flow in redundant
+ * configurations. */
+#define EC_PRIMARY_MAC_ARRAY @EC_PRIMARY_MAC_ARRAY@
+
+/** Secondary source MAC address used for EtherCAT. */
+#define EC_SECONDARY_MAC_ARRAY @EC_SECONDARY_MAC_ARRAY@
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif

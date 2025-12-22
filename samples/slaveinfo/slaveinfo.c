@@ -722,7 +722,8 @@ int main(int argc, char *argv[])
       if ((argc > 2) && (strncmp(argv[2], "-sdo", sizeof("-sdo")) == 0)) printSDO = TRUE;
       if ((argc > 2) && (strncmp(argv[2], "-map", sizeof("-map")) == 0)) printMAP = TRUE;
       /* start slaveinfo */
-      strcpy(ifbuf, argv[1]);
+      strncpy(ifbuf, argv[1], sizeof(ifbuf) - 1);
+      ifbuf[sizeof(ifbuf) - 1] = '\0';
       slaveinfo(ifbuf);
    }
    else

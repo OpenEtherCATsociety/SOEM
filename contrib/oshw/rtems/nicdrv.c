@@ -174,7 +174,8 @@ int ecx_setupnic(ecx_portt *port, const char *ifname, int secondary)
    }
 
    /* connect bpf to NIC by name */
-   strcpy(ifr.ifr_name, ifname);
+   strncpy(ifr.ifr_name, ifname, sizeof(ifr.ifr_name) - 1);
+   ifr.ifr_name[sizeof(ifr.ifr_name) - 1] = '\0';
    if (ioctl(*bpf, BIOCSETIF, &ifr) == -1)
    {
       perror("BIOCSETIF");

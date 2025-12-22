@@ -383,7 +383,7 @@ int ecx_config_init(ecx_contextt *context)
             /* no name for slave found, use constructed name */
             else
             {
-               sprintf(context->slavelist[slave].name, "? M:%8.8x I:%8.8x",
+               snprintf(context->slavelist[slave].name, EC_MAXNAME, "? M:%8.8x I:%8.8x",
                        (unsigned int)context->slavelist[slave].eep_man,
                        (unsigned int)context->slavelist[slave].eep_id);
             }

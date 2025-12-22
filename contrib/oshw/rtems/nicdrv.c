@@ -148,7 +148,7 @@ int ecx_setupnic(ecx_portt *port, const char *ifname, int secondary)
    *bpf = -1;
    for (i = 0; *bpf == -1 && i < maxbpffile; ++i)
    {
-      sprintf(fname, "/dev/bpf%i", i);
+      snprintf(fname, sizeof(fname), "/dev/bpf%i", i);
       *bpf = open(fname, O_RDWR);
    }
 

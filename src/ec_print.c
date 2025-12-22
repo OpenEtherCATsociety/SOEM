@@ -309,48 +309,48 @@ char *ec_mbxerror2string(uint16 errorcode)
 char *ecx_err2string(const ec_errort Ec)
 {
    char timestr[20];
-   sprintf(timestr, "Time:%12.3f", Ec.Time.tv_sec + (Ec.Time.tv_nsec / 1000000000.0));
+   snprintf(timestr, sizeof(timestr), "Time:%12.3f", Ec.Time.tv_sec + (Ec.Time.tv_nsec / 1000000000.0));
    switch (Ec.Etype)
    {
    case EC_ERR_TYPE_SDO_ERROR:
    {
-      sprintf(estring, "%s SDO slave:%d index:%4.4x.%2.2x error:%8.8x %s\n",
+      snprintf(estring, sizeof(estring), "%s SDO slave:%d index:%4.4x.%2.2x error:%8.8x %s\n",
               timestr, Ec.Slave, Ec.Index, Ec.SubIdx, (unsigned)Ec.AbortCode, ec_sdoerror2string(Ec.AbortCode));
       break;
    }
    case EC_ERR_TYPE_EMERGENCY:
    {
-      sprintf(estring, "%s EMERGENCY slave:%d error:%4.4x\n",
+      snprintf(estring, sizeof(estring), "%s EMERGENCY slave:%d error:%4.4x\n",
               timestr, Ec.Slave, Ec.ErrorCode);
       break;
    }
    case EC_ERR_TYPE_PACKET_ERROR:
    {
-      sprintf(estring, "%s PACKET slave:%d index:%4.4x.%2.2x error:%d\n",
+      snprintf(estring, sizeof(estring), "%s PACKET slave:%d index:%4.4x.%2.2x error:%d\n",
               timestr, Ec.Slave, Ec.Index, Ec.SubIdx, Ec.ErrorCode);
       break;
    }
    case EC_ERR_TYPE_SDOINFO_ERROR:
    {
-      sprintf(estring, "%s SDO slave:%d index:%4.4x.%2.2x error:%8.8x %s\n",
+      snprintf(estring, sizeof(estring), "%s SDO slave:%d index:%4.4x.%2.2x error:%8.8x %s\n",
               timestr, Ec.Slave, Ec.Index, Ec.SubIdx, (unsigned)Ec.AbortCode, ec_sdoerror2string(Ec.AbortCode));
       break;
    }
    case EC_ERR_TYPE_SOE_ERROR:
    {
-      sprintf(estring, "%s SoE slave:%d IDN:%4.4x error:%4.4x %s\n",
+      snprintf(estring, sizeof(estring), "%s SoE slave:%d IDN:%4.4x error:%4.4x %s\n",
               timestr, Ec.Slave, Ec.Index, (unsigned)Ec.AbortCode, ec_soeerror2string(Ec.ErrorCode));
       break;
    }
    case EC_ERR_TYPE_MBX_ERROR:
    {
-      sprintf(estring, "%s MBX slave:%d error:%4.4x %s\n",
+      snprintf(estring, sizeof(estring), "%s MBX slave:%d error:%4.4x %s\n",
               timestr, Ec.Slave, Ec.ErrorCode, ec_mbxerror2string(Ec.ErrorCode));
       break;
    }
    default:
    {
-      sprintf(estring, "%s error:%8.8x\n",
+      snprintf(estring, sizeof(estring), "%s error:%8.8x\n",
               timestr, (unsigned)Ec.AbortCode);
       break;
    }

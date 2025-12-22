@@ -235,7 +235,6 @@ char *SDO2string(uint16 slave, uint16 index, uint8 subidx, uint16 dtype)
          break;
       case ECT_VISIBLE_STRING:
          snprintf(str, sizeof(str), "\"%s\"", usdo);
-         strcat(str, "\"");
          break;
       case ECT_OCTET_STRING:
          p = str;

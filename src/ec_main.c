@@ -1678,7 +1678,7 @@ int ecx_mbxreceive(ecx_contextt *context, uint16 slave, ec_mbxbuft **mbx, int ti
             }
             else if ((wkc > 0) && ((mbxh->mbxtype & 0x0f) == ECT_MBXT_COE)) /* CoE response? */
             {
-               EMp = (ec_emcyt *)mbx;
+               EMp = (ec_emcyt *)mbxin;
                if ((etohs(EMp->CANOpen) >> 12) == 0x01) /* Emergency request? */
                {
                   ecx_mbxemergencyerror(context, slave, etohs(EMp->ErrorCode), EMp->ErrorReg,

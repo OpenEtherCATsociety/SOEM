@@ -151,19 +151,21 @@ int ecx_setupnic(ecx_portt *port, const char *ifname, int secondary)
    r = 0;
    i = 1;
    r |= setsockopt(*psock, SOL_SOCKET, SO_DONTROUTE, &i, sizeof(i));
+
    /* connect socket to NIC by name */
    strncpy(ifr.ifr_name, ifname, sizeof(ifr.ifr_name) - 1);
    ifr.ifr_name[sizeof(ifr.ifr_name) - 1] = '\0';
    r |= ioctl(*psock, SIOCGIFINDEX, &ifr);
    ifindex = ifr.ifr_ifindex;
-   strncpy(ifr.ifr_name, ifname, sizeof(ifr.ifr_name) - 1);
-   ifr.ifr_name[sizeof(ifr.ifr_name) - 1] = '\0';
-   ifr.ifr_flags = 0;
+
    /* reset flags of NIC interface */
+   ifr.ifr_flags = 0;
    r |= ioctl(*psock, SIOCGIFFLAGS, &ifr);
+
    /* set flags of NIC interface, here promiscuous and broadcast */
    ifr.ifr_flags = ifr.ifr_flags | IFF_PROMISC | IFF_BROADCAST;
    r |= ioctl(*psock, SIOCSIFFLAGS, &ifr);
+
    /* bind socket to protocol, in this case RAW EtherCAT */
    sll.sll_family = AF_PACKET;
    sll.sll_ifindex = ifindex;

@@ -2,7 +2,7 @@
 # license. See the file LICENSE.md distributed with this software for
 # full license information.
 
-cmake_minimum_required(VERSION 3.28)
+cmake_minimum_required(VERSION 3.26)
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 project(SOEM VERSION 2.0.0 LANGUAGES C)
 

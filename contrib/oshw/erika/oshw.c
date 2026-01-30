@@ -71,7 +71,7 @@ ec_adaptert *oshw_find_adapters(void)
    return ret;
 }
 
-/** Free memory allocated memory used by adapter collection.
+/** Free allocated memory used by adapter collection.
  * @param[in] adapter = First element in linked list of adapters
  * EC_NOFRAME.
  */

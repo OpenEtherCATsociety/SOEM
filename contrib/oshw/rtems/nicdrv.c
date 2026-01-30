@@ -204,7 +204,7 @@ int ecx_setupnic(ecx_portt *port, const char *ifname, int secondary)
       return 0;
    }
 
-   /* Listen only to incomming messages */
+   /* Listen only to incoming messages */
    uint direction = BPF_D_IN;
    if (ioctl(*bpf, BIOCSDIRECTION, &direction) == -1)
    {

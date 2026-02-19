@@ -167,6 +167,7 @@ int ecx_setupnic(ecx_portt *port, const char *ifname, int secondary)
    r |= ioctl(*psock, SIOCSIFFLAGS, &ifr);
 
    /* bind socket to protocol, in this case RAW EtherCAT */
+   memset((void*)&sll, 0, sizeof(sll));
    sll.sll_family = AF_PACKET;
    sll.sll_ifindex = ifindex;
    sll.sll_protocol = htons(ETH_P_ECAT);

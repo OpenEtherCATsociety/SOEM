@@ -252,6 +252,14 @@ int ecx_init_redundant(ecx_contextt *context, ecx_redportt *redport, const char 
  */
 void ecx_close(ecx_contextt *context)
 {
+   /* These mutexes are created in ecx_config_init() and should be destroyed before closing the socket */
+   for (int lp = 0; lp < EC_MAXGROUP; lp++)
+   {
+      ec_mbxqueuet *mbxqueue = &(context->grouplist[lp].mbxtxqueue);
+      if (mbxqueue->mbxmutex)
+         osal_mutex_destroy(mbxqueue->mbxmutex);
+   }
+
    osal_mutex_destroy(context->mbxpool.mbxmutex);
    ecx_closenic(&context->port);
 }

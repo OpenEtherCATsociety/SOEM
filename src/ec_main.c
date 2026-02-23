@@ -1703,7 +1703,7 @@ int ecx_mbxreceive(ecx_contextt *context, uint16 slave, ec_mbxbuft **mbx, int ti
             }
             else if ((wkc > 0) && ((mbxh->mbxtype & 0x0f) == ECT_MBXT_EOE)) /* EoE response? */
             {
-               ec_EOEt *eoembx = (ec_EOEt *)mbx;
+               ec_EOEt *eoembx = (ec_EOEt *)mbxin;
                uint16 frameinfo1 = etohs(eoembx->frameinfo1);
                /* All non fragment data frame types are expected to be handled by
                 * slave send/receive API if the EoE hook is set

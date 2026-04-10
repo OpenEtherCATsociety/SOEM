@@ -1404,8 +1404,12 @@ static int ecx_config_overlap_map_group(ecx_contextt *context, void *pIOmap, uin
       context->grouplist[group].Ibytes = siLogAddr - context->grouplist[group].logstartaddr;
       context->grouplist[group].outputs = pIOmap;
       context->grouplist[group].inputs = (uint8 *)pIOmap + context->grouplist[group].Obytes;
-
-      context->grouplist[group].mbxstatus = (uint8 *)pIOmap + context->grouplist[group].Obytes + context->grouplist[group].Ibytes;
+      /* In overlapping mode we need to consider max for Obytes/Ibytes for start of mbxstatus
+       * after last slave in logic address space.
+       */
+      context->grouplist[group].mbxstatus = (uint8 *)pIOmap + context->grouplist[group].Obytes +
+         ((context->grouplist[group].Obytes > context->grouplist[group].Ibytes) ?
+           context->grouplist[group].Obytes : context->grouplist[group].Ibytes);
 
       /* Move calculated inputs with OBytes offset */
       for (slave = 1; slave <= context->slavecount; slave++)
@@ -1441,9 +1445,10 @@ static int ecx_config_overlap_map_group(ecx_contextt *context, void *pIOmap, uin
             {
                segmentsize += diff;
             }
-            /* Move calculated mbxstatus with OBytes + Ibytes offset */
-            context->slavelist[slave].mbxstatus += context->grouplist[group].Obytes;
-            context->slavelist[slave].mbxstatus += context->grouplist[group].Ibytes;
+            /* Move calculated mbxstatus with max (OBytes,Ibytes) offset */
+            context->slavelist[slave].mbxstatus +=
+               ((context->grouplist[group].Obytes > context->grouplist[group].Ibytes) ?
+                 context->grouplist[group].Obytes : context->grouplist[group].Ibytes);
          }
       }
 
@@ -1458,9 +1463,9 @@ static int ecx_config_overlap_map_group(ecx_contextt *context, void *pIOmap, uin
          context->slavelist[0].Obytes = soLogAddr - context->grouplist[group].logstartaddr;
          context->slavelist[0].inputs = (uint8 *)pIOmap + context->slavelist[0].Obytes;
          context->slavelist[0].Ibytes = siLogAddr - context->grouplist[group].logstartaddr;
-         context->slavelist[0].mbxstatus = (uint8 *)pIOmap +
-                                           context->slavelist[0].Obytes +
-                                           context->slavelist[0].Ibytes;
+         context->slavelist[0].mbxstatus = (uint8 *)pIOmap + context->slavelist[0].Obytes +
+            ((context->slavelist[0].Obytes > context->slavelist[0].Ibytes) ?
+              context->slavelist[0].Obytes : context->slavelist[0].Ibytes);
       }
 
       /* Do post mapping actions */

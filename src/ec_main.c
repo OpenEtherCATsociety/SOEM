@@ -1671,7 +1671,12 @@ int ecx_mbxreceive(ecx_contextt *context, uint16 slave, ec_mbxbuft **mbx, int ti
       if ((wkc > 0) && ((SMstat & 0x08) > 0)) /* read mailbox available ? */
       {
          mbxro = slavelist->mbx_ro;
-         mbxin = ecx_getmbx(context);
+         mbxin = ecx_getmbx(context);  
+         if (mbxin == NULL) /* imbxin=NULL will cause process to crash. fix Issue #948*/
+         { 
+             *mbx = NULL;   
+             return 0;     
+         }
          mbxh = (ec_mbxheadert *)mbxin;
          do
          {

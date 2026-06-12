@@ -1672,7 +1672,7 @@ int ecx_mbxreceive(ecx_contextt *context, uint16 slave, ec_mbxbuft **mbx, int ti
       {
          mbxro = slavelist->mbx_ro;
          mbxin = ecx_getmbx(context);  
-         if (mbxin == NULL) /* imbxin=NULL will cause process to crash. fix Issue #948*/
+         if (mbxin == NULL)
          { 
              *mbx = NULL;   
              return 0;     

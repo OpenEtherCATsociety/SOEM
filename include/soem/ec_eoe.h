@@ -6,7 +6,7 @@
 
 /** \file
  * \brief
- * Headerfile for ec_foe.c
+ * Headerfile for ec_eoe.c
  */
 
 #ifndef _ec_eoe_

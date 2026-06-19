@@ -148,7 +148,7 @@ int ecx_setupnic(ecx_portt *port, const char *ifname, int secondary)
    *bpf = -1;
    for (i = 0; *bpf == -1 && i < maxbpffile; ++i)
    {
-      sprintf(fname, "/dev/bpf%i", i);
+      snprintf(fname, sizeof(fname), "/dev/bpf%i", i);
       *bpf = open(fname, O_RDWR);
    }
 
@@ -174,7 +174,8 @@ int ecx_setupnic(ecx_portt *port, const char *ifname, int secondary)
    }
 
    /* connect bpf to NIC by name */
-   strcpy(ifr.ifr_name, ifname);
+   strncpy(ifr.ifr_name, ifname, sizeof(ifr.ifr_name) - 1);
+   ifr.ifr_name[sizeof(ifr.ifr_name) - 1] = '\0';
    if (ioctl(*bpf, BIOCSETIF, &ifr) == -1)
    {
       perror("BIOCSETIF");
@@ -204,7 +205,7 @@ int ecx_setupnic(ecx_portt *port, const char *ifname, int secondary)
       return 0;
    }
 
-   /* Listen only to incomming messages */
+   /* Listen only to incoming messages */
    uint direction = BPF_D_IN;
    if (ioctl(*bpf, BIOCSDIRECTION, &direction) == -1)
    {

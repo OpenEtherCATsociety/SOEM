@@ -716,7 +716,7 @@ static int ecx_recvpkt(ecx_portt *port, uint8 idx, int stacknumber, M_BLK_ID *pM
  * read frame with transmitted frame. Frames are received by separate receiver
  * task tNet0 (default), tNet0 fetch what frame index and store a reference to the
  * received frame in matching MsgQ. The stack user tasks fetch the frame
- * reference and copies the frame the the RX buffer, when done it free
+ * reference and copies the frame to the RX buffer, when done it free
  * the frame buffer allocated by the Mux.
  *
  * @param[in] port        = port context struct

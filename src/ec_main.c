@@ -252,6 +252,14 @@ int ecx_init_redundant(ecx_contextt *context, ecx_redportt *redport, const char 
  */
 void ecx_close(ecx_contextt *context)
 {
+   /* These mutexes are created in ecx_config_init() and should be destroyed before closing the socket */
+   for (int lp = 0; lp < EC_MAXGROUP; lp++)
+   {
+      ec_mbxqueuet *mbxqueue = &(context->grouplist[lp].mbxtxqueue);
+      if (mbxqueue->mbxmutex)
+         osal_mutex_destroy(mbxqueue->mbxmutex);
+   }
+
    osal_mutex_destroy(context->mbxpool.mbxmutex);
    ecx_closenic(&context->port);
 }
@@ -1663,7 +1671,12 @@ int ecx_mbxreceive(ecx_contextt *context, uint16 slave, ec_mbxbuft **mbx, int ti
       if ((wkc > 0) && ((SMstat & 0x08) > 0)) /* read mailbox available ? */
       {
          mbxro = slavelist->mbx_ro;
-         mbxin = ecx_getmbx(context);
+         mbxin = ecx_getmbx(context);  
+         if (mbxin == NULL)
+         { 
+             *mbx = NULL;   
+             return 0;     
+         }
          mbxh = (ec_mbxheadert *)mbxin;
          do
          {
@@ -1678,7 +1691,7 @@ int ecx_mbxreceive(ecx_contextt *context, uint16 slave, ec_mbxbuft **mbx, int ti
             }
             else if ((wkc > 0) && ((mbxh->mbxtype & 0x0f) == ECT_MBXT_COE)) /* CoE response? */
             {
-               EMp = (ec_emcyt *)mbx;
+               EMp = (ec_emcyt *)mbxin;
                if ((etohs(EMp->CANOpen) >> 12) == 0x01) /* Emergency request? */
                {
                   ecx_mbxemergencyerror(context, slave, etohs(EMp->ErrorCode), EMp->ErrorReg,
@@ -1695,7 +1708,7 @@ int ecx_mbxreceive(ecx_contextt *context, uint16 slave, ec_mbxbuft **mbx, int ti
             }
             else if ((wkc > 0) && ((mbxh->mbxtype & 0x0f) == ECT_MBXT_EOE)) /* EoE response? */
             {
-               ec_EOEt *eoembx = (ec_EOEt *)mbx;
+               ec_EOEt *eoembx = (ec_EOEt *)mbxin;
                uint16 frameinfo1 = etohs(eoembx->frameinfo1);
                /* All non fragment data frame types are expected to be handled by
                 * slave send/receive API if the EoE hook is set

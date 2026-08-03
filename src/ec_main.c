@@ -2492,7 +2492,8 @@ int ecx_send_processdata_group(ecx_contextt *context, uint8 group)
                if (first)
                {
                   /* FPRMW in second datagram */
-                  DCO = ecx_adddatagram(&context->port, &(context->port.txbuf[idx]), EC_CMD_FRMW, idx, FALSE,
+                  DCO = ecx_adddatagram(&context->port, &(context->port.txbuf[idx]),
+                                        context->DCtimebcast ? EC_CMD_BRW : EC_CMD_FRMW, idx, FALSE,
                                         context->slavelist[context->grouplist[group].DCnext].configadr,
                                         ECT_REG_DCSYSTIME, sizeof(int64), &context->DCtime);
                   first = FALSE;
@@ -2530,7 +2531,8 @@ int ecx_send_processdata_group(ecx_contextt *context, uint8 group)
                if (first)
                {
                   /* FPRMW in second datagram */
-                  DCO = ecx_adddatagram(&context->port, &(context->port.txbuf[idx]), EC_CMD_FRMW, idx, FALSE,
+                  DCO = ecx_adddatagram(&context->port, &(context->port.txbuf[idx]),
+                                        context->DCtimebcast ? EC_CMD_BRW : EC_CMD_FRMW, idx, FALSE,
                                         context->slavelist[context->grouplist[group].DCnext].configadr,
                                         ECT_REG_DCSYSTIME, sizeof(int64), &context->DCtime);
                   first = FALSE;
@@ -2571,7 +2573,8 @@ int ecx_send_processdata_group(ecx_contextt *context, uint8 group)
             if (first)
             {
                /* FPRMW in second datagram */
-               DCO = ecx_adddatagram(&context->port, &(context->port.txbuf[idx]), EC_CMD_FRMW, idx, FALSE,
+               DCO = ecx_adddatagram(&context->port, &(context->port.txbuf[idx]),
+                                     context->DCtimebcast ? EC_CMD_BRW : EC_CMD_FRMW, idx, FALSE,
                                      context->slavelist[context->grouplist[group].DCnext].configadr,
                                      ECT_REG_DCSYSTIME, sizeof(int64), &context->DCtime);
                first = FALSE;

@@ -519,7 +519,7 @@ struct ecx_context
    ec_groupt grouplist[EC_MAXGROUP];
    /** ecaterror state */
    boolean ecaterror;
-   /** last DC time from slaves */
+   /** last DC time from slaves, or DC time to write to slaves */
    int64 DCtime;
 
    /** @privatesection */
@@ -568,6 +568,8 @@ struct ecx_context
    /** Do not map each slave on a byte boundary. May result in smaller
     * frame sizes. Has no effect in overlapped mode. */
    boolean packedMode;
+   /** whether to boadcast the DC time to all slaves instead of reading it */
+   boolean DCtimebcast;
 };
 
 ec_adaptert *ec_find_adapters(void);

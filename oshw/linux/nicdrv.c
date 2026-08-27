@@ -399,7 +399,7 @@ int ecx_inframe(ecx_portt *port, uint8 idx, int stacknumber)
    if ((idx < EC_MAXBUF) && ((*stack->rxbufstat)[idx] == EC_BUF_RCVD))
    {
       l = (*rxbuf)[0] + ((uint16)((*rxbuf)[1] & 0x0f) << 8);
-      /* return WKC */
+      /* return WKC - offset was bounds-checked on buffer insertion */
       rval = ((*rxbuf)[l] + ((uint16)(*rxbuf)[l + 1] << 8));
       /* mark as completed */
       (*stack->rxbufstat)[idx] = EC_BUF_COMPLETE;
@@ -412,7 +412,7 @@ int ecx_inframe(ecx_portt *port, uint8 idx, int stacknumber)
       if ((idx < EC_MAXBUF) && ((*stack->rxbufstat)[idx] == EC_BUF_RCVD))
       {
          l = (*rxbuf)[0] + ((uint16)((*rxbuf)[1] & 0x0f) << 8);
-         /* return WKC */
+         /* return WKC - offset was bounds-checked on buffer insertion */
          rval = ((*rxbuf)[l] + ((uint16)(*rxbuf)[l + 1] << 8));
          /* mark as completed */
          (*stack->rxbufstat)[idx] = EC_BUF_COMPLETE;
@@ -428,34 +428,37 @@ int ecx_inframe(ecx_portt *port, uint8 idx, int stacknumber)
             stack->rxcnt++;
             ecp = (ec_comt *)(&(*stack->tempbuf)[ETH_HEADERSIZE]);
             l = etohs(ecp->elength) & 0x0fff;
-            idxf = ecp->index;
-            /* found index equals requested index ? */
-            if (idxf == idx)
+            if (l <= EC_BUFSIZE - 2) /* Drop packet if wkc offset is outside bounds */
             {
-               /* yes, put it in the buffer array (strip ethernet header) */
-               memcpy(rxbuf, &(*stack->tempbuf)[ETH_HEADERSIZE], (*stack->txbuflength)[idx] - ETH_HEADERSIZE);
-               /* return WKC */
-               rval = ((*rxbuf)[l] + ((uint16)((*rxbuf)[l + 1]) << 8));
-               /* mark as completed */
-               (*stack->rxbufstat)[idx] = EC_BUF_COMPLETE;
-               /* store MAC source word 1 for redundant routing info */
-               (*stack->rxsa)[idx] = ntohs(ehp->sa1);
-            }
-            else
-            {
-               /* check if index exist and someone is waiting for it */
-               if (idxf < EC_MAXBUF && (*stack->rxbufstat)[idxf] == EC_BUF_TX)
+               idxf = ecp->index;
+               /* found index equals requested index ? */
+               if (idxf == idx)
                {
-                  rxbuf = &(*stack->rxbuf)[idxf];
-                  /* put it in the buffer array (strip ethernet header) */
-                  memcpy(rxbuf, &(*stack->tempbuf)[ETH_HEADERSIZE], (*stack->txbuflength)[idxf] - ETH_HEADERSIZE);
-                  /* mark as received */
-                  (*stack->rxbufstat)[idxf] = EC_BUF_RCVD;
-                  (*stack->rxsa)[idxf] = ntohs(ehp->sa1);
+                  /* yes, put it in the buffer array (strip ethernet header) */
+                  memcpy(rxbuf, &(*stack->tempbuf)[ETH_HEADERSIZE], (*stack->txbuflength)[idx] - ETH_HEADERSIZE);
+                  /* return WKC */
+                  rval = ((*rxbuf)[l] + ((uint16)((*rxbuf)[l + 1]) << 8));
+                  /* mark as completed */
+                  (*stack->rxbufstat)[idx] = EC_BUF_COMPLETE;
+                  /* store MAC source word 1 for redundant routing info */
+                  (*stack->rxsa)[idx] = ntohs(ehp->sa1);
                }
                else
                {
-                  /* strange things happened */
+                  /* check if index exist and someone is waiting for it */
+                  if (idxf < EC_MAXBUF && (*stack->rxbufstat)[idxf] == EC_BUF_TX)
+                  {
+                     rxbuf = &(*stack->rxbuf)[idxf];
+                     /* put it in the buffer array (strip ethernet header) */
+                     memcpy(rxbuf, &(*stack->tempbuf)[ETH_HEADERSIZE], (*stack->txbuflength)[idxf] - ETH_HEADERSIZE);
+                     /* mark as received */
+                     (*stack->rxbufstat)[idxf] = EC_BUF_RCVD;
+                     (*stack->rxsa)[idxf] = ntohs(ehp->sa1);
+                  }
+                  else
+                  {
+                     /* strange things happened */
+                  }
                }
             }
          }

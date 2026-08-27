@@ -1296,7 +1296,7 @@ int ecx_mbxinhandler(ecx_contextt *context, uint8 group, int limit)
          {
             uint16 mbxl = slaveitem->mbx_rl;
             uint16 mbxro = slaveitem->mbx_ro;
-            if ((mbxl > 0) && (mbx = ecx_getmbx(context)))
+            if ((mbxl > 0) && (mbxl <= EC_MAXMBX) && (mbx = ecx_getmbx(context)))
             {
                /* keep track of work limit */
                if (++limitcnt >= limit) maxcnt = 0;
@@ -1467,7 +1467,7 @@ int ecx_mbxouthandler(ecx_contextt *context, uint8 group, int limit)
          configadr = context->slavelist[slave].configadr;
          mbxwo = context->slavelist[slave].mbx_wo;
          limitcnt++;
-         if (context->slavelist[slave].state >= EC_STATE_PRE_OP)
+         if ((mbxl > 0) && (mbxl <= EC_MAXMBX) && context->slavelist[slave].state >= EC_STATE_PRE_OP)
          {
             /* write slave in mailbox 1st try*/
             wkc = ecx_FPWR(&context->port, configadr, mbxwo, mbxl, mbx, EC_TIMEOUTRET);

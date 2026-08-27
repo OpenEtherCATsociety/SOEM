@@ -120,7 +120,7 @@ int ecx_SDOread(ecx_contextt *context, uint16 slave, uint16 index, uint8 subinde
    ec_SDOt *SDOp, *aSDOp;
    uint16 bytesize, Framedatasize;
    int wkc = 0;
-   int32 SDOlen;
+   uint32 SDOlen;
    uint8 *bp;
    uint8 *hp;
    ec_mbxbuft *MbxIn, *MbxOut;
@@ -197,9 +197,10 @@ int ecx_SDOread(ecx_contextt *context, uint16 slave, uint16 index, uint8 subinde
             else
             { /* normal frame response */
                SDOlen = etohl(aSDOp->ldata[0]);
-               /* Does parameter fit in parameter buffer ? */
-               if (SDOlen <= *psize)
+               /* Validate SDOlen is reasonable and fits in parameter buffer */
+               if ((SDOlen != 0) && (SDOlen <= (uint32)*psize))
                {
+                  uint32 total = 0;
                   bp = p;
                   hp = p;
                   /* calculate mailbox transfer size */
@@ -210,7 +211,7 @@ int ecx_SDOread(ecx_contextt *context, uint16 slave, uint16 index, uint8 subinde
                      memcpy(hp, &aSDOp->ldata[1], Framedatasize);
                      /* increment buffer pointer */
                      hp += Framedatasize;
-                     *psize = Framedatasize;
+                     total = Framedatasize;
                      NotLast = TRUE;
                      toggle = 0x00;
                      while (NotLast) /* segmented transfer */
@@ -253,7 +254,15 @@ int ecx_SDOread(ecx_contextt *context, uint16 slave, uint16 index, uint8 subinde
                               {
                                  /* calculate mailbox transfer size */
                                  Framedatasize = etohs(aSDOp->MbxHeader.length) - 3;
-                                 if ((aSDOp->Command & 0x01) > 0)
+
+                                 /* Validate slave does not send more data than requested */
+                                 if ((uint32)total + (uint32)Framedatasize > SDOlen)
+                                 {
+                                    NotLast = FALSE;
+                                    ecx_packeterror(context, slave, index, subindex, 3);
+                                    wkc = 0;
+                                 }
+                                 else if ((aSDOp->Command & 0x01) > 0)
                                  { /* last segment */
                                     NotLast = FALSE;
                                     if (Framedatasize == 7)
@@ -269,8 +278,8 @@ int ecx_SDOread(ecx_contextt *context, uint16 slave, uint16 index, uint8 subinde
                                     /* increment buffer pointer */
                                     hp += Framedatasize;
                                  }
-                                 /* update parameter size */
-                                 *psize += Framedatasize;
+                                 /* update total */
+                                 total += (uint32)Framedatasize;
                               }
                               /* unexpected frame returned from slave */
                               else
@@ -285,6 +294,11 @@ int ecx_SDOread(ecx_contextt *context, uint16 slave, uint16 index, uint8 subinde
                            }
                         }
                         toggle = toggle ^ 0x10; /* toggle bit for segment request */
+                     }
+                     /* Only update *psize on successful completion */
+                     if (wkc > 0)
+                     {
+                        *psize = total;
                      }
                   }
                   /* non segmented transfer */

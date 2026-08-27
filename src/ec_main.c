@@ -1605,8 +1605,6 @@ int ecx_mbxreceive(ecx_contextt *context, uint16 slave, ec_mbxbuft **mbx, int ti
    uint8 SMstat;
    uint16 SMstatex;
    uint8 SMcontr;
-   ec_mbxbuft *mbxin;
-   ec_mbxheadert *mbxh;
    ec_emcyt *EMp;
    ec_mbxerrort *MBXEp;
    osal_timert timer;
@@ -1670,16 +1668,23 @@ int ecx_mbxreceive(ecx_contextt *context, uint16 slave, ec_mbxbuft **mbx, int ti
 
       if ((wkc > 0) && ((SMstat & 0x08) > 0)) /* read mailbox available ? */
       {
+         ec_mbxbuft *mbxin = NULL;
+         ec_mbxheadert *mbxh = NULL;
          mbxro = slavelist->mbx_ro;
-         mbxin = ecx_getmbx(context);  
-         if (mbxin == NULL)
-         { 
-             *mbx = NULL;   
-             return 0;     
-         }
-         mbxh = (ec_mbxheadert *)mbxin;
          do
          {
+            /* Acquire fresh buffer at start of each iteration */
+            if (mbxin == NULL)
+            {
+               mbxin = ecx_getmbx(context);
+               if (mbxin == NULL)
+               {
+                  *mbx = NULL;
+                  return 0;
+               }
+               mbxh = (ec_mbxheadert *)mbxin;
+            }
+
             wkc = ecx_FPRD(&context->port, configadr, mbxro, mbxl, mbxin, EC_TIMEOUTRET); /* get mailbox */
             if ((wkc > 0) && ((mbxh->mbxtype & 0x0f) == 0x00))                            /* Mailbox error response? */
             {

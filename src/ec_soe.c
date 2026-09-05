@@ -106,7 +106,6 @@ int ecx_SoEread(ecx_contextt *context, uint16 slave, uint8 driveNo, uint8 elemen
    SoEp->idn = htoes(idn);
    totalsize = 0;
    bp = p;
-   mp = (uint8 *)MbxIn + sizeof(ec_SoEt);
    NotLast = TRUE;
    /* send SoE request to slave */
    wkc = ecx_mbxsend(context, slave, MbxOut, EC_TIMEOUTTXM);
@@ -129,28 +128,38 @@ int ecx_SoEread(ecx_contextt *context, uint16 slave, uint8 driveNo, uint8 elemen
                 (aSoEp->driveNo == driveNo) &&
                 (aSoEp->elementflags == elementflags))
             {
+               mp = (uint8 *)MbxIn + sizeof(ec_SoEt);
                framedatasize = etohs(aSoEp->MbxHeader.length) - sizeof(ec_SoEt) + sizeof(ec_mbxheadert);
-               totalsize += framedatasize;
-               /* Does parameter fit in parameter buffer ? */
-               if (totalsize <= *psize)
+               if (framedatasize < 0)
                {
-                  /* copy parameter data in parameter buffer */
-                  memcpy(bp, mp, framedatasize);
-                  /* increment buffer pointer */
-                  bp += framedatasize;
+                  NotLast = FALSE;
+                  ecx_packeterror(context, slave, idn, 0, 1); /* malformed SoE ReadRes */
+                  wkc = 0;
                }
                else
                {
-                  framedatasize -= totalsize - *psize;
-                  totalsize = *psize;
-                  /* copy parameter data in parameter buffer */
-                  if (framedatasize > 0) memcpy(bp, mp, framedatasize);
-               }
+                  totalsize += framedatasize;
+                  /* Does parameter fit in parameter buffer ? */
+                  if (totalsize <= *psize)
+                  {
+                     /* copy parameter data in parameter buffer */
+                     memcpy(bp, mp, framedatasize);
+                     /* increment buffer pointer */
+                     bp += framedatasize;
+                  }
+                  else
+                  {
+                     framedatasize -= totalsize - *psize;
+                     totalsize = *psize;
+                     /* copy parameter data in parameter buffer */
+                     if (framedatasize > 0) memcpy(bp, mp, framedatasize);
+                  }
 
-               if (!aSoEp->incomplete)
-               {
-                  NotLast = FALSE;
-                  *psize = totalsize;
+                  if (!aSoEp->incomplete)
+                  {
+                     NotLast = FALSE;
+                     *psize = totalsize;
+                  }
                }
             }
             /* other slave response */

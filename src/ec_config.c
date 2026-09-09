@@ -538,6 +538,14 @@ static int ecx_map_coe_soe(ecx_contextt *context, uint16 slave, int thread_n)
       }
       EC_PRINT("  CoE Osize:%u Isize:%u\n", Osize, Isize);
    }
+   //added sm overwirte for specific slave AnedoS30e
+   if(strcmp(context->slavelist[slave].name, "open:I/O Slaves") == 0&&context->slavelist[slave].eep_man==0x0000AED0&&context->slavelist[slave].eep_id==0x00000100)
+   {
+      Isize=1144;
+      Osize=680;
+      context->slavelist[slave].SM[2].SMlength = htoes((uint16)((Osize + 7) / 8));
+      context->slavelist[slave].SM[3].SMlength = htoes((uint16)((Isize + 7) / 8));
+   }
    if ((!Isize && !Osize) && (context->slavelist[slave].mbx_proto & ECT_MBXPROT_SOE)) /* has SoE */
    {
       /* read AT / MDT mapping via SoE */

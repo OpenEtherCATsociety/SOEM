@@ -473,7 +473,15 @@ int ecx_config_init(ecx_contextt *context)
 static int ecx_lookup_mapping(ecx_contextt *context, uint16 slave, uint32 *Osize, uint32 *Isize)
 {
    int i, nSM;
-   if ((slave > 1) && (context->slavecount > 0))
+
+   /* Do not look up stored mappings on complex devices */
+   if ((context->slavelist[slave].mbx_proto & ECT_MBXPROT_COE) ||
+       (context->slavelist[slave].mbx_proto & ECT_MBXPROT_SOE))
+   {
+      return 0;
+   }
+
+   if ((slave > 1) && (context->slavecount > 0) )
    {
       i = 1;
       while (((context->slavelist[i].eep_man != context->slavelist[slave].eep_man) ||

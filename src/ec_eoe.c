@@ -519,7 +519,16 @@ int ecx_EOErecv(ecx_contextt *context, uint16 slave, uint8 port, int *psize, voi
             /* Remove timestamp */
             if (EOE_HDR_TIME_APPEND_GET(frameinfo1))
             {
-               rxframeoffset -= 4;
+               if (rxframeoffset >= 4)
+               {
+                  rxframeoffset -= 4;
+               }
+               else
+               {
+                  wkc = -EC_ERR_TYPE_EOE_INVALID_RX_DATA;
+                  /* Exit here*/
+                  break;
+               }
             }
             NotLast = FALSE;
             *psize = rxframeoffset;
@@ -646,7 +655,20 @@ int ecx_EOEreadfragment(
          /* Remove timestamp */
          if (EOE_HDR_TIME_APPEND_GET(frameinfo1))
          {
-            *rxframeoffset -= 4;
+            if (*rxframeoffset >= 4)
+            {
+               *rxframeoffset -= 4;
+            }
+            else
+            {
+               /* Invalid frame - timestamp flag set but insufficient data */
+               *rxfragmentno = 0;
+               *rxframesize = 0;
+               *rxframeoffset = 0;
+               *rxframeno = 0;
+               wkc = -EC_ERR_TYPE_EOE_INVALID_RX_DATA;
+               return wkc;
+            }
          }
          *psize = *rxframeoffset;
          *rxfragmentno = 0;

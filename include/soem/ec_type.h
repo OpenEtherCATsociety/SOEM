@@ -304,6 +304,16 @@ enum
    ECT_MBXT_VOE = 0x0f
 };
 
+/** Minimum mailbox data sizes (bytes beyond ec_mbxheadert)
+ *  Used for early validation of mailbox sizes
+ */
+#define EC_MBX_MIN_COE  10
+#define EC_MBX_MIN_SOE   4
+#define EC_MBX_MIN_EOE   4
+#define EC_MBX_MIN_FOE   6
+#define EC_MBX_MIN_VOE   1
+#define EC_MBX_MIN_AOE   1
+
 /** CoE mailbox types */
 enum
 {

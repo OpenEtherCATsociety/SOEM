@@ -174,6 +174,10 @@ typedef struct OSAL_PACKED
 } ec_EOEt;
 OSAL_PACKED_END
 
+/* Validate EoE structure meets protocol minimum */
+_Static_assert(offsetof(ec_EOEt, data) == (sizeof(ec_mbxheadert) + EC_MBX_MIN_EOE),
+               "ec_EOEt incorrect size");
+
 int ecx_EOEdefinehook(ecx_contextt *context, void *hook);
 int ecx_EOEsetIp(ecx_contextt *context,
                  uint16 slave,

@@ -34,6 +34,10 @@ typedef struct OSAL_PACKED
 } ec_SDOt;
 OSAL_PACKED_END
 
+/* Validate CoE structure meets protocol minimum */
+_Static_assert(sizeof(ec_SDOt) >= (sizeof(ec_mbxheadert) + EC_MBX_MIN_COE),
+               "ec_SDOt incorrect size");
+
 /** SDO service structure */
 OSAL_PACKED_BEGIN
 typedef struct OSAL_PACKED
@@ -204,7 +208,7 @@ int ecx_SDOread(ecx_contextt *context, uint16 slave, uint16 index, uint8 subinde
                   bp = p;
                   hp = p;
                   /* calculate mailbox transfer size */
-                  Framedatasize = (etohs(aSDOp->MbxHeader.length) - 10);
+                  Framedatasize = (etohs(aSDOp->MbxHeader.length) - EC_MBX_MIN_COE);
                   if (Framedatasize < SDOlen) /* transfer in segments? */
                   {
                      /* copy parameter data in parameter buffer */
@@ -253,6 +257,7 @@ int ecx_SDOread(ecx_contextt *context, uint16 slave, uint16 index, uint8 subinde
                                    ((aSDOp->Command & 0xe0) == 0x00)))
                               {
                                  /* calculate mailbox transfer size */
+                                 /* Segment overhead: 2 bytes CoE header + 1 byte command = 3 */
                                  Framedatasize = etohs(aSDOp->MbxHeader.length) - 3;
 
                                  /* Validate slave does not send more data than requested */

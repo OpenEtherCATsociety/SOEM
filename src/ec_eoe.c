@@ -215,7 +215,7 @@ int ecx_EOEgetIp(ecx_contextt *context, uint16 slave, uint8 port, eoe_param_t *i
                             EOE_HDR_LAST_FRAGMENT);
    EOEp->frameinfo2 = 0;
 
-   EOEp->mbxheader.length = htoes(0x0004);
+   EOEp->mbxheader.length = htoes(EC_MBX_MIN_EOE);
    EOEp->data[0] = flags;
 
    /* send EoE request to slave */
@@ -234,7 +234,7 @@ int ecx_EOEgetIp(ecx_contextt *context, uint16 slave, uint8 port, eoe_param_t *i
          if ((aEOEp->mbxheader.mbxtype & 0x0f) == ECT_MBXT_EOE)
          {
             frameinfo1 = etohs(aEOEp->frameinfo1);
-            eoedatasize = etohs(aEOEp->mbxheader.length) - 0x0004;
+            eoedatasize = etohs(aEOEp->mbxheader.length) - EC_MBX_MIN_EOE;
             if (EOE_HDR_FRAME_TYPE_GET(frameinfo1) != EOE_GET_IP_PARAM_RESP)
             {
                wkc = -EOE_RESULT_UNSUPPORTED_FRAME_TYPE;
@@ -460,7 +460,7 @@ int ecx_EOErecv(ecx_contextt *context, uint16 slave, uint8 port, int *psize, voi
       /* slave response should be FoE */
       if ((aEOEp->mbxheader.mbxtype & 0x0f) == ECT_MBXT_EOE)
       {
-         eoedatasize = etohs(aEOEp->mbxheader.length) - 0x00004;
+         eoedatasize = etohs(aEOEp->mbxheader.length) - EC_MBX_MIN_EOE;
          frameinfo1 = etohs(aEOEp->frameinfo1);
          frameinfo2 = etohs(aEOEp->frameinfo2);
 
@@ -577,7 +577,7 @@ int ecx_EOEreadfragment(
    /* slave response should be EoE */
    if ((aEOEp->mbxheader.mbxtype & 0x0f) == ECT_MBXT_EOE)
    {
-      eoedatasize = etohs(aEOEp->mbxheader.length) - 0x00004;
+      eoedatasize = etohs(aEOEp->mbxheader.length) - EC_MBX_MIN_EOE;
       frameinfo1 = etohs(aEOEp->frameinfo1);
       frameinfo2 = etohs(aEOEp->frameinfo2);
 

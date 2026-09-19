@@ -48,6 +48,10 @@ typedef struct OSAL_PACKED
 } ec_FOEt;
 OSAL_PACKED_END
 
+/* Validate FoE structure meets protocol minimum */
+_Static_assert(offsetof(ec_FOEt, FileName) == (sizeof(ec_mbxheadert) + EC_MBX_MIN_FOE),
+               "ec_FOEt incorrect size");
+
 /** FoE progress hook.
  *
  * @param[in]  context    context struct
@@ -100,7 +104,7 @@ int ecx_FOEread(ecx_contextt *context, uint16 slave, char *filename, uint32 pass
    {
       fnsize = maxdata;
    }
-   FOEp->MbxHeader.length = htoes(0x0006 + fnsize);
+   FOEp->MbxHeader.length = htoes(EC_MBX_MIN_FOE + fnsize);
    FOEp->MbxHeader.address = htoes(0x0000);
    FOEp->MbxHeader.priority = 0x00;
    /* get new mailbox count value, used as session handle */
@@ -131,7 +135,7 @@ int ecx_FOEread(ecx_contextt *context, uint16 slave, char *filename, uint32 pass
             {
                if (aFOEp->OpCode == ECT_FOE_DATA)
                {
-                  segmentdata = etohs(aFOEp->MbxHeader.length) - 0x0006;
+                  segmentdata = etohs(aFOEp->MbxHeader.length) - EC_MBX_MIN_FOE;
                   packetnumber = etohl(aFOEp->PacketNumber);
                   if ((packetnumber == ++prevpacket) && (dataread + segmentdata <= buffersize))
                   {
@@ -145,7 +149,7 @@ int ecx_FOEread(ecx_contextt *context, uint16 slave, char *filename, uint32 pass
                      MbxOut = ecx_getmbx(context);
                      ec_clearmbx(MbxOut);
                      FOEp = (ec_FOEt *)MbxOut;
-                     FOEp->MbxHeader.length = htoes(0x0006);
+                     FOEp->MbxHeader.length = htoes(EC_MBX_MIN_FOE);
                      FOEp->MbxHeader.address = htoes(0x0000);
                      FOEp->MbxHeader.priority = 0x00;
                      /* get new mailbox count value */
@@ -241,7 +245,7 @@ int ecx_FOEwrite(ecx_contextt *context, uint16 slave, char *filename, uint32 pas
    {
       fnsize = maxdata;
    }
-   FOEp->MbxHeader.length = htoes(0x0006 + fnsize);
+   FOEp->MbxHeader.length = htoes(EC_MBX_MIN_FOE + fnsize);
    FOEp->MbxHeader.address = htoes(0x0000);
    FOEp->MbxHeader.priority = 0x00;
    /* get new mailbox count value, used as session handle */
@@ -301,7 +305,7 @@ int ecx_FOEwrite(ecx_contextt *context, uint16 slave, char *filename, uint32 pas
                         MbxOut = ecx_getmbx(context);
                         ec_clearmbx(MbxOut);
                         FOEp = (ec_FOEt *)MbxOut;
-                        FOEp->MbxHeader.length = htoes((uint16)(0x0006 + segmentdata));
+                        FOEp->MbxHeader.length = htoes((uint16)(EC_MBX_MIN_FOE + segmentdata));
                         FOEp->MbxHeader.address = htoes(0x0000);
                         FOEp->MbxHeader.priority = 0x00;
                         /* get new mailbox count value */
@@ -358,7 +362,7 @@ int ecx_FOEwrite(ecx_contextt *context, uint16 slave, char *filename, uint32 pas
                         MbxOut = ecx_getmbx(context);
                         ec_clearmbx(MbxOut);
                         FOEp = (ec_FOEt *)MbxOut;
-                        FOEp->MbxHeader.length = htoes((uint16)(0x0006 + segmentdata));
+                        FOEp->MbxHeader.length = htoes((uint16)(EC_MBX_MIN_FOE + segmentdata));
                         FOEp->MbxHeader.address = htoes(0x0000);
                         FOEp->MbxHeader.priority = 0x00;
                         /* get new mailbox count value */

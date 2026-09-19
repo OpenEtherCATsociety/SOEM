@@ -230,7 +230,7 @@ int ecx_EOEgetIp(ecx_contextt *context, uint16 slave, uint8 port, eoe_param_t *i
       if (wkc > 0) /* succeeded to read slave response ? */
       {
          aEOEp = (ec_EOEt *)MbxIn;
-         /* slave response should be FoE */
+         /* slave response should be EoE */
          if ((aEOEp->mbxheader.mbxtype & 0x0f) == ECT_MBXT_EOE)
          {
             frameinfo1 = etohs(aEOEp->frameinfo1);
@@ -242,7 +242,9 @@ int ecx_EOEgetIp(ecx_contextt *context, uint16 slave, uint8 port, eoe_param_t *i
             else
             {
                flags = aEOEp->data[0];
-               if (flags & EOE_PARAM_MAC_INCLUDE)
+
+               /* Validate and copy each field */
+               if ((flags & EOE_PARAM_MAC_INCLUDE) && ((data_offset + EOE_ETHADDR_LENGTH) <= eoedatasize))
                {
                   memcpy(ipparam->mac.addr,
                          &aEOEp->data[data_offset],
@@ -250,28 +252,28 @@ int ecx_EOEgetIp(ecx_contextt *context, uint16 slave, uint8 port, eoe_param_t *i
                   ipparam->mac_set = 1;
                   data_offset += EOE_ETHADDR_LENGTH;
                }
-               if (flags & EOE_PARAM_IP_INCLUDE)
+               if ((flags & EOE_PARAM_IP_INCLUDE) && ((data_offset + EOE_IP4_LENGTH) <= eoedatasize))
                {
                   EOE_ip_byte_to_uint32(&aEOEp->data[data_offset],
                                         &ipparam->ip);
                   ipparam->ip_set = 1;
                   data_offset += EOE_IP4_LENGTH;
                }
-               if (flags & EOE_PARAM_SUBNET_IP_INCLUDE)
+               if ((flags & EOE_PARAM_SUBNET_IP_INCLUDE) && ((data_offset + EOE_IP4_LENGTH) <= eoedatasize))
                {
                   EOE_ip_byte_to_uint32(&aEOEp->data[data_offset],
                                         &ipparam->subnet);
                   ipparam->subnet_set = 1;
                   data_offset += EOE_IP4_LENGTH;
                }
-               if (flags & EOE_PARAM_DEFAULT_GATEWAY_INCLUDE)
+               if ((flags & EOE_PARAM_DEFAULT_GATEWAY_INCLUDE) && ((data_offset + EOE_IP4_LENGTH) <= eoedatasize))
                {
                   EOE_ip_byte_to_uint32(&aEOEp->data[data_offset],
                                         &ipparam->default_gateway);
                   ipparam->default_gateway_set = 1;
                   data_offset += EOE_IP4_LENGTH;
                }
-               if (flags & EOE_PARAM_DNS_IP_INCLUDE)
+               if ((flags & EOE_PARAM_DNS_IP_INCLUDE) && ((data_offset + EOE_IP4_LENGTH) <= eoedatasize))
                {
                   EOE_ip_byte_to_uint32(&aEOEp->data[data_offset],
                                         &ipparam->dns_ip);
@@ -280,24 +282,15 @@ int ecx_EOEgetIp(ecx_contextt *context, uint16 slave, uint8 port, eoe_param_t *i
                }
                if (flags & EOE_PARAM_DNS_NAME_INCLUDE)
                {
-                  uint16_t dns_len;
-                  if ((eoedatasize - data_offset) < EOE_DNS_NAME_LENGTH)
+                  uint16_t available = eoedatasize - data_offset;
+                  uint16_t dns_len = (available < EOE_DNS_NAME_LENGTH) ? available : EOE_DNS_NAME_LENGTH;
+
+                  if (dns_len > 0)
                   {
-                     dns_len = (eoedatasize - data_offset);
+                     /* Assume ZERO terminated string */
+                     memcpy(ipparam->dns_name, &aEOEp->data[data_offset], dns_len);
+                     ipparam->dns_name_set = 1;
                   }
-                  else
-                  {
-                     dns_len = EOE_DNS_NAME_LENGTH;
-                  }
-                  /* Assume ZERO terminated string */
-                  memcpy(ipparam->dns_name, &aEOEp->data[data_offset], dns_len);
-                  ipparam->dns_name_set = 1;
-                  data_offset += EOE_DNS_NAME_LENGTH;
-               }
-               /* Something os not correct, flag the error */
-               if (data_offset > eoedatasize)
-               {
-                  wkc = -EC_ERR_TYPE_MBX_ERROR;
                }
             }
          }
@@ -441,7 +434,8 @@ int ecx_EOErecv(ecx_contextt *context, uint16 slave, uint8 port, int *psize, voi
    uint16 frameinfo1, frameinfo2;
    uint8 rxfragmentno, rxframeno;
    boolean NotLast;
-   int wkc, buffersize, rxframesize, rxframeoffset, eoedatasize;
+   int wkc, buffersize, rxframesize, rxframeoffset;
+   uint16 eoedatasize;
    uint8 *buf = p;
 
    MbxIn = NULL;
@@ -457,7 +451,7 @@ int ecx_EOErecv(ecx_contextt *context, uint16 slave, uint8 port, int *psize, voi
    while ((wkc > 0) && (NotLast == TRUE))
    {
       aEOEp = (ec_EOEt *)MbxIn;
-      /* slave response should be FoE */
+      /* slave response should be EoE */
       if ((aEOEp->mbxheader.mbxtype & 0x0f) == ECT_MBXT_EOE)
       {
          eoedatasize = etohs(aEOEp->mbxheader.length) - EC_MBX_MIN_EOE;

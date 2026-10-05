@@ -15,3 +15,8 @@
 
 # Denote all files that are truly binary and should not be modified.
 *.lib binary
+
+/.docker export-ignore
+/.github export-ignore
+/.git* export-ignore
+/.jenkins export-ignore

@@ -10,7 +10,7 @@ def buildPrepare()
 {
    sh """
       git clean -xdff
-      uv venv --seed
+      uv venv --seed --python 3.12
       uv pip install wheel
       uv pip install cmake>=2.28
    """
@@ -20,7 +20,7 @@ def buildPreset(String preset, Boolean archive = false)
 {
    sh """
       . .venv/bin/activate
-      cmake --preset ${preset}
+      cmake --preset ${preset} -DCPACK_PACKAGE_VERSION=${env.PROJECT_DESCRIBE}
       cmake --build --preset ${preset}
    """
 
@@ -61,7 +61,6 @@ def buildDocs()
          def versionLine = systemInformation =~ /CMAKE_PROJECT_VERSION:STATIC=(.*)/
          if (versionLine) {
             env.PROJECT_VERSION = versionLine[0][1].trim()
-            env.PROJECT_PREFIX = "soem-${env.PROJECT_VERSION}"
          }
       }
    }
@@ -87,10 +86,80 @@ def buildDocs()
    )
 }
 
+def installSbomTools()
+{
+   dir('rt-sbom') {
+      checkout scmGit(
+         branches: [[name: 'FETCH_HEAD']],
+         userRemoteConfigs: [[
+            credentialsId: 'b13fb601-0e11-4462-be4b-581c0dc1d845',
+            url: 'ssh://products.intra.rt-labs.com:29418/rt-sbom',
+            refspec: 'refs/tags/v0.2.0'
+         ]]
+      )
+      sh """
+         . ../.venv/bin/activate
+         uv pip install .
+      """
+   }
+}
+
+def sbomArchive(Map args)
+{
+   def archive = args.archive
+   def prefix = args.prefix
+   def name = args.name
+   sh """
+      . ${env.WORKSPACE}/.venv/bin/activate
+      rt-sbom source ${archive} \
+         --inject sbom.spdx.json \
+         --source-dir ${prefix}/ \
+         --name "${name}" \
+         --version "${env.PROJECT_DESCRIBE}" \
+         --namespace "${env.PROJECT_SPDX_NAMESPACE}/"
+   """
+}
+
+def gitArchive(Map args)
+{
+   def ref = args.ref
+   def name = args.name
+   def prefix = "${env.PROJECT_PREFIX}-${name}"
+   sh """
+      git archive ${ref} \
+         --output ${prefix}.zip \
+         --prefix ${prefix}/
+   """
+
+   sbomArchive(
+      archive: "${prefix}.zip",
+      prefix: "${prefix}",
+      name: "${env.PROJECT_NAME}-${name}"
+   )
+
+   archiveArtifacts (
+      artifacts: "${prefix}.zip"
+   )
+}
+
 pipeline {
    agent any
 
    stages {
+      stage('prepare') {
+         steps {
+            script {
+               env.PROJECT_NAME = "soem"
+               env.PROJECT_DESCRIBE = sh(
+                  script: "git describe --tags --always --dirty --match 'v*'",
+                  returnStdout: true
+               ).trim()
+               env.PROJECT_PREFIX = "${env.PROJECT_NAME}-${env.PROJECT_DESCRIBE}"
+               env.PROJECT_ORGANIZATION = "RT-Labs AB"
+               env.PROJECT_SPDX_NAMESPACE = "https://rt-labs.com/spdx/${env.PROJECT_NAME}/${env.PROJECT_DESCRIBE}"
+            }
+         }
+      }
       stage("build") {
          parallel {
             stage('linux') {
@@ -130,6 +199,21 @@ pipeline {
                }
             }
 
+         }
+      }
+
+      stage('archive') {
+         steps {
+            installSbomTools()
+
+            gitArchive(
+               ref: 'HEAD',
+               name: "src"
+            )
+            gitArchive(
+               ref: 'HEAD:samples',
+               name: "samples"
+            )
          }
       }
    }

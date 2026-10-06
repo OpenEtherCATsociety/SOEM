@@ -98,6 +98,11 @@ int ecx_FOEread(ecx_contextt *context, uint16 slave, char *filename, uint32 pass
    /* Empty slave out mailbox if something is in. Timout set to 0 */
    wkc = ecx_mbxreceive(context, slave, &MbxIn, 0);
    MbxOut = ecx_getmbx(context);
+   if (!MbxOut)
+   {
+      if (MbxIn) ecx_dropmbx(context, MbxIn);
+      return 0;
+   }
    ec_clearmbx(MbxOut);
    FOEp = (ec_FOEt *)MbxOut;
    fnsize = (uint16)strlen(filename);
@@ -153,6 +158,12 @@ int ecx_FOEread(ecx_contextt *context, uint16 slave, char *filename, uint32 pass
                         worktodo = TRUE;
                      }
                      MbxOut = ecx_getmbx(context);
+                     if (!MbxOut)
+                     {
+                        worktodo = FALSE;
+                        wkc = 0;
+                        break;
+                     }
                      ec_clearmbx(MbxOut);
                      FOEp = (ec_FOEt *)MbxOut;
                      FOEp->MbxHeader.length = htoes(EC_MBX_MIN_FOE);
@@ -244,6 +255,11 @@ int ecx_FOEwrite(ecx_contextt *context, uint16 slave, char *filename, uint32 pas
    /* Empty slave out mailbox if something is in. Timout set to 0 */
    wkc = ecx_mbxreceive(context, slave, &MbxIn, 0);
    MbxOut = ecx_getmbx(context);
+   if (!MbxOut)
+   {
+      if (MbxIn) ecx_dropmbx(context, MbxIn);
+      return 0;
+   }
    ec_clearmbx(MbxOut);
    FOEp = (ec_FOEt *)MbxOut;
    dofinalzero = TRUE;
@@ -315,6 +331,12 @@ int ecx_FOEwrite(ecx_contextt *context, uint16 slave, char *filename, uint32 pas
                            dofinalzero = TRUE;
                         }
                         MbxOut = ecx_getmbx(context);
+                        if (!MbxOut)
+                        {
+                           worktodo = FALSE;
+                           wkc = 0;
+                           break;
+                        }
                         ec_clearmbx(MbxOut);
                         FOEp = (ec_FOEt *)MbxOut;
                         FOEp->MbxHeader.length = htoes((uint16)(EC_MBX_MIN_FOE + segmentdata));
@@ -372,6 +394,12 @@ int ecx_FOEwrite(ecx_contextt *context, uint16 slave, char *filename, uint32 pas
                            dofinalzero = TRUE;
                         }
                         MbxOut = ecx_getmbx(context);
+                        if (!MbxOut)
+                        {
+                           worktodo = FALSE;
+                           wkc = 0;
+                           break;
+                        }
                         ec_clearmbx(MbxOut);
                         FOEp = (ec_FOEt *)MbxOut;
                         FOEp->MbxHeader.length = htoes((uint16)(EC_MBX_MIN_FOE + segmentdata));

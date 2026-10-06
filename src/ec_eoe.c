@@ -79,6 +79,11 @@ int ecx_EOEsetIp(ecx_contextt *context, uint16 slave, uint8 port, eoe_param_t *i
    /* Empty slave out mailbox if something is in. Timeout set to 0 */
    wkc = ecx_mbxreceive(context, slave, &MbxIn, 0);
    MbxOut = ecx_getmbx(context);
+   if (!MbxOut)
+   {
+      if (MbxIn) ecx_dropmbx(context, MbxIn);
+      return 0;
+   }
    ec_clearmbx(MbxOut);
    EOEp = (ec_EOEt *)MbxOut;
    EOEp->mbxheader.address = htoes(0x0000);
@@ -198,6 +203,11 @@ int ecx_EOEgetIp(ecx_contextt *context, uint16 slave, uint8 port, eoe_param_t *i
    /* Empty slave out mailbox if something is in. Timeout set to 0 */
    wkc = ecx_mbxreceive(context, slave, &MbxIn, 0);
    MbxOut = ecx_getmbx(context);
+   if (!MbxOut)
+   {
+      if (MbxIn) ecx_dropmbx(context, MbxIn);
+      return 0;
+   }
    ec_clearmbx(MbxOut);
    EOEp = (ec_EOEt *)MbxOut;
    EOEp->mbxheader.address = htoes(0x0000);
@@ -352,6 +362,11 @@ int ecx_EOEsend(ecx_contextt *context, uint16 slave, uint8 port, int psize, void
    do
    {
       MbxOut = ecx_getmbx(context);
+      if (!MbxOut)
+      {
+         wkc = 0;
+         break;
+      }
       ec_clearmbx(MbxOut);
       EOEp = (ec_EOEt *)MbxOut;
       EOEp->mbxheader.address = htoes(0x0000);

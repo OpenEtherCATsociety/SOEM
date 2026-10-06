@@ -93,6 +93,11 @@ int ecx_SoEread(ecx_contextt *context, uint16 slave, uint8 driveNo, uint8 elemen
    /* Empty slave out mailbox if something is in. Timeout set to 0 */
    wkc = ecx_mbxreceive(context, slave, &MbxIn, 0);
    MbxOut = ecx_getmbx(context);
+   if (!MbxOut)
+   {
+      if (MbxIn) ecx_dropmbx(context, MbxIn);
+      return 0;
+   }
    ec_clearmbx(MbxOut);
    SoEp = (ec_SoEt *)MbxOut;
    SoEp->MbxHeader.length = htoes(sizeof(ec_SoEt) - sizeof(ec_mbxheadert));
@@ -231,6 +236,11 @@ int ecx_SoEwrite(ecx_contextt *context, uint16 slave, uint8 driveNo, uint8 eleme
    while (NotLast)
    {
       MbxOut = ecx_getmbx(context);
+      if (!MbxOut)
+      {
+         wkc = 0;
+         break;
+      }
       ec_clearmbx(MbxOut);
       SoEp = (ec_SoEt *)MbxOut;
       SoEp->MbxHeader.address = htoes(0x0000);

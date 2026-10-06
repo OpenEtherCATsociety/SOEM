@@ -41,6 +41,10 @@ typedef struct OSAL_PACKED
 } ec_mbxerrort;
 OSAL_PACKED_END
 
+/* Validate mailbox error structure meets protocol minimum */
+EC_STATIC_ASSERT(sizeof(ec_mbxerrort) == (sizeof(ec_mbxheadert) + EC_MBX_MIN_ERR),
+                 "ec_mbxerrort incorrect size");
+
 /** emergency request structure */
 OSAL_PACKED_BEGIN
 typedef struct OSAL_PACKED
@@ -184,8 +188,7 @@ static int ecx_mbx_validate_length(uint8 mbxtype, uint16 mbx_length)
    case ECT_MBXT_AOE:
       return (mbx_length >= EC_MBX_MIN_AOE);
    case ECT_MBXT_ERR:
-      /* Error mailbox has no minimum beyond header */
-      return 1;
+      return (mbx_length >= EC_MBX_MIN_ERR);
    default:
       /* Unknown type - reject */
       return 0;
@@ -1339,14 +1342,7 @@ int ecx_mbxinhandler(ecx_contextt *context, uint8 group, int limit)
                   uint8 mbxtype = mbxh->mbxtype & 0x0f;
 
                   /* Validate mailbox length */
-                  if (mbx_length < sizeof(ec_mbxheadert))
-                  {
-                     ecx_packeterror(context, slave, 0, 0, 20); /* mailbox length too short */
-                     ecx_dropmbx(context, mbx);
-                     mbx = NULL;
-                     wkc = 0;
-                  }
-                  else if (mbx_length > (mbxl - sizeof(ec_mbxheadert)))
+                  if (((uint32)mbx_length + sizeof(ec_mbxheadert)) > mbxl)
                   {
                      ecx_packeterror(context, slave, 0, 0, 21); /* mailbox length exceeds capacity */
                      ecx_dropmbx(context, mbx);
@@ -1751,16 +1747,8 @@ int ecx_mbxreceive(ecx_contextt *context, uint16 slave, ec_mbxbuft **mbx, int ti
                mbx_length = etohs(mbxh->length);
                uint8 mbxtype = mbxh->mbxtype & 0x0f;
 
-               /* Reject if length is less than minimum mailbox header */
-               if (mbx_length < sizeof(ec_mbxheadert))
-               {
-                  ecx_packeterror(context, slave, 0, 0, 20); /* mailbox length too short */
-                  ecx_dropmbx(context, mbxin);
-                  mbxin = NULL;
-                  wkc = 0;
-               }
                /* Reject if length exceeds what slave can send in this mailbox */
-               else if (mbx_length > (mbxl - sizeof(ec_mbxheadert)))
+               if (((uint32)mbx_length + sizeof(ec_mbxheadert)) > mbxl)
                {
                   ecx_packeterror(context, slave, 0, 0, 21); /* mailbox length exceeds capacity */
                   ecx_dropmbx(context, mbxin);

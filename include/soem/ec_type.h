@@ -307,6 +307,7 @@ enum
 /** Minimum mailbox data sizes (bytes beyond ec_mbxheadert)
  *  Used for early validation of mailbox sizes
  */
+#define EC_MBX_MIN_ERR   4
 #define EC_MBX_MIN_COE  10
 #define EC_MBX_MIN_SOE   4
 #define EC_MBX_MIN_EOE   4

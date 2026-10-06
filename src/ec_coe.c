@@ -298,6 +298,11 @@ int ecx_SDOread(ecx_contextt *context, uint16 slave, uint16 index, uint8 subinde
                               }
                            }
                         }
+                        /* stop if request failed or slave did not respond */
+                        if (wkc <= 0)
+                        {
+                           NotLast = FALSE;
+                        }
                         toggle = toggle ^ 0x10; /* toggle bit for segment request */
                      }
                      /* Only update *psize on successful completion */

@@ -249,6 +249,11 @@ int ecx_EOEgetIp(ecx_contextt *context, uint16 slave, uint8 port, eoe_param_t *i
             {
                wkc = -EOE_RESULT_UNSUPPORTED_FRAME_TYPE;
             }
+            else if (eoedatasize < EOE_PARAM_OFFSET)
+            {
+               /* response too short for the parameter flags */
+               wkc = -EC_ERR_TYPE_EOE_INVALID_RX_DATA;
+            }
             else
             {
                flags = aEOEp->data[0];

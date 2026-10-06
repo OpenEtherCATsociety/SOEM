@@ -1076,6 +1076,39 @@ static void ecx_config_create_mbxstatus_mappings(ecx_contextt *context, void *pI
    context->slavelist[slave].FMMUunused = FMMUc;
 }
 
+/** Check that the process data segments of a group fit in a frame.
+ * If not, the process data of the group is disabled.
+ *
+ * @param[in]  context    context struct
+ * @param[in]  group      group to check
+ * @return 1 if segments are valid, 0 otherwise
+ */
+static int ecx_config_check_segments(ecx_contextt *context, uint8 group)
+{
+   uint16 i;
+   uint32 maxsize = EC_MAXLRWDATA - EC_FIRSTDCDATAGRAM; /* first segment holds DC datagram */
+
+   for (i = 0; i < context->grouplist[group].nsegments; i++)
+   {
+      if (context->grouplist[group].IOsegment[i] > maxsize)
+      {
+         EC_PRINT("Process data of group %d does not fit in %d segments\n", group, EC_MAXIOSEGMENTS);
+         context->grouplist[group].Obytes = 0;
+         context->grouplist[group].Ibytes = 0;
+         context->grouplist[group].mbxstatuslength = 0;
+         context->grouplist[group].nsegments = 0;
+         if (!group)
+         {
+            context->slavelist[0].Obytes = 0;
+            context->slavelist[0].Ibytes = 0;
+         }
+         return 0;
+      }
+      maxsize = EC_MAXLRWDATA;
+   }
+   return 1;
+}
+
 static int ecx_main_config_map_group(ecx_contextt *context, void *pIOmap, uint8 group)
 {
    uint16 slave, configadr;
@@ -1124,14 +1157,14 @@ static int ecx_main_config_map_group(ecx_contextt *context, void *pIOmap, uint8 
 
                diff = LogAddr - oLogAddr;
                oLogAddr = LogAddr;
-               if ((segmentsize + diff) > segmentmaxsize && diff <= segmentmaxsize && currentsegment < EC_MAXIOSEGMENTS)
+               if ((segmentsize + diff) > segmentmaxsize && diff <= segmentmaxsize && currentsegment < (EC_MAXIOSEGMENTS - 1))
                {
                   context->grouplist[group].IOsegment[currentsegment++] = segmentsize;
                   segmentsize = 0;
                   segmentmaxsize = EC_MAXLRWDATA; /* can ignore DC overhead after first segment */
                }
                segmentsize += diff;
-               while (segmentsize > segmentmaxsize && currentsegment < EC_MAXIOSEGMENTS)
+               while (segmentsize > segmentmaxsize && currentsegment < (EC_MAXIOSEGMENTS - 1))
                {
                   context->grouplist[group].IOsegment[currentsegment++] = segmentmaxsize;
                   segmentsize -= segmentmaxsize;
@@ -1149,7 +1182,7 @@ static int ecx_main_config_map_group(ecx_contextt *context, void *pIOmap, uint8 
          LogAddr++;
          oLogAddr = LogAddr;
          BitPos = 0;
-         if ((segmentsize + 1) > segmentmaxsize && currentsegment < EC_MAXIOSEGMENTS)
+         if ((segmentsize + 1) > segmentmaxsize && currentsegment < (EC_MAXIOSEGMENTS - 1))
          {
             context->grouplist[group].IOsegment[currentsegment++] = segmentsize;
             segmentsize = 0;
@@ -1194,14 +1227,14 @@ static int ecx_main_config_map_group(ecx_contextt *context, void *pIOmap, uint8 
 
                diff = LogAddr - oLogAddr;
                oLogAddr = LogAddr;
-               if ((segmentsize + diff) > segmentmaxsize && diff <= segmentmaxsize && currentsegment < EC_MAXIOSEGMENTS)
+               if ((segmentsize + diff) > segmentmaxsize && diff <= segmentmaxsize && currentsegment < (EC_MAXIOSEGMENTS - 1))
                {
                   context->grouplist[group].IOsegment[currentsegment++] = segmentsize;
                   segmentsize = 0;
                   segmentmaxsize = EC_MAXLRWDATA; /* can ignore DC overhead after first segment */
                }
                segmentsize += diff;
-               while (segmentsize > segmentmaxsize && currentsegment < EC_MAXIOSEGMENTS)
+               while (segmentsize > segmentmaxsize && currentsegment < (EC_MAXIOSEGMENTS - 1))
                {
                   context->grouplist[group].IOsegment[currentsegment++] = segmentmaxsize;
                   segmentsize -= segmentmaxsize;
@@ -1219,7 +1252,7 @@ static int ecx_main_config_map_group(ecx_contextt *context, void *pIOmap, uint8 
          LogAddr++;
          oLogAddr = LogAddr;
          BitPos = 0;
-         if ((segmentsize + 1) > segmentmaxsize && currentsegment < EC_MAXIOSEGMENTS)
+         if ((segmentsize + 1) > segmentmaxsize && currentsegment < (EC_MAXIOSEGMENTS - 1))
          {
             context->grouplist[group].IOsegment[currentsegment++] = segmentsize;
             segmentsize = 0;
@@ -1270,6 +1303,11 @@ static int ecx_main_config_map_group(ecx_contextt *context, void *pIOmap, uint8 
                                         context->grouplist[group].logstartaddr -
                                         context->slavelist[0].Obytes; /* store input bytes in master record */
          context->slavelist[0].mbxstatus = (uint8 *)(pIOmap) + context->slavelist[0].Obytes + context->slavelist[0].Ibytes;
+      }
+
+      if (!ecx_config_check_segments(context, group))
+      {
+         return 0;
       }
 
       /* Do post mapping actions */
@@ -1385,14 +1423,14 @@ static int ecx_config_overlap_map_group(ecx_contextt *context, void *pIOmap, uin
             int soLength = soLogAddr - mLogAddr;
             int siLength = siLogAddr - mLogAddr;
             mLogAddr = tempLogAddr;
-            if ((segmentsize + diff) > segmentmaxsize && diff <= segmentmaxsize && currentsegment < EC_MAXIOSEGMENTS)
+            if ((segmentsize + diff) > segmentmaxsize && diff <= segmentmaxsize && currentsegment < (EC_MAXIOSEGMENTS - 1))
             {
                context->grouplist[group].IOsegment[currentsegment++] = segmentsize;
                segmentsize = 0;
                segmentmaxsize = EC_MAXLRWDATA; /* can ignore DC overhead after first segment */
             }
             segmentsize += diff;
-            while (segmentsize > segmentmaxsize && currentsegment < EC_MAXIOSEGMENTS)
+            while (segmentsize > segmentmaxsize && currentsegment < (EC_MAXIOSEGMENTS - 1))
             {
                context->grouplist[group].IOsegment[currentsegment++] = segmentmaxsize;
                segmentsize -= segmentmaxsize;
@@ -1483,6 +1521,11 @@ static int ecx_config_overlap_map_group(ecx_contextt *context, void *pIOmap, uin
          context->slavelist[0].mbxstatus = (uint8 *)pIOmap + context->slavelist[0].Obytes +
             ((context->slavelist[0].Obytes > context->slavelist[0].Ibytes) ?
               context->slavelist[0].Obytes : context->slavelist[0].Ibytes);
+      }
+
+      if (!ecx_config_check_segments(context, group))
+      {
+         return 0;
       }
 
       /* Do post mapping actions */

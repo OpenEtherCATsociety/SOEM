@@ -632,6 +632,7 @@ int16 ecx_siifind(ecx_contextt *context, uint16 slave, uint16 cat)
 {
    int16 a;
    uint16 p;
+   uint32 next;
    uint8 eectl = context->slavelist[slave].eep_pdi;
 
    a = ECT_SII_START << 1;
@@ -644,8 +645,14 @@ int16 ecx_siifind(ecx_contextt *context, uint16 slave, uint16 cat)
       /* read section length */
       p = ecx_siigetbyte(context, slave, a++);
       p += (ecx_siigetbyte(context, slave, a++) << 8);
-      /* locate next section category */
-      a += p << 1;
+      /* locate next section category, stop at end of EEPROM cache */
+      next = (uint32)a + ((uint32)p << 1);
+      if (next >= EC_MAXEEPBUF)
+      {
+         p = 0xffff;
+         break;
+      }
+      a = (int16)next;
       /* read section category */
       p = ecx_siigetbyte(context, slave, a++);
       p += (ecx_siigetbyte(context, slave, a++) << 8);

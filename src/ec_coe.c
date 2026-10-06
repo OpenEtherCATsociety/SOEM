@@ -575,6 +575,11 @@ int ecx_SDOwrite(ecx_contextt *context, uint16 Slave, uint16 Index, uint8 SubInd
                         }
                      }
                   }
+                  /* stop if request failed or slave did not respond */
+                  if (wkc <= 0)
+                  {
+                     NotLast = FALSE;
+                  }
                   toggle = toggle ^ 0x10; /* toggle bit for segment request */
                }
             }

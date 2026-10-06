@@ -757,8 +757,12 @@ uint32 ecx_readPDOassign(ecx_contextt *context, uint16 Slave, uint16 PDOassign)
    /* positive result from slave ? */
    if ((wkc > 0) && (rdat > 0))
    {
-      /* number of available sub indexes */
+      /* number of available sub indexes, subindex 0 is UINT8 (max 254) */
       nidx = rdat;
+      if (nidx > 254)
+      {
+         nidx = 254;
+      }
       bsize = 0;
       /* read all PDO's */
       for (idxloop = 1; idxloop <= nidx; idxloop++)

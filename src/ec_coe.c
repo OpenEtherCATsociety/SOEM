@@ -259,6 +259,9 @@ int ecx_SDOread(ecx_contextt *context, uint16 slave, uint16 index, uint8 subinde
                                  /* calculate mailbox transfer size */
                                  /* Segment overhead: 2 bytes CoE header + 1 byte command = 3 */
                                  Framedatasize = etohs(aSDOp->MbxHeader.length) - 3;
+                                 if (((aSDOp->Command & 0x01) > 0) && (Framedatasize == 7))
+                                    /* last segment, subtract unused bytes from frame */
+                                    Framedatasize = Framedatasize - ((aSDOp->Command & 0x0e) >> 1);
 
                                  /* Validate slave does not send more data than requested */
                                  if ((uint32)total + (uint32)Framedatasize > SDOlen)
@@ -270,9 +273,6 @@ int ecx_SDOread(ecx_contextt *context, uint16 slave, uint16 index, uint8 subinde
                                  else if ((aSDOp->Command & 0x01) > 0)
                                  { /* last segment */
                                     NotLast = FALSE;
-                                    if (Framedatasize == 7)
-                                       /* subtract unused bytes from frame */
-                                       Framedatasize = Framedatasize - ((aSDOp->Command & 0x0e) >> 1);
                                     /* copy to parameter buffer */
                                     memcpy(hp, &(aSDOp->Index), Framedatasize);
                                  }

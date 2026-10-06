@@ -342,6 +342,22 @@ int ecx_config_init(ecx_contextt *context)
          }
          (void)ecx_statecheck(context, slave, EC_STATE_INIT, EC_TIMEOUTSTATE); //* check state change Init */
 
+         if (context->slavelist[slave].mbx_l > 0)
+         {
+            eedat = ecx_readeeprom2(context, slave, EC_TIMEOUTEEP);
+            context->slavelist[slave].mbx_proto = (uint16)etohl(eedat);
+            /* disable mailbox if SII mailbox sizes are unusable */
+            if ((context->slavelist[slave].mbx_l < EC_MBX_MINSIZE) ||
+                (context->slavelist[slave].mbx_l > EC_MAXMBX) ||
+                (context->slavelist[slave].mbx_rl < EC_MBX_MINSIZE) ||
+                (context->slavelist[slave].mbx_rl > EC_MAXMBX))
+            {
+               EC_PRINT("Slave %d: invalid mailbox size, mailbox disabled\n", slave);
+               context->slavelist[slave].mbx_l = 0;
+               context->slavelist[slave].mbx_rl = 0;
+               context->slavelist[slave].mbx_proto = 0;
+            }
+         }
          /* set default mailbox configuration if slave has mailbox */
          if (context->slavelist[slave].mbx_l > 0)
          {
@@ -355,8 +371,6 @@ int ecx_config_init(ecx_contextt *context)
             context->slavelist[slave].SM[1].StartAddr = htoes(context->slavelist[slave].mbx_ro);
             context->slavelist[slave].SM[1].SMlength = htoes(context->slavelist[slave].mbx_rl);
             context->slavelist[slave].SM[1].SMflags = htoel(EC_DEFAULTMBXSM1);
-            eedat = ecx_readeeprom2(context, slave, EC_TIMEOUTEEP);
-            context->slavelist[slave].mbx_proto = (uint16)etohl(eedat);
          }
          /* find configuration via SII */
          if (!ecx_lookup_prev_sii(context, slave))

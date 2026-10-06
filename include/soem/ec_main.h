@@ -443,6 +443,9 @@ typedef struct OSAL_PACKED ec_mbxheader
 } ec_mbxheadert;
 OSAL_PACKED_END
 
+/** smallest usable mailbox size: mailbox header + CoE SDO header */
+#define EC_MBX_MINSIZE (sizeof(ec_mbxheadert) + EC_MBX_MIN_COE)
+
 /** ALstatus and ALstatus code */
 OSAL_PACKED_BEGIN
 typedef struct OSAL_PACKED ec_alstatus

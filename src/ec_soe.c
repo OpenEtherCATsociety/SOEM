@@ -35,8 +35,8 @@ typedef struct OSAL_PACKED
 OSAL_PACKED_END
 
 /* Validate SoE structure meets protocol minimum */
-_Static_assert(sizeof(ec_SoEt) == (sizeof(ec_mbxheadert) + EC_MBX_MIN_SOE),
-               "ec_SoEt incorrect size");
+EC_STATIC_ASSERT(sizeof(ec_SoEt) == (sizeof(ec_mbxheadert) + EC_MBX_MIN_SOE),
+                 "ec_SoEt incorrect size");
 
 /** Report SoE error.
  *

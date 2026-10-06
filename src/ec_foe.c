@@ -49,8 +49,8 @@ typedef struct OSAL_PACKED
 OSAL_PACKED_END
 
 /* Validate FoE structure meets protocol minimum */
-_Static_assert(offsetof(ec_FOEt, FileName) == (sizeof(ec_mbxheadert) + EC_MBX_MIN_FOE),
-               "ec_FOEt incorrect size");
+EC_STATIC_ASSERT(offsetof(ec_FOEt, FileName) == (sizeof(ec_mbxheadert) + EC_MBX_MIN_FOE),
+                 "ec_FOEt incorrect size");
 
 /** FoE progress hook.
  *

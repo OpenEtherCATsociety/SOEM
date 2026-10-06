@@ -314,6 +314,21 @@ enum
 #define EC_MBX_MIN_VOE   1
 #define EC_MBX_MIN_AOE   1
 
+/** Compile time assertion, usable at file scope.
+ *  Uses the native keyword on C11 / C++11, otherwise falls back to a
+ *  typedef of a negative sized array so pre-C11 compilers also accept it.
+ */
+#if defined(__cplusplus) && (__cplusplus >= 201103L)
+#define EC_STATIC_ASSERT(cond, msg) static_assert(cond, msg)
+#elif defined(__STDC_VERSION__) && (__STDC_VERSION__ >= 201112L)
+#define EC_STATIC_ASSERT(cond, msg) _Static_assert(cond, msg)
+#else
+#define EC_STATIC_ASSERT_CAT_(a, b) a##b
+#define EC_STATIC_ASSERT_CAT(a, b)  EC_STATIC_ASSERT_CAT_(a, b)
+#define EC_STATIC_ASSERT(cond, msg) \
+   typedef char EC_STATIC_ASSERT_CAT(ec_static_assert_, __LINE__)[(cond) ? 1 : -1]
+#endif
+
 /** CoE mailbox types */
 enum
 {

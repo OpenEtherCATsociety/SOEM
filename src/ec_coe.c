@@ -35,8 +35,8 @@ typedef struct OSAL_PACKED
 OSAL_PACKED_END
 
 /* Validate CoE structure meets protocol minimum */
-_Static_assert(sizeof(ec_SDOt) >= (sizeof(ec_mbxheadert) + EC_MBX_MIN_COE),
-               "ec_SDOt incorrect size");
+EC_STATIC_ASSERT(sizeof(ec_SDOt) >= (sizeof(ec_mbxheadert) + EC_MBX_MIN_COE),
+                 "ec_SDOt incorrect size");
 
 /** SDO service structure */
 OSAL_PACKED_BEGIN

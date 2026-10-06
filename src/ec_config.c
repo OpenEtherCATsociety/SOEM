@@ -107,7 +107,8 @@ static void ecx_set_slaves_to_default(ecx_contextt *context)
    ecx_BWR(&context->port, 0x0000, ECT_REG_DCSYSOFFSET, 12, &zbuf, EC_TIMEOUTRET3);
    w = htoes(0x1000);
    ecx_BWR(&context->port, 0x0000, ECT_REG_DCSPEEDCNT, sizeof(w), &w, EC_TIMEOUTRET3); /* DC speedstart */
-   w = htoes(0x0c00);
+   /* 0x0934 system time difference filter depth = 4, 0x0935 speed counter filter depth = 12 */
+   w = htoes(0x0c04);
    ecx_BWR(&context->port, 0x0000, ECT_REG_DCTIMEFILT, sizeof(w), &w, EC_TIMEOUTRET3); /* DC filt expr */
    b = 0x00;
    ecx_BWR(&context->port, 0x0000, ECT_REG_DLALIAS, sizeof(b), &b, EC_TIMEOUTRET3); /* Ignore Alias register */

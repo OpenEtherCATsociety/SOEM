@@ -588,18 +588,20 @@ uint8 ecx_siigetbyte(ecx_contextt *context, uint16 slave, uint16 address)
          ecx_eeprom2master(context, slave); /* set eeprom control to master */
          eadr = address >> 1;
          edat64 = ecx_readeepromFP(context, configadr, eadr, EC_TIMEOUTEEP);
-         /* 8 byte response */
+         /* 8 or 4 byte response, limited to the end of the cache */
+         cnt = context->slavelist[slave].eep_8byte ? 8 : 4;
+         if (cnt > (EC_MAXEEPBUF - (eadr << 1)))
+         {
+            cnt = EC_MAXEEPBUF - (eadr << 1);
+         }
          if (context->slavelist[slave].eep_8byte)
          {
-            put_unaligned64(edat64, &(context->esibuf[eadr << 1]));
-            cnt = 8;
+            memcpy(&(context->esibuf[eadr << 1]), &edat64, cnt);
          }
-         /* 4 byte response */
          else
          {
             edat32 = (uint32)edat64;
-            put_unaligned32(edat32, &(context->esibuf[eadr << 1]));
-            cnt = 4;
+            memcpy(&(context->esibuf[eadr << 1]), &edat32, cnt);
          }
          /* find bitmap location */
          mapw = eadr >> 4;

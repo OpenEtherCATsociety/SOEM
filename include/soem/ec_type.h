@@ -528,12 +528,6 @@ typedef struct
 #define get_unaligned(ptr) \
    ({ __typeof__(*(ptr)) __tmp; memcpy(&__tmp, (ptr), sizeof(*(ptr))); __tmp; })
 
-#define put_unaligned32(val, ptr) \
-   (memcpy((ptr), &(val), 4))
-
-#define put_unaligned64(val, ptr) \
-   (memcpy((ptr), &(val), 8))
-
 #if !defined(EC_BIG_ENDIAN) && defined(EC_LITTLE_ENDIAN)
 
 #define htoes(A)  (A)

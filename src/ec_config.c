@@ -1064,7 +1064,7 @@ static void ecx_config_create_mbxstatus_mappings(ecx_contextt *context, void *pI
       ecx_FPWR(&context->port, configadr, ECT_REG_FMMU0 + (sizeof(ec_fmmut) * FMMUc),
                sizeof(ec_fmmut), &(context->slavelist[slave].FMMU[FMMUc]), EC_TIMEOUTRET3);
 
-      position = etohl(context->slavelist[slave].FMMU[FMMUc].LogStart);
+      position = etohl(context->slavelist[slave].FMMU[FMMUc].LogStart) - context->grouplist[group].logstartaddr;
       context->slavelist[slave].mbxstatus = (uint8 *)(pIOmap) + position;
       context->grouplist[group].mbxstatuslookup[context->grouplist[group].mbxstatuslength] = slave;
       context->grouplist[group].mbxstatuslength++;
@@ -1127,6 +1127,7 @@ static int ecx_main_config_map_group(ecx_contextt *context, void *pIOmap, uint8 
       oLogAddr = LogAddr;
       BitPos = 0;
       context->grouplist[group].nsegments = 0;
+      context->grouplist[group].mbxstatuslength = 0;
       context->grouplist[group].outputsWKC = 0;
       context->grouplist[group].inputsWKC = 0;
 
@@ -1295,7 +1296,8 @@ static int ecx_main_config_map_group(ecx_contextt *context, void *pIOmap, uint8 
       context->grouplist[group].IOsegment[currentsegment] = segmentsize;
       context->grouplist[group].nsegments = currentsegment + 1;
       context->grouplist[group].mbxstatus = (uint8 *)(pIOmap) + context->grouplist[group].Obytes + context->grouplist[group].Ibytes;
-      context->grouplist[group].mbxstatuslength = LogAddr - context->grouplist[group].Obytes - context->grouplist[group].Ibytes;
+      context->grouplist[group].mbxstatuslength = LogAddr - context->grouplist[group].logstartaddr -
+                                                  context->grouplist[group].Obytes - context->grouplist[group].Ibytes;
       if (!group)
       {
          context->slavelist[0].inputs = (uint8 *)(pIOmap) + context->slavelist[0].Obytes;
@@ -1379,6 +1381,7 @@ static int ecx_config_overlap_map_group(ecx_contextt *context, void *pIOmap, uin
       soLogAddr = mLogAddr;
       BitPos = 0;
       context->grouplist[group].nsegments = 0;
+      context->grouplist[group].mbxstatuslength = 0;
       context->grouplist[group].outputsWKC = 0;
       context->grouplist[group].inputsWKC = 0;
 
@@ -1500,10 +1503,8 @@ static int ecx_config_overlap_map_group(ecx_contextt *context, void *pIOmap, uin
             {
                segmentsize += diff;
             }
-            /* Move calculated mbxstatus with max (OBytes,Ibytes) offset */
-            context->slavelist[slave].mbxstatus +=
-               ((context->grouplist[group].Obytes > context->grouplist[group].Ibytes) ?
-                 context->grouplist[group].Obytes : context->grouplist[group].Ibytes);
+            /* Move calculated mbxstatus with OBytes offset, received data is placed after outputs */
+            context->slavelist[slave].mbxstatus += context->grouplist[group].Obytes;
          }
       }
 

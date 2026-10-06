@@ -353,7 +353,8 @@ int ecx_readIDNmap(ecx_contextt *context, uint16 slave, uint32 *Osize, uint32 *I
       psize = sizeof(SoEmapping);
       /* read output mapping via SoE */
       wkc = ecx_SoEread(context, slave, driveNr, EC_SOE_VALUE_B, EC_IDN_MDTCONFIG, &psize, &SoEmapping, EC_TIMEOUTRXM);
-      if ((wkc > 0) && (psize >= 4) && ((entries = etohs(SoEmapping.currentlength) / 2) > 0) && (entries <= EC_SOE_MAXMAPPING))
+      if ((wkc > 0) && (psize >= 4) && ((entries = etohs(SoEmapping.currentlength) / 2) > 0) && (entries <= EC_SOE_MAXMAPPING) &&
+          (entries <= ((psize - 4) / 2)))
       {
          /* command word (uint16) is always mapped but not in list */
          *Osize += 16;
@@ -362,7 +363,7 @@ int ecx_readIDNmap(ecx_contextt *context, uint16 slave, uint32 *Osize, uint32 *I
             psize = sizeof(SoEattribute);
             /* read attribute of each IDN in mapping list */
             wkc = ecx_SoEread(context, slave, driveNr, EC_SOE_ATTRIBUTE_B, SoEmapping.idn[itemcount], &psize, &SoEattribute, EC_TIMEOUTRXM);
-            if ((wkc > 0) && (!SoEattribute.list))
+            if ((wkc > 0) && (psize >= (int)sizeof(SoEattribute)) && (!SoEattribute.list))
             {
                /* length : 0 = 8bit, 1 = 16bit .... */
                *Osize += (int)8 << SoEattribute.length;
@@ -372,7 +373,8 @@ int ecx_readIDNmap(ecx_contextt *context, uint16 slave, uint32 *Osize, uint32 *I
       psize = sizeof(SoEmapping);
       /* read input mapping via SoE */
       wkc = ecx_SoEread(context, slave, driveNr, EC_SOE_VALUE_B, EC_IDN_ATCONFIG, &psize, &SoEmapping, EC_TIMEOUTRXM);
-      if ((wkc > 0) && (psize >= 4) && ((entries = etohs(SoEmapping.currentlength) / 2) > 0) && (entries <= EC_SOE_MAXMAPPING))
+      if ((wkc > 0) && (psize >= 4) && ((entries = etohs(SoEmapping.currentlength) / 2) > 0) && (entries <= EC_SOE_MAXMAPPING) &&
+          (entries <= ((psize - 4) / 2)))
       {
          /* status word (uint16) is always mapped but not in list */
          *Isize += 16;
@@ -381,7 +383,7 @@ int ecx_readIDNmap(ecx_contextt *context, uint16 slave, uint32 *Osize, uint32 *I
             psize = sizeof(SoEattribute);
             /* read attribute of each IDN in mapping list */
             wkc = ecx_SoEread(context, slave, driveNr, EC_SOE_ATTRIBUTE_B, SoEmapping.idn[itemcount], &psize, &SoEattribute, EC_TIMEOUTRXM);
-            if ((wkc > 0) && (!SoEattribute.list))
+            if ((wkc > 0) && (psize >= (int)sizeof(SoEattribute)) && (!SoEattribute.list))
             {
                /* length : 0 = 8bit, 1 = 16bit .... */
                *Isize += (int)8 << SoEattribute.length;

@@ -86,6 +86,12 @@ int ecx_FOEread(ecx_contextt *context, uint16 slave, char *filename, uint32 pass
    uint8 cnt;
    boolean worktodo;
 
+   /* slave must have a usable mailbox */
+   if ((context->slavelist[slave].mbx_l < EC_MBX_MINSIZE) ||
+       (context->slavelist[slave].mbx_l > EC_MAXMBX))
+   {
+      return 0;
+   }
    buffersize = *psize;
    MbxIn = NULL;
    MbxOut = NULL;
@@ -227,6 +233,12 @@ int ecx_FOEwrite(ecx_contextt *context, uint16 slave, char *filename, uint32 pas
    boolean worktodo, dofinalzero;
    int tsize;
 
+   /* slave must have a usable mailbox */
+   if ((context->slavelist[slave].mbx_l < EC_MBX_MINSIZE) ||
+       (context->slavelist[slave].mbx_l > EC_MAXMBX))
+   {
+      return 0;
+   }
    MbxIn = NULL;
    MbxOut = NULL;
    /* Empty slave out mailbox if something is in. Timout set to 0 */

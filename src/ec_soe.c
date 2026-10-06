@@ -215,6 +215,12 @@ int ecx_SoEwrite(ecx_contextt *context, uint16 slave, uint8 driveNo, uint8 eleme
    uint8 cnt;
    boolean NotLast;
 
+   /* slave must have a usable mailbox */
+   if ((context->slavelist[slave].mbx_l < EC_MBX_MINSIZE) ||
+       (context->slavelist[slave].mbx_l > EC_MAXMBX))
+   {
+      return 0;
+   }
    MbxIn = NULL;
    MbxOut = NULL;
    /* Empty slave out mailbox if something is in. Timeout set to 0 */

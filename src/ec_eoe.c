@@ -341,8 +341,8 @@ int ecx_EOEsend(ecx_contextt *context, uint16 slave, uint8 port, int psize, void
    txframeoffset = 0;
    NotLast = TRUE;
 
-   /* Sanity check size of slave mailbox */
-   if (maxdata < 0)
+   /* Sanity check size of slave mailbox, need room for one 32 octet block */
+   if ((context->slavelist[slave].mbx_l > EC_MAXMBX) || (maxdata < 32))
    {
       /* This slave does not have a suitable mailbox */
       EC_PRINT("EoE: Bad mailbox size\n");

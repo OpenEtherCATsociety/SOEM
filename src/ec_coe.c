@@ -370,6 +370,12 @@ int ecx_SDOwrite(ecx_contextt *context, uint16 Slave, uint16 Index, uint8 SubInd
    boolean NotLast;
    const uint8 *hp;
 
+   /* slave must have a usable mailbox */
+   if ((context->slavelist[Slave].mbx_l < EC_MBX_MINSIZE) ||
+       (context->slavelist[Slave].mbx_l > EC_MAXMBX))
+   {
+      return 0;
+   }
    MbxIn = NULL;
    MbxOut = NULL;
    wkc = ecx_mbxreceive(context, Slave, &MbxIn, 0);
@@ -606,6 +612,12 @@ int ecx_RxPDO(ecx_contextt *context, uint16 Slave, uint16 RxPDOnumber, int psize
    ec_mbxbuft *MbxIn, *MbxOut;
    uint8 cnt;
 
+   /* slave must have a usable mailbox */
+   if ((context->slavelist[Slave].mbx_l < EC_MBX_MINSIZE) ||
+       (context->slavelist[Slave].mbx_l > EC_MAXMBX))
+   {
+      return 0;
+   }
    MbxIn = NULL;
    MbxOut = NULL;
    wkc = ecx_mbxreceive(context, Slave, &MbxIn, 0);

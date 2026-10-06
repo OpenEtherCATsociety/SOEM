@@ -1203,6 +1203,19 @@ static int ecx_main_config_map_group(ecx_contextt *context, void *pIOmap, uint8 
          context->slavelist[0].Obytes = LogAddr -
                                         context->grouplist[group].logstartaddr; /* store output bytes in master record */
       }
+      /* with blockLRW the inputs are sent first using LRD, starting in this segment,
+       * and that frame carries the DC datagram, so leave room for it */
+      for (slave = 1; slave <= context->slavecount; slave++)
+      {
+         if ((!group || (group == context->slavelist[slave].group)) && context->slavelist[slave].blockLRW)
+         {
+            if (segmentmaxsize > (segmentsize + EC_MAXLRWDATA - EC_FIRSTDCDATAGRAM))
+            {
+               segmentmaxsize = segmentsize + EC_MAXLRWDATA - EC_FIRSTDCDATAGRAM;
+            }
+            break;
+         }
+      }
 
       /* do input mapping of slave and program FMMUs */
       for (slave = 1; slave <= context->slavecount; slave++)

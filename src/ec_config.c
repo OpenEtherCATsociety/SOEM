@@ -103,6 +103,8 @@ static void ecx_set_slaves_to_default(ecx_contextt *context)
    b = 0x00;
    ecx_BWR(&context->port, 0x0000, ECT_REG_DCSYNCACT, sizeof(b), &b, EC_TIMEOUTRET3); /* reset activation register */
    ecx_BWR(&context->port, 0x0000, ECT_REG_DCSYSTIME, 4, &zbuf, EC_TIMEOUTRET3);      /* reset system time+ofs */
+   /* system time offset (0x0920, 8 bytes) and propagation delay (0x0928, 4 bytes) */
+   ecx_BWR(&context->port, 0x0000, ECT_REG_DCSYSOFFSET, 12, &zbuf, EC_TIMEOUTRET3);
    w = htoes(0x1000);
    ecx_BWR(&context->port, 0x0000, ECT_REG_DCSPEEDCNT, sizeof(w), &w, EC_TIMEOUTRET3); /* DC speedstart */
    w = htoes(0x0c00);

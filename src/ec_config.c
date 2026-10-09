@@ -1524,6 +1524,9 @@ static int ecx_config_overlap_map_group(ecx_contextt *context, void *pIOmap, uin
       /* Update segment info */
       context->grouplist[group].IOsegment[currentsegment] = segmentsize;
       context->grouplist[group].nsegments = currentsegment + 1;
+      context->grouplist[group].mbxstatuslength = mLogAddr - context->grouplist[group].logstartaddr -
+         ((context->grouplist[group].Obytes > context->grouplist[group].Ibytes) ?
+           context->grouplist[group].Obytes : context->grouplist[group].Ibytes);
 
       if (!group)
       {

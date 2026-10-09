@@ -790,6 +790,10 @@ uint32 ecx_readPDOassign(ecx_contextt *context, uint16 Slave, uint16 PDOassign)
             /* read number of subindexes of PDO */
             wkc = ecx_SDOread(context, Slave, idx, 0x00, FALSE, &rdl, &subcnt, EC_TIMEOUTRXM);
             subidx = subcnt;
+            if (subidx > 254)
+            {
+               subidx = 254;
+            }
             /* for each subindex */
             for (subidxloop = 1; subidxloop <= subidx; subidxloop++)
             {
@@ -843,6 +847,10 @@ uint32 ecx_readPDOassignCA(ecx_contextt *context, uint16 Slave, int Thread_n,
    if ((wkc > 0) && (context->PDOassign[Thread_n].n > 0))
    {
       nidx = context->PDOassign[Thread_n].n;
+      if (nidx > 254)
+      {
+         nidx = 254;
+      }
       bsize = 0;
       /* for each PDO do */
       for (idxloop = 1; idxloop <= nidx; idxloop++)
@@ -857,6 +865,10 @@ uint32 ecx_readPDOassignCA(ecx_contextt *context, uint16 Slave, int Thread_n,
             wkc = ecx_SDOread(context, Slave, idx, 0x00, TRUE, &rdl,
                               &(context->PDOdesc[Thread_n]), EC_TIMEOUTRXM);
             subidx = context->PDOdesc[Thread_n].n;
+            if (subidx > 254)
+            {
+               subidx = 254;
+            }
             /* extract all bitlengths of SDO's */
             for (subidxloop = 1; subidxloop <= subidx; subidxloop++)
             {

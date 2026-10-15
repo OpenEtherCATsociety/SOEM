@@ -228,7 +228,7 @@ int ecx_init(ecx_contextt *context, const char *ifname)
  * @param[in]  if2name  Secondary Dev name, f.e. "eth1"
  * @return >0 if OK
  */
-int ecx_init_redundant(ecx_contextt *context, ecx_redportt *redport, const char *ifname, char *if2name)
+int ecx_init_redundant(ecx_contextt *context, ecx_redportt *redport, const char *ifname, const char *if2name)
 {
    int rval, zbuf;
    ec_etherheadert *ehp;

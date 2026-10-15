@@ -579,7 +579,7 @@ boolean ecx_poperror(ecx_contextt *context, ec_errort *Ec);
 boolean ecx_iserror(ecx_contextt *context);
 void ecx_packeterror(ecx_contextt *context, uint16 Slave, uint16 Index, uint8 SubIdx, uint16 ErrorCode);
 int ecx_init(ecx_contextt *context, const char *ifname);
-int ecx_init_redundant(ecx_contextt *context, ecx_redportt *redport, const char *ifname, char *if2name);
+int ecx_init_redundant(ecx_contextt *context, ecx_redportt *redport, const char *ifname, const char *if2name);
 void ecx_close(ecx_contextt *context);
 uint8 ecx_siigetbyte(ecx_contextt *context, uint16 slave, uint16 address);
 int16 ecx_siifind(ecx_contextt *context, uint16 slave, uint16 cat);

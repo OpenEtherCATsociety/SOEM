@@ -1671,15 +1671,19 @@ int ecx_mbxreceive(ecx_contextt *context, uint16 slave, ec_mbxbuft **mbx, int ti
       if ((wkc > 0) && ((SMstat & 0x08) > 0)) /* read mailbox available ? */
       {
          mbxro = slavelist->mbx_ro;
-         mbxin = ecx_getmbx(context);  
-         if (mbxin == NULL)
-         { 
-             *mbx = NULL;   
-             return 0;     
-         }
-         mbxh = (ec_mbxheadert *)mbxin;
+         mbxin = NULL;
          do
          {
+            if (mbxin == NULL)
+            {
+               mbxin = ecx_getmbx(context);
+               if (mbxin == NULL)
+               {
+                  *mbx = NULL;
+                  return 0;
+               }
+               mbxh = (ec_mbxheadert *)mbxin;
+            }
             wkc = ecx_FPRD(&context->port, configadr, mbxro, mbxl, mbxin, EC_TIMEOUTRET); /* get mailbox */
             if ((wkc > 0) && ((mbxh->mbxtype & 0x0f) == 0x00))                            /* Mailbox error response? */
             {

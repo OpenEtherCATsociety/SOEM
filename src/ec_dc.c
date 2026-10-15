@@ -142,10 +142,10 @@ void ecx_dcsync01(ecx_contextt *context, uint16 slave, boolean act, uint32 CyclT
    context->slavelist[slave].DCcycle = CyclTime0;
 }
 
-/* latched port time of slave */
-static int32 ecx_porttime(ecx_contextt *context, uint16 slave, uint8 port)
+/* latched port time of slave, unsigned for wrap-safe differences */
+static uint32 ecx_porttime(ecx_contextt *context, uint16 slave, uint8 port)
 {
-   int32 ts;
+   uint32 ts;
    switch (port)
    {
    case 0:
@@ -257,7 +257,7 @@ boolean ecx_configdc(ecx_contextt *context)
    uint8 entryport;
    int8 nlist;
    int8 plist[4];
-   int32 tlist[4];
+   uint32 tlist[4];
    ec_timet mastertime;
    uint64 mastertime64;
 
@@ -332,17 +332,19 @@ boolean ecx_configdc(ecx_contextt *context)
             tlist[nlist] = context->slavelist[i].DCrtC;
             nlist++;
          }
-         /* entryport is port with the lowest timestamp */
+         /* Port timestamps wrap at 32 bits. Assume their span is less than
+          * 2^31 ns, so a modular difference above INT32_MAX identifies an
+          * earlier timestamp. Preserve the port order for equal timestamps. */
          entryport = 0;
-         if ((nlist > 1) && (tlist[1] < tlist[entryport]))
+         if ((nlist > 1) && ((uint32)(tlist[1] - tlist[entryport]) > INT32_MAX))
          {
             entryport = 1;
          }
-         if ((nlist > 2) && (tlist[2] < tlist[entryport]))
+         if ((nlist > 2) && ((uint32)(tlist[2] - tlist[entryport]) > INT32_MAX))
          {
             entryport = 2;
          }
-         if ((nlist > 3) && (tlist[3] < tlist[entryport]))
+         if ((nlist > 3) && ((uint32)(tlist[3] - tlist[entryport]) > INT32_MAX))
          {
             entryport = 3;
          }

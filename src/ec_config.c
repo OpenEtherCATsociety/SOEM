@@ -1519,13 +1519,29 @@ static int ecx_config_overlap_map_group(ecx_contextt *context, void *pIOmap, uin
  * frame. Use this mode for TI ESC when using LRW. Packed mode is not
  * possible when overlapped mode is enabled.
  *
+ * Reinitialize slaves with ecx_config_init() before mapping them again
+ * if they already have allocated FMMUs.
+ *
  * @param[in]  context    context struct
  * @param[out] pIOmap     pointer to IOmap
  * @param[in]  group      group to map, 0 = all groups
- * @return IOmap size
+ * @return IOmap size, or 0 if a selected slave already has allocated FMMUs
  */
 int ecx_config_map_group(ecx_contextt *context, void *pIOmap, uint8 group)
 {
+   uint16 slave;
+
+   /* Check all selected slaves before changing any mapping or device state. */
+   for (slave = 1; slave <= context->slavecount; slave++)
+   {
+      if ((!group || (group == context->slavelist[slave].group)) &&
+          context->slavelist[slave].FMMUunused)
+      {
+         EC_PRINT("Slave %d already mapped; call ecx_config_init() before remapping\n", slave);
+         return 0;
+      }
+   }
+
    if (context->overlappedMode)
    {
       return ecx_config_overlap_map_group(context, pIOmap, group);
